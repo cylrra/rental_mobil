@@ -1,0 +1,167 @@
+/* css/style.css */
+
+/* 1. KUMPULAN WARNA SOFT & PASTEL (PALET MODERN) */
+:root {
+    --bg-main: #f0f4f8;        /* Biru pastel sangat muda untuk background layar */
+    --bg-card: #ffffff;        /* Putih bersih untuk kotak konten/kartu */
+    --sidebar-bg: #ffffff;     /* Putih untuk sidebar agar kontras dengan background */
+    
+    /* Warna Aksen Biru Soft */
+    --primary-blue: #3b82f6;    /* Biru utama untuk menu aktif / tombol */
+    --primary-light: #e0f2fe;   /* Biru pastel sangat lembut untuk background menu aktif */
+    
+    /* Warna Teks (Hindari Hitam Pekat) */
+    --text-main: #1e293b;      /* Abu-abu gelap/Navy gelap untuk teks utama */
+    --text-muted: #64748b;     /* Abu-abu soft untuk keterangan kecil */
+    
+    /* Warna Pastel Tambahan untuk Indikator */
+    --pastel-green-bg: #d1fae5;  /* Latar belakang hijau pastel */
+    --pastel-green-text: #065f46;/* Teks hijau tua */
+    --pastel-blue-bg: #e0e7ff;   /* Latar belakang biru/indigo pastel */
+    --pastel-blue-text: #3730a3; /* Teks biru tua */
+}
+
+/* 2. RESET & BASE STYLING */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    display: flex; /* Membuat Sidebar dan Konten berjejer ke samping */
+    min-height: 100vh;
+}
+
+/* 3. LAYOUT SIDEBAR (Putih Bersih & Minimalis) */
+.sidebar {
+    width: 260px;
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 24px;
+}
+
+.brand {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary-blue);
+    margin-bottom: 32px;
+    letter-spacing: 0.5px;
+}
+
+.menu-list {
+    list-style: none;
+    flex-grow: 1;
+}
+
+.menu-item {
+    margin-bottom: 8px;
+}
+
+.menu-item a {
+    display: block;
+    padding: 12px 16px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+/* Gaya Tombol Menu Saat Aktif (Kombinasi Biru & Biru Pastel) */
+.menu-item.active a, .menu-item a:hover {
+    background-color: var(--primary-light);
+    color: var(--primary-blue);
+    font-weight: 600;
+}
+
+.btn-logout {
+    display: block;
+    text-align: center;
+    padding: 12px;
+    background-color: #fee2e2; /* Merah pastel */
+    color: #991b1b;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 8px;
+}
+
+/* 4. AREA KONTEN UTAMA */
+.main-content {
+    flex: 1;
+    padding: 40px;
+}
+
+.content-header {
+    margin-bottom: 32px;
+}
+
+.content-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 4px;
+}
+
+.content-header p {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+/* 5. GRID & KARTU STATISTIK (Soft Shadow & Rounded) */
+.grid-layout {
+    display: grid;
+    grid-template-columns: repeat(3, 11fr); /* Membagi 3 kolom sama rata */
+    gap: 24px;
+}
+
+.card-stats {
+    background-color: var(--bg-card);
+    border-radius: 16px; /* Sudut melengkung halus modern */
+    padding: 24px;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: 0 4px 12px rgba(148, 163, 184, 0.08); /* Bayangan tipis abu-abu */
+}
+
+.card-stats h3 {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.card-stats .value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+/* Badge Berwarna Pastel untuk Status */
+.badge-pastel {
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    margin-top: 8px;
+}
+
+.badge-pastel.blue {
+    background-color: var(--pastel-blue-bg);
+    color: var(--pastel-blue-text);
+}
+
+.badge-pastel.green {
+    background-color: var(--pastel-green-bg);
+    color: var(--pastel-green-text);
+}

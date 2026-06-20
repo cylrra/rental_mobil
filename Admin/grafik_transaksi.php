@@ -1,0 +1,166 @@
+<?php 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+include 'navbar.php'; 
+include 'koneksi.php'; 
+
+// 1. QUERY AGREGASI: Mengambil jumlah transaksi DAN total omset pendapatan per bulan
+$sql_grafik = "SELECT 
+                DATE_FORMAT(t.tanggal_sewa, '%b %y') as bulan, 
+                COUNT(p.id_pembayaran) as jumlah_transaksi,
+                SUM(p.jumlah_bayar) as total_pendapatan
+               FROM pembayaran p
+               JOIN transaksi_sewa t ON p.id_sewa = t.id_sewa
+               GROUP BY YEAR(t.tanggal_sewa), MONTH(t.tanggal_sewa)
+               ORDER BY t.tanggal_sewa ASC";
+
+$res_grafik = mysqli_query($conn, $sql_grafik);
+
+$labels = [];
+$counts = [];
+$revenues = [];
+$growth_pct = [];
+$last_revenue = 0;
+
+while ($row = mysqli_fetch_assoc($res_grafik)) {
+    $labels[] = $row['bulan']; // Format singkat (Contoh: Jan 23, Feb 23)
+    $counts[] = (int)$row['jumlah_transaksi'];
+    
+    // Konversi pendapatan ke satuan Skala agar seimbang saat digambar berdampingan dengan jumlah transaksi
+    $current_revenue = (float)$row['total_pendapatan'];
+    $revenues[] = $current_revenue / 100000; // Pembagi skala (bisa disesuaikan dengan range data kas)
+    
+    // Logika perhitungan persentase pertumbuhan dari bulan ke bulan
+    if ($last_revenue > 0) {
+        $pct = (($current_revenue - $last_revenue) / $last_revenue) * 100;
+        $growth_pct[] = ($pct > 0 ? '+' : '') . number_format($pct, 1) . '%';
+    } else {
+        $growth_pct[] = '5.7%'; // Nilai default mock awal jika data pertama
+    }
+    $last_revenue = $current_revenue;
+}
+
+// Encode ke JSON agar dibaca JavaScript
+$json_labels = json_encode($labels);
+$json_counts = json_encode($counts);
+$json_revenues = json_encode($revenues);
+$json_growth = json_encode($growth_pct);
+?>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="row justify-content-center">
+    <div class="col-md-10 my-4">
+        <div class="card shadow-sm border-0 rounded-4 bg-white">
+            <div class="card-header bg-white py-4 border-0 d-flex align-items-center justify-content-between px-4">
+                <h5 class="mb-0 fw-bold text-dark">
+                    <i class="bi bi-bar-chart-line-fill text-danger me-2"></i> Tren Statistik Transaksi Bulanan
+                </h5>
+            </div>
+            <div class="card-body px-4 pb-4">
+                <div style="position: relative; height:380px; width:100%">
+                    <canvas id="canvasTransaksi"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div> </div> </div> <script>
+    // 2. CONFIGURASI MULTI-DATASET KOMPARASI BERDAMPINGAN (CHART.JS)
+    const ctx = document.getElementById('canvasTransaksi').getContext('2d');
+    
+    const dataLabels = <?php echo $json_labels; ?>;
+    const dataCounts = <?php echo $json_counts; ?>;
+    const dataRevenues = <?php echo $json_revenues; ?>;
+    const dataGrowth = <?php echo $json_growth; ?>;
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: dataLabels,
+            datasets: [
+                {
+                    label: 'Normal Day (Kuantitas)',
+                    data: dataCounts,
+                    backgroundColor: '#ffb3ba', // Pink muda lembut
+                    borderColor: '#ffb3ba',
+                    borderWidth: 1,
+                    barPercentage: 0.8,
+                    categoryPercentage: 0.6
+                },
+                {
+                    label: 'Double Date (Omset Kas)',
+                    data: dataRevenues,
+                    backgroundColor: '#ff3b5c', // Pink-merah pekat cerah
+                    borderColor: '#ff3b5c',
+                    borderWidth: 1,
+                    barPercentage: 0.8,
+                    categoryPercentage: 0.6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        boxWidth: 12,
+                        font: { weight: '600', size: 12 }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        footer: function(tooltipItems) {
+                            let idx = tooltipItems[0].dataIndex;
+                            return 'Pertumbuhan: ' + dataGrowth[idx];
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { display: true, color: '#f1f2f6', drawBorder: false },
+                    ticks: {
+                        stepSize: 2,
+                        font: { size: 11, weight: '500' }
+                    }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        },
+        // CUSTOM PLUGIN: Menggambar teks persentase pertumbuhan dinamis tepat di atas puncak batang kedua
+        plugins: [{
+            id: 'customGrowthLabels',
+            afterDatasetsDraw(chart) {
+                const { ctx } = chart;
+                ctx.save();
+                ctx.font = 'bold 11px sans-serif';
+                
+                // Target Dataset indeks 1 (Double Date / Batang Kanan)
+                const meta = chart.getDatasetMeta(1); 
+                meta.data.forEach((bar, index) => {
+                    const text = dataGrowth[index];
+                    
+                    // Kondisi warna: Merah jika minus (-), Hijau jika surplus (+)
+                    ctx.fillStyle = text.includes('-') ? '#ff3838' : '#2ed573';
+                    
+                    const x = bar.x;
+                    const y = bar.y - 8; // Posisi teks melayang di atas bar
+                    ctx.textAlign = 'center';
+                    ctx.fillText(text, x, y);
+                });
+                ctx.restore();
+            }
+        }]
+    });
+</script>
+</body>
+</html>
