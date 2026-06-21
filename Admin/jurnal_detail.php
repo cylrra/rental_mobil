@@ -30,9 +30,13 @@ include 'koneksi.php';
                 <tbody>
                     <?php
                     $sql_view = "SELECT jd.*, na.nama_akun 
-                                 FROM jurnal_detail jd
+                                 FROM (
+                                     SELECT id_jurnal, tanggal, kode_akun, debit, kredit, keterangan, id_sumber FROM jurnal_detail
+                                     UNION ALL
+                                     SELECT id_jurnal, tanggal, kode_akun, Debit AS debit, Kredit AS kredit, keterangan, id_sumber FROM jurnal
+                                 ) jd
                                  LEFT JOIN nama_akun na ON jd.kode_akun = na.kode_akun
-                                 ORDER BY jd.id_jurnal DESC";
+                                 ORDER BY jd.tanggal DESC, jd.id_jurnal DESC";
                     $res_view = mysqli_query($conn, $sql_view);
 
                     if (mysqli_num_rows($res_view) > 0) {

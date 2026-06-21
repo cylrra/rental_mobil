@@ -30,7 +30,7 @@ if (isset($_POST['simpan_jurnal'])) {
                              VALUES ('$tanggal', '$akun_kredit', 0, '$nominal_kredit', '$keterangan', 1)");
 
         mysqli_commit($conn);
-        echo "<script>alert('Jurnal Umum Berhasil Dibukukan!'); window.location='jurnal_riwayat.php';</script>";
+        echo "<script>alert('Jurnal Umum Berhasil Dibukukan!'); window.location='jurnal_detail.php';</script>";
     } catch (Exception $e) {
         mysqli_rollback($conn);
         echo "<script>alert('Gagal: " . $e->getMessage() . "'); window.history.back();</script>";
@@ -38,26 +38,39 @@ if (isset($_POST['simpan_jurnal'])) {
 }
 ?>
 
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card shadow-sm border-0 rounded-4 bg-white mb-4">
-            <div class="card-header bg-primary text-white py-3">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-pencil-square"></i> Formulir Jurnal Umum Baru</h5>
-            </div>
-            <div class="card-body p-4">
-                <form action="" method="POST">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Tanggal</label>
-                        <input type="date" name="tanggal" class="form-control" value="<?= date('Y-m-d'); ?>" required>
+<div class="p-8">
+    <div class="mb-8 text-center max-w-2xl mx-auto">
+        <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Jurnal Umum</h1>
+        <p class="text-slate-500 mt-1 font-medium italic">Catat transaksi keuangan secara manual ke dalam buku besar akuntansi.</p>
+    </div>
+
+    <div class="flex justify-center">
+        <div class="w-full lg:w-1/2">
+            <div class="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm hover-lift">
+                <div class="flex items-center gap-3 mb-8 pb-4 border-b border-slate-100">
+                    <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <i data-lucide="book-open" class="w-6 h-6"></i>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Keterangan Transaksi</label>
-                        <input type="text" name="keterangan" class="form-control" placeholder="Contoh: Pembelian bensin operasional Fortuner" required>
+                    <div>
+                        <h4 class="text-xl font-bold text-slate-800">Formulir Jurnal Baru</h4>
+                        <p class="text-sm text-slate-500 font-medium">Pastikan sisi Debit dan Kredit bernilai sama</p>
+                    </div>
+                </div>
+                <form action="" method="POST" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Tanggal</label>
+                            <input type="date" name="tanggal" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors bg-slate-50" value="<?= date('Y-m-d'); ?>" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Keterangan Transaksi</label>
+                            <input type="text" name="keterangan" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors bg-slate-50" placeholder="Contoh: Pembelian bensin" required>
+                        </div>
                     </div>
 
-                    <div class="p-3 bg-light rounded-3 mb-3 border-start border-4 border-success">
-                        <label class="form-label fw-bold text-success">Akun Sisi DEBIT</label>
-                        <select name="akun_debit" class="form-select mb-2" required>
+                    <div class="p-6 bg-slate-50 rounded-xl border-l-4 border-l-emerald-500 border border-y-slate-200 border-r-slate-200">
+                        <label class="block text-sm font-bold text-emerald-600 mb-2">Akun Sisi DEBIT</label>
+                        <select name="akun_debit" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors bg-white mb-4" required>
                             <option value="">-- Pilih Akun Debit --</option>
                             <?php
                             $coas = mysqli_query($conn, "SELECT kode_akun, nama_akun FROM nama_akun ORDER BY kode_akun ASC");
@@ -66,12 +79,15 @@ if (isset($_POST['simpan_jurnal'])) {
                             }
                             ?>
                         </select>
-                        <input type="number" name="nominal_debit" class="form-control" placeholder="Masukkan Nominal Rp" min="1" required>
+                        <div class="relative flex items-center">
+                            <span class="absolute left-4 font-bold text-emerald-600">Rp</span>
+                            <input type="number" name="nominal_debit" class="w-full rounded-xl border-slate-200 pl-12 pr-4 py-3 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors bg-white font-bold text-emerald-700" placeholder="Masukkan Nominal Rp" min="1" required>
+                        </div>
                     </div>
 
-                    <div class="p-3 bg-light rounded-3 mb-4 border-start border-4 border-danger">
-                        <label class="form-label fw-bold text-danger">Akun Sisi KREDIT</label>
-                        <select name="akun_kredit" class="form-select mb-2" required>
+                    <div class="p-6 bg-slate-50 rounded-xl border-l-4 border-l-rose-500 border border-y-slate-200 border-r-slate-200">
+                        <label class="block text-sm font-bold text-rose-600 mb-2">Akun Sisi KREDIT</label>
+                        <select name="akun_kredit" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors bg-white mb-4" required>
                             <option value="">-- Pilih Akun Kredit --</option>
                             <?php
                             mysqli_data_seek($coas, 0);
@@ -80,11 +96,14 @@ if (isset($_POST['simpan_jurnal'])) {
                             }
                             ?>
                         </select>
-                        <input type="number" name="nominal_kredit" class="form-control" placeholder="Masukkan Nominal Rp" min="1" required>
+                        <div class="relative flex items-center">
+                            <span class="absolute left-4 font-bold text-rose-600">Rp</span>
+                            <input type="number" name="nominal_kredit" class="w-full rounded-xl border-slate-200 pl-12 pr-4 py-3 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors bg-white font-bold text-rose-700" placeholder="Masukkan Nominal Rp" min="1" required>
+                        </div>
                     </div>
 
-                    <button type="submit" name="simpan_jurnal" class="btn btn-primary w-100 py-2.5 rounded-3 fw-bold">
-                        <i class="bi bi-check-circle-fill"></i> Simpan Pembukuan
+                    <button type="submit" name="simpan_jurnal" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl shadow-md shadow-blue-600/20 hover:bg-blue-700 transition-colors flex justify-center items-center gap-2 mt-4">
+                        <i data-lucide="check-circle" class="w-5 h-5"></i> Simpan Pembukuan
                     </button>
                 </form>
             </div>
@@ -92,8 +111,8 @@ if (isset($_POST['simpan_jurnal'])) {
     </div>
 </div>
 
-        </div> 
-    </div> 
+    </main> 
 </div> 
+<script>lucide.createIcons();</script>
 </body>
 </html>

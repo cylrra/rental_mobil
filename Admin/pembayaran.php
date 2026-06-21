@@ -15,31 +15,45 @@ if ($id_pilihan) {
                                   LEFT JOIN supir s ON t.id_supir = s.id_supir 
                                   WHERE t.id_sewa = '$id_pilihan_clean'");
     if ($res_t && $row_t = mysqli_fetch_assoc($res_t)) {
-        $tarif_mobil = $row_t['tarif_per_hari'];
-        $tarif_supir = ($row_t['opsi_supir'] == 'ya' && !empty($row_t['tarif_supir_per_hari'])) ? $row_t['tarif_supir_per_hari'] : 0;
-        $initial_tagihan = ($tarif_mobil + $tarif_supir) * $row_t['lama_sewa'];
+        if ($row_t['total_biaya'] > 0) {
+            $initial_tagihan = $row_t['total_biaya'];
+        } else {
+            $tarif_mobil = $row_t['tarif_per_hari'];
+            $tarif_supir = ($row_t['pake_supir'] == 'Ya' && !empty($row_t['tarif_supir_per_hari'])) ? $row_t['tarif_supir_per_hari'] : 0;
+            $initial_tagihan = ($tarif_mobil + $tarif_supir) * $row_t['lama_sewa'];
+        }
     }
 }
 ?>
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-header bg-primary text-white p-4 rounded-top-4">
-                    <h4 class="fw-bold mb-0"><i class="bi bi-plus-circle me-2"></i> Input Pembayaran Baru</h4>
-                    <p class="mb-0 opacity-75">Silakan isi detail pembayaran atau pilih transaksi lain</p>
+<div class="p-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Manajemen Pembayaran</h1>
+        <p class="text-slate-500 mt-1 font-medium italic">Catat dan proses pembayaran sewa kendaraan dari pelanggan.</p>
+    </div>
+
+    <div class="flex justify-center">
+        <div class="w-full lg:w-2/3">
+            <div class="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm hover-lift">
+                <div class="flex items-center gap-3 mb-8 pb-4 border-b border-slate-100">
+                    <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <i data-lucide="wallet" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-bold text-slate-800">Input Pembayaran Baru</h4>
+                        <p class="text-sm text-slate-500 font-medium">Silakan isi detail pembayaran atau pilih transaksi lain</p>
+                    </div>
                 </div>
-                <div class="card-body p-4">
-                    <form action="proses_bayar.php" method="POST">
+                <form action="proses_bayar.php" method="POST" class="space-y-6">
                         
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">ID Transaksi / Sewa</label>
-                            <select name="id_transaksi" class="form-select form-select-lg" required>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">ID Transaksi / Sewa</label>
+                            <select name="id_transaksi" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors bg-slate-50" required>
                                 <option value="">-- Klik untuk Pilih Transaksi --</option>
                                 <?php 
                                 // Ambil data transaksi berjalan dengan JOIN ke mobil & supir untuk menghitung total tagihan
-                                $sql_t = mysqli_query($conn, "SELECT t.*, m.tarif_per_hari, s.tarif_supir_per_hari 
+                                $sql_t = mysqli_query($conn, "SELECT t.*, m.tarif_per_hari, s.tarif_supir_per_hari,
+                                                              (SELECT COALESCE(SUM(jumlah_bayar), 0) FROM pembayaran p WHERE p.id_sewa = t.id_sewa) as sudah_dibayar
                                                               FROM transaksi_sewa t 
                                                               JOIN mobil m ON t.kode_mobil = m.kode_mobil 
                                                               LEFT JOIN supir s ON t.id_supir = s.id_supir 
@@ -49,54 +63,70 @@ if ($id_pilihan) {
                                     $id_db = trim($t['id_sewa']);
                                     $selected = ($id_db == $id_pilihan) ? "selected" : "";
                                     
-                                    // Hitung total tagihan: (tarif mobil + tarif supir jika sewa pakai supir) * lama sewa
-                                    $tarif_mobil = $t['tarif_per_hari'];
-                                    $tarif_supir = ($t['opsi_supir'] == 'ya' && !empty($t['tarif_supir_per_hari'])) ? $t['tarif_supir_per_hari'] : 0;
-                                    $tagihan = ($tarif_mobil + $tarif_supir) * $t['lama_sewa'];
+                                    // Tentukan total tagihan
+                                    if ($t['total_biaya'] > 0) {
+                                        $tagihan = $t['total_biaya'];
+                                    } else {
+                                        $tarif_mobil = $t['tarif_per_hari'];
+                                        $tarif_supir = ($t['pake_supir'] == 'Ya' && !empty($t['tarif_supir_per_hari'])) ? $t['tarif_supir_per_hari'] : 0;
+                                        $tagihan = ($tarif_mobil + $tarif_supir) * $t['lama_sewa'];
+                                    }
                                     
-                                    echo "<option value='".$id_db."' data-tagihan='".$tagihan."' $selected>";
+                                    $sudah_dibayar = $t['sudah_dibayar'];
+                                    
+                                    echo "<option value='".$id_db."' data-tagihan='".$tagihan."' data-dibayar='".$sudah_dibayar."' $selected>";
                                     echo "#SRV-".$id_db." (Mobil: ".$t['kode_mobil'].")";
                                     echo "</option>";
                                 }
                                 ?>
                             </select>
+                            </select>
                             <?php if($id_pilihan): ?>
-                                <div class="form-text text-success">
-                                    <i class="bi bi-check2-circle"></i> ID Transaksi #<?= htmlspecialchars($id_pilihan) ?> terpilih otomatis.
+                                <div class="mt-2 text-sm text-emerald-600 font-medium flex items-center gap-1.5">
+                                    <i data-lucide="check-circle" class="w-4 h-4"></i> ID Transaksi #<?= htmlspecialchars($id_pilihan) ?> terpilih otomatis.
                                 </div>
                             <?php endif; ?>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Tanggal Bayar</label>
-                                <input type="date" name="tgl_bayar" class="form-control" value="<?php echo date('Y-m-d'); ?>" required>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Tanggal Bayar</label>
+                                <input type="date" name="tgl_bayar" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors bg-slate-50" value="<?php echo date('Y-m-d'); ?>" required>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Metode Pembayaran</label>
-                                <select name="metode_bayar" class="form-select" required>
-                                    <option value="Tunai">Tunai</option>
-                                    <option value="Transfer">Transfer</option>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Metode Pembayaran</label>
+                                <select name="metode_bayar" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors bg-slate-50" required>
+                                    <option value="cash">Cash / Tunai</option>
+                                    <option value="transfer">Transfer Bank</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Jenis Pembayaran</label>
+                                <select name="jenis_pembayaran" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors bg-slate-50" required>
+                                    <option value="dp">Uang Muka (DP)</option>
+                                    <option value="pelunasan">Pelunasan / Lunas</option>
                                 </select>
                             </div>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Jumlah Bayar (Rp)</label>
-                            <div class="input-group input-group-lg">
-                                <span class="input-group-text bg-light text-primary fw-bold">Rp</span>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Jumlah Bayar (Rp)</label>
+                            <div class="relative flex items-center">
+                                <span class="absolute left-4 font-bold text-blue-600">Rp</span>
                                 <!-- Input text visual untuk tampilan formal/baku dengan separator ribuan -->
-                                <input type="text" id="jumlah_bayar_formatted" class="form-control text-primary fw-bold" placeholder="Pilih transaksi terlebih dahulu" value="<?php echo !empty($initial_tagihan) ? number_format($initial_tagihan, 0, ',', '.') : ''; ?>" readonly required>
+                                <input type="text" id="jumlah_bayar_formatted" class="w-full rounded-xl border-slate-200 pl-12 pr-4 py-3 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors bg-slate-50 font-bold text-blue-700 text-lg" placeholder="Pilih transaksi terlebih dahulu" value="<?php echo !empty($initial_tagihan) ? number_format($initial_tagihan, 0, ',', '.') : ''; ?>" readonly required>
                                 <!-- Input hidden raw untuk dikirimkan ke database agar query SQL tetap berjalan normal -->
                                 <input type="hidden" name="jumlah_bayar" id="jumlah_bayar" value="<?php echo htmlspecialchars($initial_tagihan); ?>">
                             </div>
                         </div>
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" name="simpan_pembayaran" class="btn btn-primary btn-lg rounded-3">
-                                <i class="bi bi-save me-2"></i> Simpan Pembayaran & Posting Jurnal
+                        <div class="flex flex-col gap-3 pt-2">
+                            <button type="submit" name="simpan_pembayaran" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl shadow-md shadow-blue-600/20 hover:bg-blue-700 transition-colors flex justify-center items-center gap-2">
+                                <i data-lucide="save" class="w-5 h-5"></i> Simpan Pembayaran & Posting Jurnal
                             </button>
-                            <a href="riwayat_pembayaran.php" class="btn btn-light text-muted">Lihat Riwayat</a>
+                            <a href="riwayat_pembayaran.php" class="w-full bg-slate-100 text-slate-600 font-bold py-3 rounded-xl hover:bg-slate-200 transition-colors flex justify-center items-center">
+                                Lihat Riwayat
+                            </a>
                         </div>
                     </form>
                 </div>
@@ -108,35 +138,59 @@ if ($id_pilihan) {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const selectTransaksi = document.querySelector('select[name="id_transaksi"]');
+    const selectJenisBayar = document.querySelector('select[name="jenis_pembayaran"]');
     const inputJumlahBayar = document.getElementById('jumlah_bayar');
     const inputJumlahBayarFormatted = document.getElementById('jumlah_bayar_formatted');
     
     function updateJumlahBayar() {
-        if (selectTransaksi && inputJumlahBayar && inputJumlahBayarFormatted) {
+        if (selectTransaksi && inputJumlahBayar && inputJumlahBayarFormatted && selectJenisBayar) {
             const selectedOption = selectTransaksi.options[selectTransaksi.selectedIndex];
-            if (selectedOption) {
-                const tagihan = selectedOption.getAttribute('data-tagihan');
-                if (tagihan) {
-                    // Isi nilai raw ke hidden input untuk database
-                    inputJumlahBayar.value = tagihan;
-                    
-                    // Format ke rupiah baku (separator titik) untuk visual input text
-                    const formatted = new Intl.NumberFormat('id-ID').format(tagihan);
-                    inputJumlahBayarFormatted.value = formatted;
-                } else {
-                    inputJumlahBayar.value = '';
-                    inputJumlahBayarFormatted.value = '';
+            if (selectedOption && selectedOption.value !== "") {
+                const tagihan = parseFloat(selectedOption.getAttribute('data-tagihan'));
+                const sudahDibayar = parseFloat(selectedOption.getAttribute('data-dibayar'));
+                const jenis = selectJenisBayar.value;
+                
+                let nominalBayar = 0;
+                
+                if (jenis === 'dp') {
+                    // DP adalah 50% dari total tagihan
+                    nominalBayar = tagihan * 0.5;
+                    // Jika sudah pernah bayar DP (sudah_dibayar > 0), DP tidak boleh lagi atau sesuaikan
+                    if (sudahDibayar >= (tagihan * 0.5)) {
+                        alert("Uang muka (DP) untuk transaksi ini sudah dibayar sebelumnya.");
+                        nominalBayar = 0;
+                        selectJenisBayar.value = 'pelunasan';
+                        updateJumlahBayar();
+                        return;
+                    }
+                } else if (jenis === 'pelunasan') {
+                    // Pelunasan adalah sisa tagihan
+                    nominalBayar = tagihan - sudahDibayar;
+                    if (nominalBayar < 0) nominalBayar = 0;
                 }
+                
+                if (nominalBayar >= 0) {
+                    inputJumlahBayar.value = nominalBayar;
+                    const formatted = new Intl.NumberFormat('id-ID').format(nominalBayar);
+                    inputJumlahBayarFormatted.value = formatted;
+                }
+            } else {
+                inputJumlahBayar.value = '';
+                inputJumlahBayarFormatted.value = '';
             }
         }
     }
     
-    if (selectTransaksi && inputJumlahBayar) {
-        // 1. Jalankan langsung saat halaman selesai dimuat (on load)
+    if (selectTransaksi && inputJumlahBayar && selectJenisBayar) {
         updateJumlahBayar();
-        
-        // 2. Jalankan setiap kali pilihan dropdown berubah (on change)
         selectTransaksi.addEventListener('change', updateJumlahBayar);
+        selectJenisBayar.addEventListener('change', updateJumlahBayar);
     }
 });
 </script>
+
+</div> </main>
+</div>
+<script>lucide.createIcons();</script>
+</body>
+</html>

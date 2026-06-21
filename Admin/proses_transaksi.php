@@ -28,9 +28,7 @@ if (isset($_POST['submit'])) {
     // 3. Ambil Tarif Harian Supir & Hitung Biaya Supir secara Terpisah (Jika pakai supir)
     $biaya_supir = 0;
     if ($id_supir !== null) {
-        $query_supir = mysqli_query($conn, "SELECT tarif_supir_per_hari FROM supir WHERE id_supir = '$id_supir'");
-        $data_supir  = mysqli_fetch_assoc($query_supir);
-        $tarif_supir = $data_supir['tarif_supir_per_hari'];
+        $tarif_supir = 200000; // Hardcode tagihan tambah 200 ribu
         
         // Kalkulasi biaya supir sesuai lama hari sewa
         $biaya_supir = $tarif_supir * $lama_sewa;
@@ -44,7 +42,7 @@ if (isset($_POST['submit'])) {
 
     // 5. Masukkan data ke tabel transaksi_sewa lengkap dengan kolom relasi supir yang baru
     // Sesuaikan nama kolom 'total_harga' atau 'total_biaya' sesuai struktur asli tabel Anda
-    $query_insert = "INSERT INTO transaksi_sewa (id_pelanggan, kode_mobil, pake_supir, id_supir, biaya_supir, tanggal_sewa, lama_sewa, total_harga, status_sewa) 
+    $query_insert = "INSERT INTO transaksi_sewa (id_pelanggan, kode_mobil, pake_supir, id_supir, biaya_supir, tanggal_sewa, lama_sewa, total_biaya, status_sewa) 
                      VALUES ('$id_pelanggan', '$kode_mobil', '$pake_supir', $id_supir_db, '$biaya_supir', '$tanggal_sewa', '$lama_sewa', '$total_harga', 'berjalan')";
 
     if (mysqli_query($conn, $query_insert)) {

@@ -7,6 +7,7 @@ if (isset($_POST['simpan_pembayaran'])) {
     $tgl_bayar    = mysqli_real_escape_string($conn, $_POST['tgl_bayar']);     
     $jumlah_bayar = mysqli_real_escape_string($conn, $_POST['jumlah_bayar']);
     $metode       = mysqli_real_escape_string($conn, $_POST['metode_bayar']);  
+    $jenis_bayar  = mysqli_real_escape_string($conn, $_POST['jenis_pembayaran']);
     $keterangan   = "Pembayaran Sewa Mobil ID: " . $id_sewa;
 
     mysqli_begin_transaction($conn);
@@ -29,8 +30,8 @@ if (isset($_POST['simpan_pembayaran'])) {
         $kode_mobil = $data_mobil['kode_mobil'];
 
         // 2. Simpan ke Tabel Pembayaran
-        $query_bayar = "INSERT INTO pembayaran (id_sewa, tanggal_bayar, jumlah_bayar, metode_pembayaran, keterangan) 
-                        VALUES ('$id_sewa', '$tgl_bayar', '$jumlah_bayar', '$metode', '$keterangan')";
+        $query_bayar = "INSERT INTO pembayaran (id_sewa, tanggal_bayar, jumlah_bayar, metode_pembayaran, jenis_pembayaran, keterangan) 
+                        VALUES ('$id_sewa', '$tgl_bayar', '$jumlah_bayar', '$metode', '$jenis_bayar', '$keterangan')";
         
         if (!mysqli_query($conn, $query_bayar)) {
             throw new Exception("Gagal simpan pembayaran: " . mysqli_error($conn));
@@ -39,36 +40,41 @@ if (isset($_POST['simpan_pembayaran'])) {
         $id_sumber = mysqli_insert_id($conn);
         
         // 3. Logika Akuntansi
-        // Baris DEBIT: Kas (Akun 101) bertambah
+        // Tentukan akun debit berdasarkan metode pembayaran
+        $akun_debit = ($metode === 'transfer') ? '112' : '111';
+
+        // Baris DEBIT: Kas/Bank bertambah
         $q_debit_sql = "INSERT INTO jurnal (tanggal, kode_akun, Debit, Kredit, keterangan, id_sumber) 
-                        VALUES ('$tgl_bayar', '101', '$jumlah_bayar', 0, '$keterangan', '$id_sumber')";
+                        VALUES ('$tgl_bayar', '$akun_debit', '$jumlah_bayar', 0, '$keterangan', '$id_sumber')";
         
         if (!mysqli_query($conn, $q_debit_sql)) {
             throw new Exception("Gagal posting jurnal (Debit): " . mysqli_error($conn));
         }
 
-        // Baris KREDIT: Pendapatan Sewa (Akun 401) bertambah
+        // Baris KREDIT: Pendapatan Sewa (Akun 411) bertambah
         $q_kredit_sql = "INSERT INTO jurnal (tanggal, kode_akun, Debit, Kredit, keterangan, id_sumber) 
-                         VALUES ('$tgl_bayar', '401', 0, '$jumlah_bayar', '    $keterangan', '$id_sumber')";
+                         VALUES ('$tgl_bayar', '411', 0, '$jumlah_bayar', '    $keterangan', '$id_sumber')";
         
         if (!mysqli_query($conn, $q_kredit_sql)) {
             throw new Exception("Gagal posting jurnal (Kredit): " . mysqli_error($conn));
         }
 
-        // 4. Update status transaksi_sewa menjadi 'Selesai'
-        if (!mysqli_query($conn, "UPDATE transaksi_sewa SET status_sewa = 'Selesai' WHERE id_sewa = '$id_sewa'")) {
-            throw new Exception("Gagal update status transaksi sewa: " . mysqli_error($conn));
-        }
+        // 4. Update status transaksi_sewa dan mobil HANYA JIKA pelunasan
+        if ($jenis_bayar === 'pelunasan') {
+            if (!mysqli_query($conn, "UPDATE transaksi_sewa SET status_sewa = 'selesai' WHERE id_sewa = '$id_sewa'")) {
+                throw new Exception("Gagal update status transaksi sewa: " . mysqli_error($conn));
+            }
 
-        // 4.5. UPDATE STATUS MOBIL menjadi 'tersedia'
-        // PERBAIKAN: Menggunakan variabel '$kode_mobil' dan mengubah string menjadi 'tersedia' (huruf kecil semua) sesuai isi database
-        $query_update_mobil = "UPDATE mobil SET status_mobil = 'tersedia' WHERE kode_mobil = '$kode_mobil'";
-        if (!mysqli_query($conn, $query_update_mobil)) {
-            throw new Exception("Gagal mengubah status mobil menjadi tersedia: " . mysqli_error($conn));
+            // UPDATE STATUS MOBIL menjadi 'tersedia'
+            $query_update_mobil = "UPDATE mobil SET status_mobil = 'tersedia' WHERE kode_mobil = '$kode_mobil'";
+            if (!mysqli_query($conn, $query_update_mobil)) {
+                throw new Exception("Gagal mengubah status mobil menjadi tersedia: " . mysqli_error($conn));
+            }
         }
 
         mysqli_commit($conn);
-        echo "<script>alert('Pembayaran Berhasil, Jurnal Terbentuk, & Mobil Siap Disewa Kembali!'); window.location='riwayat_pembayaran.php';</script>";
+        $alert_msg = ($jenis_bayar === 'pelunasan') ? 'Pelunasan Berhasil, Jurnal Terbentuk, & Mobil Siap Disewa Kembali!' : 'Pembayaran DP Berhasil & Jurnal Terbentuk!';
+        echo "<script>alert('$alert_msg'); window.location='riwayat_pembayaran.php';</script>";
 
     } catch (Exception $e) {
         mysqli_rollback($conn);

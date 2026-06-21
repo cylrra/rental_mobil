@@ -20,20 +20,20 @@ $total_pelanggan = $data_total['total'] ?? 0;
 
 <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
     <div>
-        <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Data Pelanggan</h1>
+        <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Data Pelanggan</h1>
         <p class="text-slate-500 mt-1 font-medium italic">Kelola daftar konsumen dan riwayat penyewa armada Anda.</p>
     </div>
     <div class="flex items-center gap-3">
-        <span class="bg-indigo-50 text-indigo-600 px-4 py-2.5 rounded-xl text-sm font-bold border border-indigo-100 flex items-center gap-2">
+        <span class="bg-blue-50 text-blue-600 px-4 py-2.5 rounded-xl text-sm font-bold border border-blue-100 flex items-center gap-2">
             <i data-lucide="users" class="w-4 h-4"></i> <?php echo $total_pelanggan; ?> Terdaftar
         </span>
-        <button onclick="document.getElementById('modalTambah').classList.remove('hidden')" class="bg-brand-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-brand-500/20 hover:bg-brand-600 transition-all flex items-center gap-2 cursor-pointer">
+        <button onclick="document.getElementById('modalTambah').classList.remove('hidden')" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-blue-600/20 hover:bg-blue-700 transition-all flex items-center gap-2 cursor-pointer">
             <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah Pelanggan
         </button>
     </div>
 </div>
 
-<div class="glass-card rounded-[20px] overflow-hidden border border-slate-200 mb-10">
+<div class="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm mb-10 hover-lift">
     <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-white">
         <h5 class="text-lg font-bold text-slate-800">Daftar Lengkap Pelanggan</h5>
     </div>
@@ -66,9 +66,23 @@ $total_pelanggan = $data_total['total'] ?? 0;
                         <p class="text-[11px] font-medium text-slate-400 mt-0.5">KTP: <?php echo htmlspecialchars($row['no_ktp'] ?? '-'); ?></p>
                     </td>
                     <td class="py-4 px-6">
-                        <span class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-slate-100 px-3 py-1 rounded-lg border border-slate-200">
-                            <i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400"></i> <?php echo htmlspecialchars($row['no_telp']); ?>
-                        </span>
+                        <div class="flex flex-col gap-2">
+                            <span class="inline-flex items-center justify-between text-sm font-medium text-slate-600 bg-slate-100 px-3 py-1 rounded-lg border border-slate-200 group/wa">
+                                <span class="flex items-center gap-1.5"><i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400"></i> <?php echo htmlspecialchars($row['no_telp']); ?></span>
+                                <a href="https://wa.me/<?php echo preg_replace('/[^0-9]/', '', $row['no_telp']); ?>" target="_blank" class="text-emerald-500 hover:text-emerald-600 ml-2" title="Chat WhatsApp">
+                                    <i class="bi bi-whatsapp"></i>
+                                </a>
+                            </span>
+                            
+                            <?php if(!empty($row['email'])): ?>
+                            <span class="inline-flex items-center justify-between text-sm font-medium text-slate-600 bg-slate-100 px-3 py-1 rounded-lg border border-slate-200 group/mail">
+                                <span class="flex items-center gap-1.5 truncate max-w-[150px]" title="<?= htmlspecialchars($row['email']) ?>"><i data-lucide="mail" class="w-3.5 h-3.5 text-slate-400"></i> <?= htmlspecialchars($row['email']) ?></span>
+                                <a href="mailto:<?= htmlspecialchars($row['email']) ?>" class="text-rose-500 hover:text-rose-600 ml-2" title="Kirim Email">
+                                    <i class="bi bi-envelope-fill"></i>
+                                </a>
+                            </span>
+                            <?php endif; ?>
+                        </div>
                     </td>
                     <td class="py-4 px-6">
                         <p class="text-sm text-slate-600 truncate max-w-xs" title="<?php echo htmlspecialchars($row['alamat']); ?>">
@@ -111,9 +125,15 @@ $total_pelanggan = $data_total['total'] ?? 0;
             </div>
 
             <div class="p-6 space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Nama Lengkap</label>
-                    <input type="text" name="nama" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 p-3" required>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Nama Lengkap</label>
+                        <input type="text" name="nama" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 p-3" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Email Address</label>
+                        <input type="email" name="email" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 p-3">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Alamat Lengkap</label>

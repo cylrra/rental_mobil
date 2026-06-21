@@ -87,15 +87,54 @@ if (!$row) {
     </table>
 
     <div style="margin-top: 20px;">
-        <strong>Catatan:</strong><br>
-        <?php echo $row['catatan'] ? $row['catatan'] : '-'; ?>
+        <strong>Catatan Khusus:</strong><br>
+        <?php if($row['pake_supir'] == 'Ya'): ?>
+            <p style="color: #e11d48; font-style: italic; margin-top: 5px;">* Biaya yang tercatat di atas HANYA mencakup Biaya Sewa Mobil dan Jasa Supir. Biaya tersebut <strong>BELUM TERMASUK</strong> Biaya Bensin (BBM), Biaya Tol, Parkir, serta Biaya Makan Supir selama perjalanan.</p>
+        <?php else: ?>
+            <p style="color: #e11d48; font-style: italic; margin-top: 5px;">* Biaya yang tercatat di atas HANYA mencakup Biaya Sewa Mobil (Lepas Kunci). Biaya tersebut <strong>BELUM TERMASUK</strong> Biaya Bensin (BBM), Biaya Tol, dan Parkir.</p>
+        <?php endif; ?>
+        
+        <?php if(!empty($row['catatan'])): ?>
+            <br><strong>Catatan Tambahan:</strong><br>
+            <?php echo $row['catatan']; ?>
+        <?php endif; ?>
     </div>
 
     <div style="margin-top: 50px; text-align: right;">
         <p>Status Pembayaran: <strong><?php echo strtoupper($row['status_pembayaran']); ?></strong></p>
         <br><br>
         <p>( Bagian Keuangan )</p>
-        <style> @media print { .btn-print { display: none; } } </style>
-        <button class="btn-print" onclick="window.print()" style="padding: 10px 20px; cursor: pointer;">Cetak Sekarang</button>
+        
+        <?php
+        // Generate WA text
+        $wa_text = "Halo " . $row['nama_pelanggan'] . ", berikut adalah rincian tagihan sewa mobil Anda di Indomax Rental:\n\n";
+        $wa_text .= "No. Invoice: #" . $row['no_invoice'] . "\n";
+        $wa_text .= "Total Akhir: Rp " . number_format($row['total_akhir'], 0, ',', '.') . "\n";
+        $wa_text .= "Jatuh Tempo: " . date('d/m/Y', strtotime($row['jatuh_tempo'])) . "\n\n";
+        $wa_text .= "Harap segera melakukan pembayaran jika status belum lunas. Terima kasih.";
+        $wa_url = "https://wa.me/" . preg_replace('/[^0-9]/', '', $row['no_telp']) . "?text=" . urlencode($wa_text);
+        
+        // Generate Email text
+        $email_subj = "Invoice Indomax Rental #" . $row['no_invoice'];
+        $email_url = "mailto:" . $row['email'] . "?subject=" . urlencode($email_subj) . "&body=" . urlencode($wa_text);
+        ?>
+        
+        <style> 
+            @media print { .btn-actions { display: none; } } 
+            .btn { padding: 10px 20px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; text-decoration: none; display: inline-block; margin-left: 5px; }
+            .btn-print { background: #3c4d70; color: white; }
+            .btn-wa { background: #10b981; color: white; }
+            .btn-email { background: #e11d48; color: white; }
+        </style>
+        
+        <div class="btn-actions" style="margin-top: 20px;">
+            <button class="btn btn-print" onclick="window.print()">Cetak Sekarang</button>
+            <?php if(!empty($row['no_telp'])): ?>
+                <a href="<?php echo $wa_url; ?>" target="_blank" class="btn btn-wa">Kirim via WA</a>
+            <?php endif; ?>
+            <?php if(!empty($row['email'])): ?>
+                <a href="<?php echo $email_url; ?>" target="_blank" class="btn btn-email">Kirim via Email</a>
+            <?php endif; ?>
+        </div>
     </div>
 </div>

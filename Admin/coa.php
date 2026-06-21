@@ -25,20 +25,20 @@ include 'koneksi.php';
                 </thead>
                 <tbody>
                     <?php
-                    // Mengambil data dari tabel nama_akun milik Anda
+                    // Mengambil data dari tabel nama_akun
                     $query_coa = mysqli_query($conn, "SELECT * FROM nama_akun ORDER BY kode_akun ASC");
-                    if (mysqli_num_rows($query_coa) > 0) {
+                    if ($query_coa && mysqli_num_rows($query_coa) > 0) {
                         while($row = mysqli_fetch_assoc($query_coa)) {
-                            // Cek jika akun merupakan header atau detail (opsional untuk styling tebal)
-                            $is_header = (strpos($row['kode_account'] ?? '', '-0000') !== false || $row['saldo_awal'] == 0 && !in_array($row['kode_akun'], ['113','312','411','412','511']));
+                            // Cek jika akun merupakan header (saldo_awal = 0 dan bukan akun operasional)
+                            $is_header = ($row['saldo_awal'] == 0 && !in_array($row['kode_akun'], ['113','312','411','412','511','513']));
                     ?>
                     <tr class="<?= $is_header ? 'table-light fw-bold text-dark' : ''; ?>">
-                        <td class="ps-4 font-monospace"><?= $row['kode_akun']; ?></td>
+                        <td class="ps-4 font-monospace"><?= htmlspecialchars($row['kode_akun']); ?></td>
                         <td>
                             <?php if(!$is_header): ?>
-                                <span class="ms-3 text-secondary">• <?= $row['nama_account'] ?? $row['nama_akun']; ?></span>
+                                <span class="ms-3 text-secondary">• <?= htmlspecialchars($row['nama_akun']); ?></span>
                             <?php else: ?>
-                                <?= $row['nama_account'] ?? $row['nama_akun']; ?>
+                                <?= htmlspecialchars($row['nama_akun']); ?>
                             <?php endif; ?>
                         </td>
                         <td class="text-end pe-4 fw-bold <?= $row['saldo_awal'] > 0 ? 'text-primary' : 'text-muted'; ?>">
@@ -57,5 +57,8 @@ include 'koneksi.php';
     </div>
 </div>
 
-        </div> </div> </div> </body>
+</div> </main>
+</div>
+<script>lucide.createIcons();</script>
+</body>
 </html>

@@ -14,11 +14,11 @@ if (empty($id)) {
 
 // 2. Query yang diperluas untuk menarik data Pelanggan, Mobil, dan Supir via Transaksi_Sewa
 $sql = "SELECT p.*, pl.nama AS nama_pelanggan, t.id_sewa, t.pake_supir, t.biaya_supir, 
-               m.nama_mobil, m.plat_nomor, s.nama_supir
+               m.merk AS nama_mobil, m.nopol AS plat_nomor, s.nama_supir
         FROM pembayaran p
         JOIN transaksi_sewa t ON p.id_sewa = t.id_sewa
         JOIN pelanggan pl ON t.id_pelanggan = pl.id_pelanggan
-        JOIN mobil m ON t.id_mobil = m.id_mobil
+        JOIN mobil m ON t.kode_mobil = m.kode_mobil
         LEFT JOIN supir s ON t.id_supir = s.id_supir
         WHERE p.id_pembayaran = '$id'";
 
@@ -93,9 +93,10 @@ function terbilang($angka) {
         .btn-invoice { background: #17a2b8; color: white; }
 
         @media print { 
+            @page { size: A5 landscape; margin: 10mm; }
             .actions-btn { display: none; } 
             body { background: none; padding: 0; }
-            .kwitansi-container { box-shadow: none; border: 2px solid #000; margin: 0; width: 100%; }
+            .kwitansi-container { box-shadow: none; border: 2px solid #000; margin: 0; width: 100%; max-width: 100%; padding: 20px; }
         }
     </style>
 </head>
