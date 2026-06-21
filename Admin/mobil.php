@@ -99,7 +99,7 @@ $res_detail_pakai = mysqli_query($conn, $query_terpakai);
     
     <div class="bg-white rounded-[20px] overflow-hidden hover-lift group flex flex-col h-full border border-slate-200 shadow-sm">
         
-        <div class="relative h-56 w-full overflow-hidden bg-white border-b border-slate-100 p-4">
+        <div class="relative h-56 w-full overflow-hidden bg-white border-b border-slate-100">
             <div class="absolute top-4 right-4 z-10 flex flex-col gap-2 items-end">
                 <span class="px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm <?php echo $status_badge; ?>">
                     <?php echo $status_text; ?>
@@ -113,7 +113,7 @@ $res_detail_pakai = mysqli_query($conn, $query_terpakai);
             
             <?php if (!empty($nama_file) && file_exists($path_gambar)): ?>
                 <img src="img/<?php echo $nama_file; ?>" 
-                class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" 
+                class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500" 
                 alt="<?php echo htmlspecialchars($row['merk']); ?>" 
                 loading="lazy">
             <?php else: ?>
@@ -179,11 +179,6 @@ $res_detail_pakai = mysqli_query($conn, $query_terpakai);
     ?>
 </div>
 
-        </div> </main>
-</div>
-<script>lucide.createIcons();</script>
-
-<!-- Modal Unit Terpakai -->
 <div class="modal fade" id="modalUnitTerpakai" tabindex="-1" aria-labelledby="modalUnitTerpakaiLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
@@ -240,5 +235,3 @@ $res_detail_pakai = mysqli_query($conn, $query_terpakai);
         }
     });
 </script>
-</body>
-</html>

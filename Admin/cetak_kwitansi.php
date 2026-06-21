@@ -53,60 +53,217 @@ function terbilang($angka) {
     <meta charset="UTF-8">
     <title>Kwitansi #<?php echo $row['id_pembayaran']; ?></title>
     <style>
-        body { font-family: 'Courier New', Courier, monospace; color: #333; background-color: #f4f4f4; padding: 20px; }
-        .kwitansi-container { 
-            width: 850px; 
-            margin: 0 auto; 
-            padding: 30px; 
-            border: 2px solid #333; 
-            background: #fff;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        *, *::before, *::after {
+            box-sizing: border-box;
         }
-        .header { text-align: center; border-bottom: 3px double #333; padding-bottom: 10px; margin-bottom: 20px; }
-        .content { line-height: 1.8; }
-        .row-data { display: flex; border-bottom: 1px dotted #ccc; padding: 6px 0; }
-        .label { width: 240px; font-weight: bold; }
-        .val-data { flex: 1; }
-        .amount-section { margin-top: 25px; display: flex; flex-direction: column; gap: 5px; }
+
+        /* Gaya Umum Layar Browser */
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            color: #333; 
+            background-color: #f8f9fa; 
+            padding: 30px; 
+            margin: 0;
+        }
+        
+        .kwitansi-container { 
+            width: 780px; 
+            margin: 0 auto; 
+            padding: 25px; 
+            border: 1px solid #e0e0e0; 
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        /* Desain Header Berdasarkan Logo Gambar 3 */
+        .header-brand {
+            display: table;
+            width: 100%;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #1a252f;
+            margin-bottom: 20px;
+        }
+        .logo-section {
+            display: table-cell;
+            vertical-align: middle;
+            width: 45%;
+        }
+        .logo-box {
+            display: inline-block;
+            background-color: #0f172a; 
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1.2em;
+            letter-spacing: 1px;
+        }
+        .logo-box span {
+            color: #38bdf8; 
+            font-size: 0.75em;
+            display: block;
+            font-weight: normal;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+        .title-section {
+            display: table-cell;
+            vertical-align: middle;
+            text-align: right;
+            width: 55%;
+        }
+        .title-section h1 {
+            margin: 0;
+            font-size: 1.5em;
+            color: #1e293b;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+        .title-section p {
+            margin: 4px 0 0 0;
+            font-size: 0.9em;
+            color: #475569;
+        }
+
+        /* Gaya Data Konten */
+        .content { 
+            margin-bottom: 15px;
+        }
+        .row-data { 
+            display: table; 
+            width: 100%;
+            padding: 5px 0;
+            font-size: 0.95em;
+        }
+        .label { 
+            display: table-cell;
+            width: 180px; 
+            color: #64748b;
+            font-weight: 500;
+        }
+        .val-data { 
+            display: table-cell;
+            color: #1e293b;
+        }
+
+        /* Kotak Nominal Jumlah Bayar */
+        .amount-section { 
+            margin: 15px 0; 
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 12px 15px;
+        }
         .amount-box { 
-            background: #f9f9f9; 
-            padding: 10px 20px; 
-            font-size: 1.3em; 
+            font-size: 1.2em; 
             font-weight: bold; 
-            display: inline-block; 
-            border: 2px solid #333;
-            width: fit-content;
+            color: #0f172a;
+            margin-bottom: 5px;
         }
         .terbilang-text { 
             font-style: italic; 
-            background: #eee; 
-            padding: 8px 12px; 
-            display: block; 
-            font-size: 0.95em;
-            border-left: 4px solid #333;
+            color: #475569;
+            font-size: 0.88em;
+            padding-left: 10px;
+            border-left: 3px solid #38bdf8;
         }
-        .footer { margin-top: 40px; display: flex; justify-content: space-between; }
-        .actions-btn { text-align: center; margin-top: 20px; display: flex; justify-content: center; gap: 10px; }
-        
-        .btn { padding: 10px 20px; border: none; cursor: pointer; font-weight: bold; border-radius: 5px; text-decoration: none; font-family: Arial, sans-serif; }
-        .btn-print { background: #28a745; color: white; }
-        .btn-invoice { background: #17a2b8; color: white; }
 
+        /* Tanda Tangan */
+        .footer { 
+            margin-top: 25px; 
+            display: table;
+            width: 100%;
+        }
+        .footer-col {
+            display: table-cell;
+            width: 50%;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        .signature-space {
+            height: 60px;
+        }
+
+        /* Tombol Aksi */
+        .actions-btn { 
+            text-align: center; 
+            margin-top: 25px; 
+            display: flex; 
+            justify-content: center; 
+            gap: 12px; 
+        }
+        .btn { 
+            padding: 10px 22px; 
+            border: none; 
+            cursor: pointer; 
+            font-weight: 600; 
+            border-radius: 6px; 
+            text-decoration: none; 
+            font-family: Arial, sans-serif;
+            font-size: 0.95em;
+        }
+        .btn-print { background: #0f172a; color: white; }
+        .btn-invoice { background: #e2e8f0; color: #334155; }
+
+        /* OPTIMASI SELESAI CETAK 1 HALAMAN (Mencegah Halaman Terpotong) */
         @media print { 
-            @page { size: A5 landscape; margin: 10mm; }
-            .actions-btn { display: none; } 
-            body { background: none; padding: 0; }
-            .kwitansi-container { box-shadow: none; border: 2px solid #000; margin: 0; width: 100%; max-width: 100%; padding: 20px; }
+            @page { 
+                size: A5 landscape; 
+                margin: 0; 
+            }
+            html, body {
+                background: #fff;
+                padding: 0;
+                margin: 0;
+                height: 100%;
+                max-height: 100vh;
+                overflow: hidden; /* Mengunci paksa agar tidak membuat page ke-2 */
+            }
+            body {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 10mm 15mm; /* Margin aman printer */
+            }
+            .actions-btn { 
+                display: none; 
+            } 
+            .kwitansi-container { 
+                box-shadow: none; 
+                border: none; 
+                padding: 0; 
+                width: 100%;
+                max-width: 100%;
+                height: auto;
+                page-break-inside: avoid;
+                page-break-after: avoid;
+            }
+            /* Kompresi spacing khusus cetak agar hemat ruang vertical */
+            .header-brand { padding-bottom: 10px; margin-bottom: 12px; }
+            .content { margin-bottom: 10px; }
+            .row-data { padding: 3px 0; font-size: 0.9em; }
+            .amount-section { margin: 10px 0; padding: 10px 12px; }
+            .footer { margin-top: 15px; }
+            .signature-space { height: 40px; } /* Diperkecil agar muat aman di satu kertas */
         }
     </style>
 </head>
 <body>
 
     <div class="kwitansi-container">
-        <div class="header">
-            <h1 style="margin: 0; letter-spacing: 2px;">KWITANSI PEMBAYARAN</h1>
-            <p style="margin: 5px 0; font-size: 1.2em;"><strong>PT INDOMAX RENTAL MOBIL</strong></p>
-            <p style="margin: 0; font-size: 0.9em;">Jl. Raya Solo - Semarang, Jawa Tengah</p>
+        <div class="header-brand">
+            <div class="logo-section">
+                <div class="logo-box">
+                    INDOMAX
+                    <span>RENTAL SYSTEM</span>
+                </div>
+            </div>
+            <div class="title-section">
+                <h1>KWITANSI PEMBAYARAN</h1>
+                <p><strong>PT INDOMAX RENTAL MOBIL</strong></p>
+                <p style="font-size: 0.75em; margin-top: 2px; color:#64748b;">Jl. Raya Solo - Semarang, Jawa Tengah</p>
+            </div>
         </div>
 
         <div class="content">
@@ -130,38 +287,34 @@ function terbilang($angka) {
                 </div>
             </div>
             <div class="row-data">
-                <div class="label">Jenis Pembayaran</div>
+                <div class="label">Jenis / Tipe</div>
                 <div class="val-data">: <?php echo strtoupper($row['jenis_pembayaran']); ?> (<?php echo $row['tipe_pembayaran']; ?>)</div>
             </div>
             <div class="row-data">
                 <div class="label">Metode Pembayaran</div>
                 <div class="val-data">: <?php echo !empty($row['metode_pembayaran']) ? strtoupper($row['metode_pembayaran']) : '-'; ?></div>
             </div>
-            <div class="row-data">
-                <div class="label">Tanggal Pembayaran</div>
-                <div class="val-data">: <?php echo date('d F Y', strtotime($row['tanggal_bayar'])); ?></div>
-            </div>
+        </div>
 
-            <div class="amount-section">
-                <div class="amount-box">
-                    JUMLAH BAYAR: Rp <?php echo number_format($row['jumlah_bayar'], 0, ',', '.'); ?>,-
-                </div>
-                <div class="terbilang-text">
-                    Terbilang: <?php echo trim(terbilang($row['jumlah_bayar'])); ?> Rupiah
-                </div>
+        <div class="amount-section">
+            <div class="amount-box">
+                JUMLAH BAYAR: Rp <?php echo number_format($row['jumlah_bayar'], 0, ',', '.'); ?>,-
+            </div>
+            <div class="terbilang-text">
+                Terbilang: <?php echo trim(terbilang($row['jumlah_bayar'])); ?> Rupiah
             </div>
         </div>
 
         <div class="footer">
-            <div style="text-align: center;">
-                <p>Penyewa / Pelanggan,</p>
-                <br><br><br>
+            <div class="footer-col">
+                <p style="margin: 0 0 5px 0;">Penyewa / Pelanggan,</p>
+                <div class="signature-space"></div>
                 <p><strong>( <?php echo strtoupper($row['nama_pelanggan']); ?> )</strong></p>
             </div>
-            <div style="text-align: center;">
-                <p>Semarang, <?php echo date('d F Y', strtotime($row['tanggal_bayar'])); ?></p>
-                <p>Bagian Kasir,</p>
-                <br><br><br>
+            <div class="footer-col">
+                <p style="margin: 0 0 5px 0;">Semarang, <?php echo date('d F Y', strtotime($row['tanggal_bayar'])); ?></p>
+                <p style="margin: 0 0 5px 0; color:#64748b;">Bagian Kasir,</p>
+                <div class="signature-space"></div>
                 <p><strong>( Admin Indomax )</strong></p>
             </div>
         </div>
@@ -173,7 +326,6 @@ function terbilang($angka) {
     </div>
 
     <script>
-        // Otomatis memicu cetak saat dokumen dimuat
         window.onload = function() {
             window.print();
         }

@@ -2,9 +2,22 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-// Sertakan navbar dan koneksi (asumsi nama file sudah benar)
+// Sertakan navbar dan koneksi
 include 'navbar.php'; 
 include 'koneksi.php'; 
+
+// Helper fungsi untuk mengubah format nomor HP menjadi format standar WhatsApp (628xxx)
+function formatWhatsAppNumber($phone) {
+    // Hapus semua karakter non-digit (spasi, strip, plus, dll)
+    $phone = preg_replace('/[^0-9]/', '', $phone);
+    
+    // Jika nomor diawali dengan '0', ubah menjadi '62'
+    if (strpos($phone, '0') === 0) {
+        $phone = '62' . substr($phone, 1);
+    }
+    
+    return $phone;
+}
 
 // Tangkap kode mobil dari URL (jika ada, misalnya dari halaman detail mobil)
 $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['kode']) : '';
@@ -12,6 +25,9 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
 
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<script src="https://unpkg.com/lucide@latest"></script>
 
 <div class="p-8">
     <div class="mb-8">
@@ -20,7 +36,6 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
     </div>
 
     <div class="flex flex-col lg:flex-row gap-8">
-        <!-- Form Kiri -->
         <div class="w-full lg:w-1/3">
             <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover-lift">
                 <div class="flex items-center gap-3 mb-6">
@@ -111,7 +126,6 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
                     </form>
                 </div>
             </div>
-        <!-- Tabel Kanan -->
         <div class="w-full lg:w-2/3">
             <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover-lift">
                 <div class="flex items-center gap-3 mb-6">
@@ -162,10 +176,9 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
                                                 <i data-lucide="dollar-sign" class="w-4 h-4"></i>
                                             </a>
                                             <?php 
-                                                // Hardcode nomor WA sesuai permintaan untuk testing (tujuan: 0881010715798 -> 62881010715798)
-                                                $wa_number_test = '62881010715798';
+                                                $wa_customer_phone = formatWhatsAppNumber($row['no_telp']);
                                             ?>
-                                            <button type="button" class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-colors" title="Bot Kirim Tagihan" onclick="openBotModal('<?= $row['id_sewa'] ?>', '<?= $wa_number_test ?>', '<?= htmlspecialchars(addslashes($row['nama'])) ?>', <?= $row['total_biaya'] ?>, '<?= $row['tanggal_sewa'] ?>', <?= $row['lama_sewa'] ?>, '<?= htmlspecialchars(addslashes($row['merk'])) ?>', '<?= $row['pake_supir'] ?>', '<?= htmlspecialchars(addslashes($row['nama_supir'] ?? '')) ?>')">
+                                            <button type="button" class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-colors" title="Bot Kirim Tagihan" onclick="openBotModal('<?= $row['id_sewa'] ?>', '<?= $wa_customer_phone ?>', '<?= htmlspecialchars(addslashes($row['nama'])) ?>', <?= $row['total_biaya'] ?>, '<?= $row['tanggal_sewa'] ?>', <?= $row['lama_sewa'] ?>, '<?= htmlspecialchars(addslashes($row['merk'])) ?>', '<?= $row['pake_supir'] ?>', '<?= htmlspecialchars(addslashes($row['nama_supir'] ?? '')) ?>')">
                                                 <i data-lucide="bot" class="w-4 h-4"></i>
                                             </button>
                                         </div>
@@ -175,8 +188,7 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
                                     <tr><td colspan='5' class='text-center py-4 text-muted'>Belum ada transaksi.</td></tr>
                                 <?php } ?>
                             </tbody>
-                        </table>
-                    </div>
+                    </table>
                 </div>
             </div>
         </div>
@@ -205,11 +217,18 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
         min-height: 42px !important;
     }
 </style>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $(document).ready(function() {
+        // Inisialisasi Select2 Search Box
         $('.select2-js').select2({ theme: "bootstrap-5", width: '100%' });
+
+        // PENTING: Memicu render ulang Lucide Icons setelah dokumen HTML siap sepenuhnya
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
     });
 
     function toggleSupirBlock() {
@@ -225,16 +244,12 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
     }
 
     function selectDriver(element) {
-        // Remove selected class from all cards
         document.querySelectorAll('.driver-card').forEach(c => c.classList.remove('selected'));
-        // Add selected class to clicked card
         element.classList.add('selected');
-        // Update hidden input
         document.getElementById("id_supir_hidden").value = element.getAttribute('data-id');
         document.getElementById("error_supir").classList.add('d-none');
     }
 
-    // Form Validation for driver selection
     document.querySelector('form').addEventListener('submit', function(e) {
         const pakeSupir = document.getElementById("pake_supir").value;
         const idSupir = document.getElementById("id_supir_hidden").value;
@@ -246,11 +261,6 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
     });
 </script>
 
-</div> </main>
-</div>
-<script>lucide.createIcons();</script>
-
-<!-- Bot WhatsApp Modal -->
 <div class="modal fade" id="botModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
@@ -286,16 +296,20 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
 
 <script>
 function openBotModal(idSewa, phone, nama, totalBiaya, tglSewa, lamaSewa, merk, pakeSupir, namaSupir) {
+    if (!phone || phone.trim() === "") {
+        alert("Gagal memproses: Nomor WhatsApp pelanggan tidak valid atau belum terdaftar!");
+        return;
+    }
+
     const modal = new bootstrap.Modal(document.getElementById('botModal'));
     
-    // Reset view
     document.getElementById('botProcessing').classList.remove('d-none');
     document.getElementById('botSuccess').classList.add('d-none');
     
     document.getElementById('botCustomerName').textContent = nama;
-    document.getElementById('botCustomerPhone').textContent = phone;
+    document.getElementById('botCustomerPhone').textContent = '+' + phone;
     
-    const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' });
+    const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 });
     
     let supirText = (pakeSupir === 'Ya') ? `\n👨‍✈️ Supir: ${namaSupir}` : `\n👨‍✈️ Supir: Tidak (Lepas Kunci)`;
     let noteText = (pakeSupir === 'Ya') ? `\n*Catatan:* Biaya di atas belum termasuk pengisian BBM, tarif Tol, Parkir, dan Uang Makan Supir.` : `\n*Catatan:* Biaya di atas belum termasuk pengisian BBM, tarif Tol, dan Parkir.`;
@@ -306,12 +320,10 @@ function openBotModal(idSewa, phone, nama, totalBiaya, tglSewa, lamaSewa, merk, 
     
     modal.show();
     
-    // Simulate API delay, then open WhatsApp
     setTimeout(() => {
         document.getElementById('botProcessing').classList.add('d-none');
         document.getElementById('botSuccess').classList.remove('d-none');
         
-        // Open WhatsApp API to actually send the message
         window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(message), '_blank');
     }, 1500);
 }

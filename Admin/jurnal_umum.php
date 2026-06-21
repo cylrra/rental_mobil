@@ -6,13 +6,14 @@ include 'navbar.php';
 include 'koneksi.php';
 
 if (isset($_POST['simpan_jurnal'])) {
-    $tanggal    = mysqli_real_escape_string($conn, $_POST['tanggal']);
-    $keterangan = mysqli_real_escape_string($conn, $_POST['keterangan']);
+    // Menggunakan trim() untuk menghindari spasi tidak sengaja
+    $tanggal    = mysqli_real_escape_string($conn, trim($_POST['tanggal']));
+    $keterangan = mysqli_real_escape_string($conn, trim($_POST['keterangan']));
     
-    $akun_debit   = mysqli_real_escape_string($conn, $_POST['akun_debit']);
+    $akun_debit   = mysqli_real_escape_string($conn, trim($_POST['akun_debit']));
     $nominal_debit = floatval($_POST['nominal_debit']);
     
-    $akun_kredit   = mysqli_real_escape_string($conn, $_POST['akun_kredit']);
+    $akun_kredit   = mysqli_real_escape_string($conn, trim($_POST['akun_kredit']));
     $nominal_kredit = floatval($_POST['nominal_kredit']);
 
     if ($nominal_debit !== $nominal_kredit) {
@@ -22,18 +23,27 @@ if (isset($_POST['simpan_jurnal'])) {
 
     mysqli_begin_transaction($conn);
     try {
+        // PERBAIKAN 1: Mengubah nama tabel insert ke 'jurnal' sesuai struktur gambar kedua kamu
+        
         // 1. Catat Sisi Debit
-        mysqli_query($conn, "INSERT INTO jurnal_detail (tanggal, kode_akun, debit, kredit, keterangan, id_sumber) 
-                             VALUES ('$tanggal', '$akun_debit', '$nominal_debit', 0, '$keterangan', 1)");
+        $query_debit = "INSERT INTO jurnal (tanggal, kode_akun, debit, kredit, keterangan, id_sumber) 
+                        VALUES ('$tanggal', '$akun_debit', '$nominal_debit', 0, '$keterangan', 1)";
+        if (!mysqli_query($conn, $query_debit)) {
+            throw new Exception(mysqli_error($conn));
+        }
+
         // 2. Catat Sisi Kredit
-        mysqli_query($conn, "INSERT INTO jurnal_detail (tanggal, kode_akun, debit, kredit, keterangan, id_sumber) 
-                             VALUES ('$tanggal', '$akun_kredit', 0, '$nominal_kredit', '$keterangan', 1)");
+        $query_kredit = "INSERT INTO jurnal (tanggal, kode_akun, debit, kredit, keterangan, id_sumber) 
+                         VALUES ('$tanggal', '$akun_kredit', 0, '$nominal_kredit', '$keterangan', 1)";
+        if (!mysqli_query($conn, $query_kredit)) {
+            throw new Exception(mysqli_error($conn));
+        }
 
         mysqli_commit($conn);
         echo "<script>alert('Jurnal Umum Berhasil Dibukukan!'); window.location='jurnal_detail.php';</script>";
     } catch (Exception $e) {
         mysqli_rollback($conn);
-        echo "<script>alert('Gagal: " . $e->getMessage() . "'); window.history.back();</script>";
+        echo "<script>alert('Gagal: " . addslashes($e->getMessage()) . "'); window.history.back();</script>";
     }
 }
 ?>
@@ -73,7 +83,8 @@ if (isset($_POST['simpan_jurnal'])) {
                         <select name="akun_debit" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors bg-white mb-4" required>
                             <option value="">-- Pilih Akun Debit --</option>
                             <?php
-                            $coas = mysqli_query($conn, "SELECT kode_akun, nama_akun FROM nama_akun ORDER BY kode_akun ASC");
+                            // PERBAIKAN 2: Mengubah nama tabel master menjadi 'akun' sesuai gambar pertama kamu
+                            $coas = mysqli_query($conn, "SELECT kode_akun, nama_akun FROM akun ORDER BY kode_akun ASC");
                             while($c = mysqli_fetch_assoc($coas)) {
                                 echo "<option value='{$c['kode_akun']}'>{$c['kode_akun']} - {$c['nama_akun']}</option>";
                             }
@@ -111,7 +122,7 @@ if (isset($_POST['simpan_jurnal'])) {
     </div>
 </div>
 
-    </main> 
+</main> 
 </div> 
 <script>lucide.createIcons();</script>
 </body>

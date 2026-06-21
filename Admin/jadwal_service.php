@@ -8,10 +8,10 @@ include 'koneksi.php';
 
 // Proses Tambah Jadwal Pemeliharaan
 if (isset($_POST['tambah_jadwal'])) {
-    $kode_mobil = mysqli_real_escape_string($conn, $_POST['kode_mobil']);
-    $tanggal = mysqli_real_escape_string($conn, $_POST['tanggal_pemeliharaan']);
-    $jenis = mysqli_real_escape_string($conn, $_POST['jenis_pemeliharaan']);
-    $keterangan = mysqli_real_escape_string($conn, $_POST['keterangan']);
+    $kode_mobil = mysqli_real_escape_string($conn, trim($_POST['kode_mobil']));
+    $tanggal = mysqli_real_escape_string($conn, trim($_POST['tanggal_pemeliharaan']));
+    $jenis = mysqli_real_escape_string($conn, trim($_POST['jenis_pemeliharaan']));
+    $keterangan = mysqli_real_escape_string($conn, trim($_POST['keterangan']));
 
     // Insert ke tabel pemeliharaan (status default 'terjadwal')
     $query = "INSERT INTO pemeliharaan (kode_mobil, tanggal_pemeliharaan, jenis_pemeliharaan, biaya_pemeliharaan, keterangan, status) 
@@ -24,31 +24,49 @@ if (isset($_POST['tambah_jadwal'])) {
     }
 }
 
-// Proses Selesaikan Pemeliharaan
+// Proses Selesaikan Pemeliharaan & Posting Otomatis ke Laba Rugi
 if (isset($_POST['selesaikan_pemeliharaan'])) {
     $id_pemeliharaan = (int)$_POST['id_pemeliharaan'];
     $biaya = floatval($_POST['biaya_aktual']);
-    $kode_mobil = mysqli_real_escape_string($conn, $_POST['kode_mobil']);
-    $jenis = mysqli_real_escape_string($conn, $_POST['jenis']);
+    $kode_mobil = mysqli_real_escape_string($conn, trim($_POST['kode_mobil']));
+    $jenis = mysqli_real_escape_string($conn, trim($_POST['jenis']));
     $tanggal_sekarang = date('Y-m-d');
 
-    // Update status dan biaya
-    $update_query = "UPDATE pemeliharaan SET status = 'selesai', biaya_pemeliharaan = '$biaya' WHERE id_pemeliharaan = $id_pemeliharaan";
-    if (mysqli_query($conn, $update_query)) {
-        // Otomatis masuk Jurnal (Debit: Beban Perawatan 513, Kredit: Kas 111)
+    // Mulai database transaction untuk keamanan relasi & akuntansi
+    mysqli_begin_transaction($conn);
+
+    try {
+        // 1. Update status di tabel pemeliharaan
+        $update_query = "UPDATE pemeliharaan SET status = 'selesai', biaya_pemeliharaan = '$biaya' WHERE id_pemeliharaan = $id_pemeliharaan";
+        if (!mysqli_query($conn, $update_query)) {
+            throw new Exception("Gagal memperbarui status pemeliharaan.");
+        }
+
+        // Keterangan standar untuk log akuntansi
         $keterangan_jurnal = "Biaya Pemeliharaan Mobil: " . $kode_mobil . " (" . $jenis . ")";
         
+        // 2. Insert DEBIT ke tabel jurnal (Beban Perawatan Akun 513 -> Masuk Laba Rugi)
         $q_debit = "INSERT INTO jurnal (tanggal, keterangan, kode_akun, Debit, Kredit, id_sumber) 
                     VALUES ('$tanggal_sekarang', '$keterangan_jurnal', '513', '$biaya', 0, '$id_pemeliharaan')";
-        mysqli_query($conn, $q_debit);
+        if (!mysqli_query($conn, $q_debit)) {
+            throw new Exception("Gagal memposting sisi Debit (Beban Perawatan).");
+        }
 
+        // 3. Insert KREDIT ke tabel jurnal (Kas Akun 111 -> Berkurang di Neraca)
         $q_kredit = "INSERT INTO jurnal (tanggal, keterangan, kode_akun, Debit, Kredit, id_sumber) 
-                     VALUES ('$tanggal_sekarang', '    $keterangan_jurnal', '111', 0, '$biaya', '$id_pemeliharaan')";
-        mysqli_query($conn, $q_kredit);
+                     VALUES ('$tanggal_sekarang', '$keterangan_jurnal', '111', 0, '$biaya', '$id_pemeliharaan')";
+        if (!mysqli_query($conn, $q_kredit)) {
+            throw new Exception("Gagal memposting sisi Kredit (Kas).");
+        }
 
-        echo "<script>alert('Pemeliharaan diselesaikan dan diposting ke jurnal!'); window.location='riwayat_pemeliharaan.php';</script>";
-    } else {
-        echo "<script>alert('Gagal mengupdate pemeliharaan: " . mysqli_error($conn) . "');</script>";
+        // Jika semua langkah sukses tanpa error, kunci ke database
+        mysqli_commit($conn);
+        echo "<script>alert('Pemeliharaan diselesaikan dan otomatis diposting ke Laporan Laba Rugi!'); window.location='riwayat_pemeliharaan.php';</script>";
+
+    } catch (Exception $e) {
+        // Jika ada salah satu langkah yang gagal, batalkan semua agar database tidak korup/unbalanced
+        mysqli_rollback($conn);
+        echo "<script>alert('Gagal memproses pembukuan: " . addslashes($e->getMessage()) . "'); window.history.back();</script>";
     }
 }
 
@@ -58,12 +76,12 @@ $mobil_opsi = mysqli_query($conn, "SELECT kode_mobil, merk, nopol FROM mobil ORD
 $jadwal = mysqli_query($conn, "SELECT p.*, m.merk, m.nopol FROM pemeliharaan p JOIN mobil m ON p.kode_mobil = m.kode_mobil WHERE p.status = 'terjadwal' ORDER BY p.tanggal_pemeliharaan ASC");
 ?>
 
-<div class="mb-4">
+<div class="mb-4 p-4">
     <h3 class="fw-bold"><i class="bi bi-calendar-check text-[#06588c] me-2"></i> Jadwal Pemeliharaan</h3>
     <p class="text-muted">Kelola jadwal servis dan perawatan armada mobil Anda.</p>
 </div>
 
-<div class="row">
+<div class="row px-4">
     <div class="col-lg-4 mb-4">
         <div class="card border-0 shadow-sm rounded-4">
             <div class="card-header bg-[#04345a] text-white py-3">
@@ -146,7 +164,6 @@ $jadwal = mysqli_query($conn, "SELECT p.*, m.merk, m.nopol FROM pemeliharaan p J
                                         <i class="bi bi-check-circle me-1"></i> Selesaikan
                                     </button>
 
-                                    <!-- Modal Selesaikan -->
                                     <div class="modal fade" id="modalSelesai<?= $r['id_pemeliharaan'] ?>" tabindex="-1">
                                       <div class="modal-dialog modal-dialog-centered">
                                         <div class="modal-content border-0 rounded-4 shadow">
@@ -162,7 +179,7 @@ $jadwal = mysqli_query($conn, "SELECT p.*, m.merk, m.nopol FROM pemeliharaan p J
                                                 
                                                 <div class="alert alert-info py-2" style="background-color:#04345a; color:white;">
                                                     <i class="bi bi-info-circle me-2"></i>
-                                                    Memasukkan biaya akan otomatis tercatat ke <b>Jurnal Pengeluaran</b>.
+                                                    Memasukkan biaya akan otomatis tercatat ke <b>Laporan Laba Rugi (Akun 513)</b>.
                                                 </div>
 
                                                 <div class="mb-3 mt-3">
@@ -178,8 +195,7 @@ $jadwal = mysqli_query($conn, "SELECT p.*, m.merk, m.nopol FROM pemeliharaan p J
                                         </div>
                                       </div>
                                     </div>
-                                    <!-- End Modal -->
-                                </td>
+                                    </td>
                             </tr>
                             <?php 
                                 } 
@@ -195,8 +211,8 @@ $jadwal = mysqli_query($conn, "SELECT p.*, m.merk, m.nopol FROM pemeliharaan p J
     </div>
 </div>
 
-</div> </main>
-</div>
+</main> 
+</div> 
 <script>lucide.createIcons();</script>
 </body>
 </html>
