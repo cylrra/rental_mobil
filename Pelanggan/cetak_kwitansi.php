@@ -1,7 +1,7 @@
 <?php
 include "koneksi.php";
 
-// 1. Ambil ID Pembayaran dari URL dan bersihkan agar hanya angka
+// 1. Ambil ID Pembayaran dari URL dan bersihkan
 $id = isset($_GET['id']) ? preg_replace('/[^0-9]/', '', $_GET['id']) : '';
 
 if (empty($id)) {
@@ -12,7 +12,7 @@ if (empty($id)) {
     exit;
 }
 
-// 2. Query yang sudah diperbaiki (pl.nama sesuai database kamu)
+// 2. Query pembayaran
 $sql = "SELECT p.*, pl.nama, t.id_sewa 
         FROM pembayaran p
         JOIN transaksi_sewa t ON p.id_sewa = t.id_sewa
@@ -27,7 +27,7 @@ if (!$query || mysqli_num_rows($query) == 0) {
 
 $row = mysqli_fetch_assoc($query);
 
-// Fungsi Terbilang untuk nominal rupiah
+// Fungsi Terbilang
 function terbilang($angka) {
     $angka = abs($angka);
     $baca = array("", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas");
@@ -49,121 +49,148 @@ function terbilang($angka) {
 <head>
     <meta charset="UTF-8">
     <title>Kwitansi #<?php echo $row['id_pembayaran']; ?></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* Desain Kwitansi */
-        body { font-family: 'Courier New', Courier, monospace; color: #333; background-color: #f4f4f4; padding: 20px; }
-        .kwitansi-container { 
-            width: 800px; 
-            margin: 0 auto; 
-            padding: 30px; 
-            border: 2px solid #333; 
-            background: #fff;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        body { 
+            font-family: 'Courier New', Courier, monospace; 
+            color: #1e293b; 
+            background-color: #f1f5f9; 
+            padding: 40px 20px; 
         }
-        .header { text-align: center; border-bottom: 3px double #333; padding-bottom: 10px; margin-bottom: 20px; }
-        .content { line-height: 1.8; }
-        .row-data { display: flex; border-bottom: 1px dotted #ccc; padding: 5px 0; }
-        .label { width: 220px; font-weight: bold; }
-        .amount-section { margin-top: 30px; }
-        .amount-box { 
-            background: #f9f9f9; 
-            padding: 10px 20px; 
-            font-size: 1.3em; 
+        .kwitansi-container { 
+            max-width: 750px; 
+            margin: 0 auto; 
+            padding: 40px; 
+            border: 2px solid #0f172a; 
+            background: #fff;
+            position: relative;
+        }
+        .kwitansi-header { 
+            border-bottom: 3px double #0f172a; 
+            padding-bottom: 15px; 
+            margin-bottom: 25px; 
+        }
+        .row-data { 
+            display: flex; 
+            border-bottom: 1px dotted #cbd5e1; 
+            padding: 8px 0; 
+            font-size: 1.05rem;
+        }
+        .label-col { 
+            width: 220px; 
             font-weight: bold; 
-            display: inline-block; 
-            border: 2px solid #333;
+        }
+        .amount-section { 
+            margin-top: 30px; 
+            background: #f8fafc;
+            border: 1px solid #0f172a;
+            padding: 20px;
+            border-radius: 4px;
+        }
+        .amount-box { 
+            font-size: 1.4rem; 
+            font-weight: 800; 
+            color: #0f172a;
         }
         .terbilang-text { 
             font-style: italic; 
-            background: #eee; 
-            padding: 5px 10px; 
-            display: block; 
+            font-size: 0.95rem;
+            color: #475569;
             margin-top: 5px;
-            font-size: 0.9em;
         }
-        .footer { margin-top: 50px; display: flex; justify-content: space-between; }
-        
-        /* Tombol Cetak (Akan hilang saat di-print) */
+        .kwitansi-footer { 
+            margin-top: 40px; 
+            display: flex; 
+            justify-content: space-between; 
+        }
         .btn-print { 
-            margin: 20px auto; 
+            margin: 20px auto 0; 
             display: block; 
             padding: 10px 25px; 
-            background: #28a745; 
+            background: #0f172a; 
             color: white; 
             border: none; 
             cursor: pointer; 
             font-weight: bold;
-            border-radius: 5px;
+            border-radius: 50px;
+            transition: background 0.2s;
         }
-
-        /* CSS khusus untuk mode cetak */
+        .btn-print:hover {
+            background: #1e3a8a;
+        }
         @media print { 
-            .btn-print { display: none; } 
+            .btn-print { display: none !important; } 
             body { background: none; padding: 0; }
-            .kwitansi-container { box-shadow: none; border: 2px solid #000; margin: 0; width: 100%; }
+            .kwitansi-container { border: 2px solid #000; box-shadow: none; width: 100%; }
         }
     </style>
 </head>
 <body>
 
     <div class="kwitansi-container">
-        <div class="header">
-            <h1 style="margin: 0;">KWITANSI PEMBAYARAN</h1>
-            <p style="margin: 5px 0; font-size: 1.2em;"><strong>INDOMAX RENTAL MOBIL</strong></p>
-            <p style="margin: 0; font-size: 0.9em;">Jl. Raya Solo - Semarang, Jawa Tengah</p>
+        <!-- Stamp Watermark -->
+        <div style="position: absolute; right: 80px; top: 120px; border: 3px solid rgba(37,99,235,0.15); color: rgba(37,99,235,0.15); font-size: 2rem; font-weight: 800; padding: 5px 15px; transform: rotate(-15deg); border-radius: 8px; text-transform: uppercase;">
+            Paid
+        </div>
+
+        <div class="kwitansi-header text-center">
+            <h2 class="fw-bold m-0" style="letter-spacing: 1px;">KWITANSI BUKTI PEMBAYARAN</h2>
+            <h4 class="m-0 mt-1"><strong>PT INDOMAX RENTAL MOBIL</strong></h4>
+            <p class="m-0 small text-muted">Solo - Semarang, Jawa Tengah | Telp: 0812345678</p>
         </div>
 
         <div class="content">
             <div class="row-data">
-                <div class="label">No. Kwitansi</div>
+                <div class="label-col">No. Resi</div>
                 <div>: #PYM-<?php echo str_pad($row['id_pembayaran'], 5, "0", STR_PAD_LEFT); ?></div>
             </div>
             <div class="row-data">
-                <div class="label">Telah Terima Dari</div>
+                <div class="label-col">Telah Terima Dari</div>
                 <div>: <strong><?php echo strtoupper($row['nama']); ?></strong></div>
             </div>
             <div class="row-data">
-                <div class="label">Untuk Pembayaran</div>
-                <div>: Sewa Kendaraan (ID Sewa: #SRV-<?php echo $row['id_sewa']; ?>)</div>
+                <div class="label-col">Untuk Pembayaran</div>
+                <div>: Sewa Kendaraan (Order ID: #SRV-<?php echo $row['id_sewa']; ?>)</div>
             </div>
             <div class="row-data">
-                <div class="label">Metode Pembayaran</div>
-                <div>: <?php echo !empty($row['metode_pembayaran']) ? $row['metode_pembayaran'] : '-'; ?></div>
+                <div class="label-col">Metode Bayar</div>
+                <div class="text-uppercase">: <?php echo !empty($row['metode_pembayaran']) ? $row['metode_pembayaran'] : '-'; ?></div>
             </div>
             <div class="row-data">
-                <div class="label">Tanggal Bayar</div>
+                <div class="label-col">Tanggal Bayar</div>
                 <div>: <?php echo date('d F Y', strtotime($row['tanggal_bayar'])); ?></div>
             </div>
 
             <div class="amount-section">
                 <div class="amount-box">
-                    TOTAL: Rp <?php echo number_format($row['jumlah_bayar'], 0, ',', '.'); ?>,-
+                    NOMINAL: Rp <?php echo number_format($row['jumlah_bayar'], 0, ',', '.'); ?>,-
                 </div>
                 <div class="terbilang-text">
-                    Terbilang: <?php echo terbilang($row['jumlah_bayar']); ?> Rupiah
+                    Terbilang: <?php echo trim(terbilang($row['jumlah_bayar'])); ?> Rupiah
                 </div>
             </div>
         </div>
 
-        <div class="footer">
-            <div style="text-align: center;">
-                <p>Penerima,</p>
-                <br><br><br>
-                <p>___________________</p>
+        <div class="kwitansi-footer">
+            <div class="text-center">
+                <p class="mb-0">Penyewa,</p>
+                <br><br>
+                <p class="fw-bold mb-0">___________________</p>
             </div>
-            <div style="text-align: center;">
-                <p>Semarang, <?php echo date('d M Y'); ?></p>
-                <p>Bagian Kasir,</p>
-                <br><br><br>
-                <p><strong>( Admin Indomax )</strong></p>
+            <div class="text-center">
+                <p class="mb-0">Semarang, <?php echo date('d M Y', strtotime($row['tanggal_bayar'])); ?></p>
+                <p class="mb-0">Bagian Kasir,</p>
+                <br><br>
+                <p class="fw-bold mb-0"><strong>( Kasir Indomax )</strong></p>
             </div>
         </div>
     </div>
 
-    <button class="btn-print" onclick="window.print()">Klik Untuk Cetak Kwitansi</button>
+    <button class="btn-print shadow" onclick="window.print()"><i class="bi bi-printer me-1"></i> Cetak Kwitansi</button>
 
     <script>
         window.onload = function() {
+            // Trigger automatic printing popup
             window.print();
         }
     </script>
