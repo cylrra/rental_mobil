@@ -5,25 +5,11 @@ if (session_status() === PHP_SESSION_NONE) {
 include 'koneksi.php';
 
 $error = '';
-$show_otp = false;
-$temp_username = '';
+$success_msg = '';
 
-// Check if redirected after registration to show OTP verification
+// Check if redirected after registration
 if (isset($_GET['registered']) && $_GET['registered'] === 'true') {
-    $show_otp = true;
-    $temp_username = $_GET['user'] ?? '';
-}
-
-if (isset($_POST['verify_otp'])) {
-    $otp_code = implode('', $_POST['otp']);
-    if ($otp_code === '123456') { // Simulated correct OTP
-        $success_msg = "Akun berhasil diaktifkan/diverifikasi! Silakan login.";
-        $show_otp = false;
-    } else {
-        $error = "Kode OTP salah! Gunakan kode simulasi: 123456";
-        $show_otp = true;
-        $temp_username = $_POST['temp_username'];
-    }
+    $success_msg = "Registrasi berhasil! Akun Anda sudah siap digunakan. Silakan login.";
 }
 
 if (isset($_POST['login'])) {
@@ -175,59 +161,6 @@ if (isset($_POST['login'])) {
     <div class="login-container">
         <div class="login-card p-4 p-md-5">
             
-            <?php if ($show_otp): ?>
-                <!-- OTP / VERIFICATION SCREEN -->
-                <div class="text-center mb-4">
-                    <div class="brand-logo-circle">
-                        <i class="bi bi-shield-lock-fill text-white fs-2"></i>
-                    </div>
-                    <h3 class="brand-header fw-bold mb-1">Verifikasi OTP</h3>
-                    <p class="text-muted small">Masukkan 6 digit kode yang dikirim ke nomor HP Anda</p>
-                    <div class="badge bg-light text-dark border mt-1">Simulasi OTP: <strong>123456</strong></div>
-                </div>
-
-                <?php if (!empty($error)): ?>
-                    <div class="alert alert-danger border-0 rounded-4 shadow-sm mb-4 small d-flex align-items-center" role="alert">
-                        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
-                        <div><?= htmlspecialchars($error) ?></div>
-                    </div>
-                <?php endif; ?>
-
-                <form action="" method="POST">
-                    <input type="hidden" name="temp_username" value="<?= htmlspecialchars($temp_username) ?>">
-                    <div class="d-flex justify-content-center mb-4">
-                        <input type="text" name="otp[]" class="otp-input form-control" maxlength="1" oninput="moveToNext(this, 1)" id="otp1" required>
-                        <input type="text" name="otp[]" class="otp-input form-control" maxlength="1" oninput="moveToNext(this, 2)" id="otp2" required>
-                        <input type="text" name="otp[]" class="otp-input form-control" maxlength="1" oninput="moveToNext(this, 3)" id="otp3" required>
-                        <input type="text" name="otp[]" class="otp-input form-control" maxlength="1" oninput="moveToNext(this, 4)" id="otp4" required>
-                        <input type="text" name="otp[]" class="otp-input form-control" maxlength="1" oninput="moveToNext(this, 5)" id="otp5" required>
-                        <input type="text" name="otp[]" class="otp-input form-control" maxlength="1" oninput="moveToNext(this, 6)" id="otp6" required>
-                    </div>
-
-                    <button type="submit" name="verify_otp" class="btn btn-submit w-100 mb-3">
-                        Verifikasi Kode <i class="bi bi-shield-check ms-1 fs-5"></i>
-                    </button>
-                    
-                    <div class="text-center">
-                        <p class="small text-muted mb-0">Tidak menerima kode? <a href="#" class="text-primary fw-bold text-decoration-none">Kirim Ulang</a></p>
-                    </div>
-                </form>
-
-                <script>
-                    function moveToNext(field, index) {
-                        if (field.value.length >= 1) {
-                            if (index < 6) {
-                                document.getElementById('otp' + (index + 1)).focus();
-                            }
-                        }
-                    }
-                    // Auto focus first input
-                    window.onload = function() {
-                        document.getElementById('otp1').focus();
-                    }
-                </script>
-
-            <?php else: ?>
                 <!-- LOGIN SCREEN -->
                 <div class="text-center mb-4">
                     <div class="brand-logo-circle">
@@ -237,7 +170,7 @@ if (isset($_POST['login'])) {
                     <p class="text-muted small">Area Portal Pelanggan</p>
                 </div>
 
-                <?php if (isset($success_msg)): ?>
+                <?php if (!empty($success_msg)): ?>
                     <div class="alert alert-success border-0 rounded-4 shadow-sm mb-4 small d-flex align-items-center" role="alert">
                         <i class="bi bi-check-circle-fill me-2 fs-5"></i>
                         <div><?= htmlspecialchars($success_msg) ?></div>
@@ -281,7 +214,6 @@ if (isset($_POST['login'])) {
                         <p class="small text-muted mb-0">Kembali ke <a href="landing.php" class="text-secondary fw-bold text-decoration-none">Halaman Utama</a></p>
                     </div>
                 </form>
-            <?php endif; ?>
         </div>
     </div>
 
