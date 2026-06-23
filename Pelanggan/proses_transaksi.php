@@ -1,69 +1,40 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+session_start();
 include 'koneksi.php';
 
-// PROTEKSI KETAT: Hanya pelanggan yang boleh transaksi
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'pelanggan') {
-    header("Location: login_pelanggan.php");
-    exit();
-}
-
-if (isset($_POST['submit'])) {
-    // Amankan data input form
-    $id_pelanggan = mysqli_real_escape_string($conn, $_POST['id_pelanggan']);
-    $kode_mobil   = mysqli_real_escape_string($conn, $_POST['kode_mobil']);
-    $id_supir     = !empty($_POST['id_supir']) ? mysqli_real_escape_string($conn, $_POST['id_supir']) : null;
-    $lokasi_jemput = mysqli_real_escape_string($conn, $_POST['lokasi_jemput']);
-    $tanggal_sewa = mysqli_real_escape_string($conn, $_POST['tanggal_sewa']);
-    $lama_sewa    = intval($_POST['lama_sewa']);
-
-    // 1. Ambil Tarif Harian Mobil
-    $query_mobil = mysqli_query($conn, "SELECT tarif_per_hari FROM mobil WHERE kode_mobil = '$kode_mobil'");
-    $data_mobil  = mysqli_fetch_assoc($query_mobil);
-    $tarif_mobil = $data_mobil['tarif_per_hari'] ?? 0;
-
-    // 2. Ambil Tarif Harian Supir
-    $tarif_supir_harian = 0;
-    if ($id_supir !== null) {
-        $query_supir = mysqli_query($conn, "SELECT tarif_supir_per_hari FROM supir WHERE id_supir = '$id_supir'");
-        $data_supir  = mysqli_fetch_assoc($query_supir);
-        $tarif_supir_harian = $data_supir['tarif_supir_per_hari'] ?? 0;
-    }
-
-    // 3. Hitung Biaya & Tanggal Kembali
-    $biaya_supir = $tarif_supir_harian * $lama_sewa;
-    $total_biaya = ($tarif_mobil * $lama_sewa) + $biaya_supir;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
     
-    // Hitung tanggal kembali otomatis
-    $tanggal_kembali = date('Y-m-d', strtotime("+$lama_sewa days", strtotime($tanggal_sewa)));
+    $id_pelanggan  = $_SESSION['id_pelanggan'];
+    $kode_mobil    = $_POST['kode_mobil'];
+    $nama_penyewa  = $_POST['nama_penyewa'];
+    $tanggal_sewa  = $_POST['tanggal_sewa'];
+    $lama_sewa     = (int)$_POST['lama_sewa'];
+    $lokasi_jemput = $_POST['lokasi_jemput'];
+    $alamat_detail = $_POST['alamat_detail'];
+    $id_supir      = (!empty($_POST['id_supir']) && is_numeric($_POST['id_supir'])) ? (int)$_POST['id_supir'] : NULL;
+    $status_sewa   = 'menunggu_konfirmasi';
 
-    // Siapkan nilai untuk opsi supir
-    $pake_supir  = ($id_supir !== null) ? 'Ya' : 'Tidak';
-    $opsi_supir  = ($id_supir !== null) ? 'ya' : 'tidak';
-    $id_supir_db = ($id_supir !== null) ? "'$id_supir'" : "NULL";
+    // AMBIL TARIF DARI DB
+    $q_tarif = mysqli_query($conn, "SELECT tarif_per_hari FROM mobil WHERE kode_mobil = '$kode_mobil'");
+    $d_tarif = mysqli_fetch_assoc($q_tarif);
+    $tarif_mobil = $d_tarif['tarif_per_hari'];
+    $tarif_supir = ($id_supir !== NULL) ? 200000 : 0;
+    
+    // HITUNG TOTAL
+    $total_bayar = ($tarif_mobil + $tarif_supir) * $lama_sewa;
 
-    // 4. Masukkan data ke tabel transaksi_sewa dengan status_sewa 'berjalan'
-    $query_insert = "INSERT INTO transaksi_sewa (id_pelanggan, pake_supir, kode_mobil, id_supir, biaya_supir, opsi_supir, lokasi_jemput, tanggal_sewa, tanggal_kembali, lama_sewa, total_biaya, status_sewa) 
-                     VALUES ('$id_pelanggan', '$pake_supir', '$kode_mobil', $id_supir_db, '$biaya_supir', '$opsi_supir', '$lokasi_jemput', '$tanggal_sewa', '$tanggal_kembali', '$lama_sewa', '$total_biaya', 'berjalan')";
+    // INSERT KE DB (Pastikan tabel Anda punya kolom total_bayar)
+    $stmt = $conn->prepare("INSERT INTO transaksi_sewa 
+            (id_pelanggan, kode_mobil, nama_penyewa, id_supir, tanggal_sewa, lama_sewa, lokasi_jemput, alamat_detail, status_sewa, total_bayar) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-    if (mysqli_query($conn, $query_insert)) {
-        // Logika bisnis: kurangi ketersediaan stok mobil
-        mysqli_query($conn, "UPDATE mobil SET status_mobil = 'disewa' WHERE kode_mobil = '$kode_mobil'");
-        
-        echo "<script>
-                alert('Pemesanan Berhasil Disimpan! Estimasi Biaya: Rp " . number_format($total_biaya, 0, ',', '.') . "');
-                window.location = 'transaksi.php';
-              </script>";
+    $stmt->bind_param("ississsssi", $id_pelanggan, $kode_mobil, $nama_penyewa, $id_supir, $tanggal_sewa, $lama_sewa, $lokasi_jemput, $alamat_detail, $status_sewa, $total_bayar);
+
+    if ($stmt->execute()) {
+        echo "<script>alert('Berhasil!'); window.location='riwayat_pembayaran.php';</script>";
     } else {
-        echo "<script>
-                alert('Gagal menyimpan pemesanan: " . mysqli_escape_string($conn, mysqli_error($conn)) . "');
-                window.history.back();
-              </script>";
+        echo "Error: " . $stmt->error;
     }
-} else {
-    header("Location: transaksi.php");
-    exit();
+    $stmt->close();
 }
 ?>
