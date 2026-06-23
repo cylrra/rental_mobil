@@ -365,7 +365,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <a href="riwayat_pembayaran.php" class="<?= $current_page === 'riwayat_pembayaran.php' ? 'active' : '' ?>">
                     <i class="bi bi-clock-history"></i> Riwayat Transaksi
                 </a>
-                <a href="grafik_rating.php" class="<?= $current_page === 'grafik_rating.php' ? 'active' : '' ?>">
+                <a href="input_rating.php" class="<?= $current_page === 'input_rating.php' ? 'active' : '' ?>">
                     <i class="bi bi-star-fill"></i> Ulasan & Rating
                 </a>
 
