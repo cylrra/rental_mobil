@@ -49,9 +49,46 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <a href="katalog.php" class="<?= $current_page === 'katalog.php' ? 'active' : '' ?>"><i class="bi bi-car-front-fill"></i> Katalog</a>
                 <a href="transaksi.php" class="<?= $current_page === 'transaksi.php' ? 'active' : '' ?>"><i class="bi bi-calendar-check-fill"></i> Sewa</a>
                 <div class="sidebar-section-title">Keuangan & Ulasan</div>
+<<<<<<< HEAD
                 <a href="pembayaran.php" class="<?= $current_page === 'pembayaran.php' ? 'active' : '' ?>"><i class="bi bi-wallet2"></i> Pembayaran</a>
                 <a href="riwayat_pembayaran.php" class="<?= $current_page === 'riwayat_pembayaran.php' ? 'active' : '' ?>"><i class="bi bi-clock-history"></i> Riwayat</a>
                 <a href="ulasan_rating.php" class="<?= $current_page === 'ulasan_rating.php' ? 'active' : '' ?>"><i class="bi bi-star-fill"></i> Ulasan & Rating</a>
+=======
+
+                <a href="pembayaran.php" class="<?= $current_page === 'pembayaran.php' ? 'active' : '' ?>">
+                    <i class="bi bi-wallet2"></i> Input Pembayaran
+                </a>
+                <a href="riwayat_pembayaran.php" class="<?= $current_page === 'riwayat_pembayaran.php' ? 'active' : '' ?>">
+                    <i class="bi bi-clock-history"></i> Riwayat Transaksi
+                </a>
+                <a href="input_rating.php" class="<?= $current_page === 'input_rating.php' ? 'active' : '' ?>">
+                    <i class="bi bi-star-fill"></i> Ulasan & Rating
+                </a>
+
+                <div class="sidebar-section-title">Pengaturan</div>
+
+                <a href="edit_profil.php" class="<?= $current_page === 'edit_profil.php' ? 'active' : '' ?>">
+                    <i class="bi bi-person-gear"></i> Pengaturan Akun
+                </a>
+                <a href="bantuan.php" class="<?= $current_page === 'bantuan.php' ? 'active' : '' ?>">
+                    <i class="bi bi-question-circle-fill"></i> Bantuan & CS
+                </a>
+
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+                <div class="sidebar-section-title">Dashboard Admin</div>
+                <a href="index.php"><i class="bi bi-speedometer2"></i> Dashboard Utama</a>
+                <a href="katalog.php"><i class="bi bi-car-front"></i> Katalog Mobil</a>
+                <a href="supir.php"><i class="bi bi-person-badge"></i> Supir</a>
+                <a href="pelanggan.php"><i class="bi bi-people"></i> Pelanggan</a>
+                <div class="sidebar-section-title">Operasional</div>
+                <a href="transaksi.php"><i class="bi bi-card-list"></i> Transaksi</a>
+                <div class="sidebar-section-title">Akuntansi</div>
+                <a href="pembayaran.php"><i class="bi bi-plus-circle-fill"></i> Input Pembayaran</a>
+                <a href="riwayat_pembayaran.php"><i class="bi bi-clock-history"></i> Riwayat Pembayaran</a>
+                <a href="jurnal_umum.php"><i class="bi bi-journal-check"></i> Jurnal Umum</a>
+>>>>>>> 3e94f89b0148e1f4cea8554f3c108dcc9372a35e
             <?php endif; ?>
         </nav>
     </div>

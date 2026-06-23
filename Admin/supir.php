@@ -44,8 +44,15 @@ include 'koneksi.php';
                 <tr>
                     <td class="ps-3 text-muted"><?= $data['id_supir']; ?></td>
                     <td>
-                        <i class="bi bi-person-circle text-secondary me-1"></i>
-                        <span class="fw-bold"><?= htmlspecialchars($data['nama_supir']); ?></span>
+                        <!-- Menggunakan d-inline-flex agar gambar dan teks mengunci sejajar ke samping -->
+                        <div class="d-inline-flex align-items-center">
+                            <?php if (!empty($data['gambar']) && file_exists('img_supir/' . $data['gambar'])) { ?>
+                                <img src="img_supir/<?= htmlspecialchars($data['gambar']); ?>" alt="Foto <?= htmlspecialchars($data['nama_supir']); ?>" class="rounded-circle me-2" style="width: 35px; height: 35px; object-fit: cover; flex-shrink: 0;">
+                            <?php } else { ?>
+                                <i class="bi bi-person-circle text-secondary fs-5 me-2"></i>
+                            <?php } ?>
+                            <span class="fw-bold"><?= htmlspecialchars($data['nama_supir']); ?></span>
+                        </div>
                     </td>
                     <td>
                         <i class="bi bi-telephone-fill text-success me-1"></i>

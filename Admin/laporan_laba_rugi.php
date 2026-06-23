@@ -12,7 +12,13 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 include 'navbar.php'; 
 include 'koneksi.php'; 
 
-// Ambil data rekap laba rugi dari database
+// 1. Ambil total Biaya Servis / Perawatan secara otomatis dari tabel JURNAL (Akun 513)
+$query_beban_servis = "SELECT SUM(Debit) AS total_servis FROM jurnal WHERE kode_akun = '513'";
+$res_servis = mysqli_query($conn, $query_beban_servis);
+$row_servis = mysqli_fetch_assoc($res_servis);
+$total_biaya_servis = isset($row_servis['total_servis']) ? floatval($row_servis['total_servis']) : 0;
+
+// 2. Ambil data rekap laba rugi dari database
 $sql = "SELECT periode, pendapatan_total, beban_total, laba_bersih FROM laporan_laba_rugi ORDER BY periode DESC";
 $res = mysqli_query($conn, $sql);
 
@@ -23,6 +29,11 @@ $total_laba_kumulatif = 0;
 $reports = [];
 if ($res && mysqli_num_rows($res) > 0) {
     while ($row = mysqli_fetch_assoc($res)) {
+        // Gabungkan beban rekap bawaan dengan biaya perawatan kendaraan (Akun 513) secara real-time
+        $row['beban_total'] += $total_biaya_servis;
+        // Hitung ulang laba bersih secara akurat setelah beban diperbarui
+        $row['laba_bersih'] = $row['pendapatan_total'] - $row['beban_total'];
+
         $reports[] = $row;
         $total_pendapatan_kumulatif += $row['pendapatan_total'];
         $total_beban_kumulatif += $row['beban_total'];

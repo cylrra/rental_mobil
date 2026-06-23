@@ -61,7 +61,8 @@ if (isset($_POST['selesaikan_pemeliharaan'])) {
 
         // Jika semua langkah sukses tanpa error, kunci ke database
         mysqli_commit($conn);
-        echo "<script>alert('Pemeliharaan diselesaikan dan otomatis diposting ke Laporan Laba Rugi!'); window.location='riwayat_pemeliharaan.php';</script>";
+        // DISESUAIKAN: Mengarah ke nama file Anda yang benar, yaitu laporan_laba_rugi.php
+        echo "<script>alert('Pemeliharaan diselesaikan dan otomatis diposting ke Laporan Laba Rugi!'); window.location='laporan_laba_rugi.php';</script>";
 
     } catch (Exception $e) {
         // Jika ada salah satu langkah yang gagal, batalkan semua agar database tidak korup/unbalanced
@@ -195,7 +196,7 @@ $jadwal = mysqli_query($conn, "SELECT p.*, m.merk, m.nopol FROM pemeliharaan p J
                                         </div>
                                       </div>
                                     </div>
-                                    </td>
+                                </td>
                             </tr>
                             <?php 
                                 } 
