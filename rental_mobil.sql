@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 21, 2026 at 04:24 PM
+-- Generation Time: Jun 23, 2026 at 04:04 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -22,9 +22,7 @@ SET time_zone = "+00:00";
 --
 
 -- --------------------------------------------------------
-CREATE DATABASE IF NOT EXISTS `rental_mobil`;
 
-USE `rental_mobil`;
 --
 -- Table structure for table `akun`
 --
@@ -129,7 +127,15 @@ CREATE TABLE `jurnal` (
 
 INSERT INTO `jurnal` (`id_jurnal`, `id_pembayaran`, `tanggal`, `keterangan`, `kode_akun`, `Debit`, `Kredit`, `id_sumber`) VALUES
 (25, NULL, '2026-06-21', 'Rental Mobil', 111, 280000.00, 0.00, 1),
-(26, NULL, '2026-06-21', 'Rental Mobil', 121, 0.00, 280000.00, 1);
+(26, NULL, '2026-06-21', 'Rental Mobil', 121, 0.00, 280000.00, 1),
+(27, NULL, '2026-06-22', 'Pembayaran LUNAS Sewa Mobil ID: 260019', 101, 135000.00, 0.00, 20282),
+(28, NULL, '2026-06-22', '    Pembayaran LUNAS Sewa Mobil ID: 260019', 401, 0.00, 135000.00, 20282),
+(29, NULL, '2026-06-22', 'Pembayaran LUNAS Sewa Mobil ID: 260019', 101, 135000.00, 0.00, 20283),
+(30, NULL, '2026-06-22', '    Pembayaran LUNAS Sewa Mobil ID: 260019', 401, 0.00, 135000.00, 20283),
+(31, NULL, '2026-06-22', 'Pembayaran LUNAS Sewa Mobil ID: 260019', 101, 135000.00, 0.00, 20284),
+(32, NULL, '2026-06-22', 'Pembayaran LUNAS Sewa Mobil ID: 260019', 401, 0.00, 135000.00, 20284),
+(33, NULL, '2026-06-22', 'Pembayaran LUNAS Sewa Mobil ID: 260020', 101, 480000.00, 0.00, 20285),
+(34, NULL, '2026-06-22', 'Pembayaran LUNAS Sewa Mobil ID: 260020', 401, 0.00, 480000.00, 20285);
 
 -- --------------------------------------------------------
 
@@ -268,25 +274,26 @@ CREATE TABLE `pelanggan` (
   `password` varchar(255) NOT NULL,
   `alamat` text DEFAULT NULL,
   `no_telp` varchar(15) DEFAULT NULL,
-  `no_ktp` varchar(20) DEFAULT NULL
+  `no_ktp` varchar(20) DEFAULT NULL,
+  `status_verifikasi` varchar(50) DEFAULT 'belum_verifikasi'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `pelanggan`
 --
 
-INSERT INTO `pelanggan` (`id_pelanggan`, `nama`, `email`, `username`, `password`, `alamat`, `no_telp`, `no_ktp`) VALUES
-(10001, 'Atarada Saputra', NULL, 'Putra', '$2y$10$X4eFhM5w/sqvkZWbOMs2fu7.SJqqaRBg5TW9Fjlc3QrmdQcUzkIzO', 'Jl. Pandanaran No. 45, Semarang Tengah, Kota Semarang', '6281234567801', '3374010101010001'),
-(10002, 'Sarada Santoso', NULL, '', '', 'Jl. Sultan Fatah No. 12, Demak Kota, Kabupaten Demak', '6281234567802', '3322010202020002'),
-(10003, 'Sheila Kharizza', NULL, '', '', 'Jl. Sunan Kudus No. 88, Kota Kudus, Kabupaten Kudus', '6281234567803', '3319010303030003'),
-(10004, 'Sheina Putri', NULL, '', '', 'Jl. Kartini No. 21, Jepara Kota, Kabupaten Jepara', '6281234567804', '3321010404040004'),
-(10005, 'Ron Pratama', NULL, '', '', 'Jl. Diponegoro No. 67, Sidorejo, Kota Salatiga', '6281234567805', '3373010505050005'),
-(10006, 'Naura Wulandari', NULL, '', '', 'Jl. Raya Kendal No. 10, Brangsong, Kabupaten Kendal', '6281234567806', '3324010606060006'),
-(10007, 'Gina Aurelia', NULL, '', '', 'Jl. MT Haryono No. 5, Ungaran Barat, Kabupaten Semarang', '6281234567807', '3326010707070007'),
-(10008, 'Hendra Wijaya', NULL, '', '', 'Jl. Gajahmada No. 99, Semarang Tengah, Kota Semarang', '6281234567808', '3374010808080008'),
-(10009, 'Karenovva', NULL, '', '', 'Jl. R. Suprapto No. 3, Purwodadi, Kabupaten Grobogan', '6281234567809', '3315010909090009'),
-(10010, 'Jeannetta', NULL, '', '', 'Jl. Jenderal Sudirman No. 50, Pati', '6281234567810', '3318011010100010'),
-(10012, 'Ferra Siti Nur Aisah', 'ferrasiti28@gmail.com', '', '', 'Bergas', '6281227534588', '2262761753757881');
+INSERT INTO `pelanggan` (`id_pelanggan`, `nama`, `email`, `username`, `password`, `alamat`, `no_telp`, `no_ktp`, `status_verifikasi`) VALUES
+(10001, 'Atarada Saputra', NULL, 'Putra', '$2y$10$X4eFhM5w/sqvkZWbOMs2fu7.SJqqaRBg5TW9Fjlc3QrmdQcUzkIzO', 'Jl. Pandanaran No. 45, Semarang Tengah, Kota Semarang', '6281234567801', '3374010101010001', 'belum_verifikasi'),
+(10002, 'Sarada Santoso', NULL, '', '', 'Jl. Sultan Fatah No. 12, Demak Kota, Kabupaten Demak', '6281234567802', '3322010202020002', 'belum_verifikasi'),
+(10003, 'Sheila Kharizza', NULL, '', '', 'Jl. Sunan Kudus No. 88, Kota Kudus, Kabupaten Kudus', '6281234567803', '3319010303030003', 'belum_verifikasi'),
+(10004, 'Sheina Putri', NULL, '', '', 'Jl. Kartini No. 21, Jepara Kota, Kabupaten Jepara', '6281234567804', '3321010404040004', 'belum_verifikasi'),
+(10005, 'Ron Pratama', NULL, '', '', 'Jl. Diponegoro No. 67, Sidorejo, Kota Salatiga', '6281234567805', '3373010505050005', 'belum_verifikasi'),
+(10006, 'Naura Wulandari', NULL, '', '', 'Jl. Raya Kendal No. 10, Brangsong, Kabupaten Kendal', '6281234567806', '3324010606060006', 'belum_verifikasi'),
+(10007, 'Gina Aurelia', NULL, '', '', 'Jl. MT Haryono No. 5, Ungaran Barat, Kabupaten Semarang', '6281234567807', '3326010707070007', 'belum_verifikasi'),
+(10008, 'Hendra Wijaya', NULL, '', '', 'Jl. Gajahmada No. 99, Semarang Tengah, Kota Semarang', '6281234567808', '3374010808080008', 'belum_verifikasi'),
+(10009, 'Karenovva', NULL, '', '', 'Jl. R. Suprapto No. 3, Purwodadi, Kabupaten Grobogan', '6281234567809', '3315010909090009', 'belum_verifikasi'),
+(10010, 'Jeannetta', NULL, '', '', 'Jl. Jenderal Sudirman No. 50, Pati', '6281234567810', '3318011010100010', 'belum_verifikasi'),
+(10012, 'Ferra Siti Nur Aisah', 'ferrasiti28@gmail.com', '', '', 'Bergas', '6281227534588', '2262761753757881', 'belum_verifikasi');
 
 -- --------------------------------------------------------
 
@@ -321,7 +328,11 @@ INSERT INTO `pembayaran` (`id_pembayaran`, `id_sewa`, `jenis_pembayaran`, `metod
 (20278, 260010, 'dp', '', '2026-06-21', 3000000.00, 'menunggu', 'Pembayaran Sewa Mobil ID: 260010', 'Lunas'),
 (20279, 260007, 'dp', 'transfer', '2026-06-21', 800000.00, 'menunggu', 'Pembayaran Sewa Mobil ID: 260007', 'Lunas'),
 (20280, 260008, 'dp', 'cash', '2026-06-21', 280000.00, 'menunggu', 'Pembayaran Sewa Mobil ID: 260008', 'Lunas'),
-(20281, 260008, 'pelunasan', 'cash', '2026-06-21', 280000.00, 'menunggu', 'Pembayaran Sewa Mobil ID: 260008', 'Lunas');
+(20281, 260008, 'pelunasan', 'cash', '2026-06-21', 280000.00, 'menunggu', 'Pembayaran Sewa Mobil ID: 260008', 'Lunas'),
+(20282, 260019, '', '', '2026-06-22', 135000.00, 'menunggu', 'Pembayaran LUNAS Sewa Mobil ID: 260019', 'Lunas'),
+(20283, 260019, '', '', '2026-06-22', 135000.00, 'menunggu', 'Pembayaran LUNAS Sewa Mobil ID: 260019', 'Lunas'),
+(20284, 260019, '', '', '2026-06-22', 135000.00, 'menunggu', 'Pembayaran LUNAS Sewa Mobil ID: 260019', 'Lunas'),
+(20285, 260020, '', '', '2026-06-22', 480000.00, 'menunggu', 'Pembayaran LUNAS Sewa Mobil ID: 260020', 'Lunas');
 
 -- --------------------------------------------------------
 
@@ -449,26 +460,36 @@ CREATE TABLE `transaksi_sewa` (
   `lama_sewa` int(11) NOT NULL,
   `total_biaya` decimal(12,2) NOT NULL,
   `status_sewa` enum('berjalan','selesai') DEFAULT 'berjalan',
-  `kode_akun` int(11) DEFAULT NULL
+  `tujuan_perjalanan` varchar(255) NOT NULL,
+  `kode_akun` int(11) DEFAULT NULL,
+  `lokasi_jemput` varchar(255) DEFAULT NULL,
+  `alamat_detail` text DEFAULT NULL,
+  `nama_penyewa` varchar(100) DEFAULT NULL,
+  `total_bayar` int(11) DEFAULT 0,
+  `jumlah_bayar` int(11) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `transaksi_sewa`
 --
 
-INSERT INTO `transaksi_sewa` (`id_sewa`, `id_pelanggan`, `pake_supir`, `kode_mobil`, `id_supir`, `biaya_supir`, `opsi_supir`, `tanggal_sewa`, `tanggal_kembali`, `lama_sewa`, `total_biaya`, `status_sewa`, `kode_akun`) VALUES
-(260002, 10002, 'Tidak', 'M0005', NULL, 0.00, 'tidak', '2026-05-05', '0000-00-00', 3, 0.00, 'selesai', NULL),
-(260003, 10005, 'Tidak', 'M0007', NULL, 0.00, 'tidak', '2026-05-07', '0000-00-00', 1, 0.00, 'selesai', NULL),
-(260004, 10006, 'Tidak', 'M0009', NULL, 0.00, 'tidak', '2026-05-19', '0000-00-00', 2, 0.00, 'selesai', NULL),
-(260005, 10009, 'Tidak', 'M0011', NULL, 0.00, 'tidak', '2026-05-19', '0000-00-00', 1, 0.00, 'selesai', NULL),
-(260006, 10001, 'Tidak', 'M0002', NULL, 0.00, 'tidak', '2026-06-02', '0000-00-00', 1, 0.00, 'selesai', NULL),
-(260007, 10008, 'Tidak', 'M0001', NULL, 0.00, 'tidak', '2026-06-02', '0000-00-00', 1, 0.00, 'selesai', NULL),
-(260008, 10001, 'Tidak', 'M0005', NULL, 0.00, 'tidak', '2026-06-02', '0000-00-00', 2, 0.00, 'selesai', NULL),
-(260009, 10002, 'Ya', 'M0004', 30031, 2000000.00, 'tidak', '2026-06-21', '0000-00-00', 10, 4600000.00, 'berjalan', NULL),
-(260010, 10012, 'Ya', 'M0011', 20016, 1000000.00, 'tidak', '2026-06-21', '0000-00-00', 5, 3000000.00, 'selesai', NULL),
-(260011, 10012, 'Tidak', 'M0001', NULL, 0.00, 'tidak', '2026-06-21', '0000-00-00', 3, 2400000.00, 'berjalan', NULL),
-(260012, 10012, 'Ya', 'M0004', 10081, 1400000.00, 'tidak', '2026-06-21', '0000-00-00', 7, 3220000.00, 'berjalan', NULL),
-(260013, 10012, 'Ya', 'M0002', 10055, 3000000.00, 'tidak', '2026-06-21', '0000-00-00', 15, 7125000.00, 'berjalan', NULL);
+INSERT INTO `transaksi_sewa` (`id_sewa`, `id_pelanggan`, `pake_supir`, `kode_mobil`, `id_supir`, `biaya_supir`, `opsi_supir`, `tanggal_sewa`, `tanggal_kembali`, `lama_sewa`, `total_biaya`, `status_sewa`, `tujuan_perjalanan`, `kode_akun`, `lokasi_jemput`, `alamat_detail`, `nama_penyewa`, `total_bayar`, `jumlah_bayar`) VALUES
+(260002, 10002, 'Tidak', 'M0005', NULL, 0.00, 'tidak', '2026-05-05', '0000-00-00', 3, 0.00, 'selesai', '', NULL, NULL, NULL, NULL, 0, 0),
+(260003, 10005, 'Tidak', 'M0007', NULL, 0.00, 'tidak', '2026-05-07', '0000-00-00', 1, 0.00, 'selesai', '', NULL, NULL, NULL, NULL, 0, 0),
+(260004, 10006, 'Tidak', 'M0009', NULL, 0.00, 'tidak', '2026-05-19', '0000-00-00', 2, 0.00, 'selesai', '', NULL, NULL, NULL, NULL, 0, 0),
+(260005, 10009, 'Tidak', 'M0011', NULL, 0.00, 'tidak', '2026-05-19', '0000-00-00', 1, 0.00, 'selesai', '', NULL, NULL, NULL, NULL, 0, 0),
+(260006, 10001, 'Tidak', 'M0002', NULL, 0.00, 'tidak', '2026-06-02', '0000-00-00', 1, 0.00, 'selesai', '', NULL, NULL, NULL, NULL, 0, 0),
+(260007, 10008, 'Tidak', 'M0001', NULL, 0.00, 'tidak', '2026-06-02', '0000-00-00', 1, 0.00, 'selesai', '', NULL, NULL, NULL, NULL, 0, 0),
+(260008, 10001, 'Tidak', 'M0005', NULL, 0.00, 'tidak', '2026-06-02', '0000-00-00', 2, 0.00, 'selesai', '', NULL, NULL, NULL, NULL, 0, 0),
+(260009, 10002, 'Ya', 'M0004', 30031, 2000000.00, 'tidak', '2026-06-21', '0000-00-00', 10, 4600000.00, 'berjalan', '', NULL, NULL, NULL, NULL, 0, 0),
+(260010, 10012, 'Ya', 'M0011', 20016, 1000000.00, 'tidak', '2026-06-21', '0000-00-00', 5, 3000000.00, 'selesai', '', NULL, NULL, NULL, NULL, 0, 0),
+(260011, 10012, 'Tidak', 'M0001', NULL, 0.00, 'tidak', '2026-06-21', '0000-00-00', 3, 2400000.00, 'berjalan', '', NULL, NULL, NULL, NULL, 0, 0),
+(260012, 10012, 'Ya', 'M0004', 10081, 1400000.00, 'tidak', '2026-06-21', '0000-00-00', 7, 3220000.00, 'berjalan', '', NULL, NULL, NULL, NULL, 0, 0),
+(260013, 10012, 'Ya', 'M0002', 10055, 3000000.00, 'tidak', '2026-06-21', '0000-00-00', 15, 7125000.00, 'berjalan', '', NULL, NULL, NULL, NULL, 0, 0),
+(260017, 10001, 'Tidak', 'M0003', 999, 0.00, 'tidak', '2026-06-22', '0000-00-00', 1, 0.00, '', '', NULL, 'Ambil di Kantor', '', 'Atarada Saputra', 0, 0),
+(260018, 10001, 'Tidak', 'M0003', 999, 0.00, 'tidak', '2026-06-22', '0000-00-00', 1, 0.00, '', '', NULL, 'Ambil di Kantor', '', 'Atarada Saputra', 0, 0),
+(260019, 10001, 'Tidak', 'M0003', 999, 0.00, 'tidak', '2026-06-22', '0000-00-00', 1, 0.00, '', '', NULL, 'Ambil di Kantor', '', 'Atarada Saputra', 450000, 135000),
+(260020, 10001, 'Tidak', 'M0005', 999, 0.00, 'tidak', '2026-06-22', '0000-00-00', 1, 0.00, '', '', NULL, 'Ambil di Kantor', '', 'Atarada Saputra', 480000, 480000);
 
 -- --------------------------------------------------------
 
@@ -615,7 +636,7 @@ ALTER TABLE `ulasan`
 -- AUTO_INCREMENT for table `jurnal`
 --
 ALTER TABLE `jurnal`
-  MODIFY `id_jurnal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id_jurnal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT for table `jurnal_detail`
@@ -639,7 +660,7 @@ ALTER TABLE `pelanggan`
 -- AUTO_INCREMENT for table `pembayaran`
 --
 ALTER TABLE `pembayaran`
-  MODIFY `id_pembayaran` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20282;
+  MODIFY `id_pembayaran` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20286;
 
 --
 -- AUTO_INCREMENT for table `pemeliharaan`
@@ -669,7 +690,7 @@ ALTER TABLE `tracking_mobil`
 -- AUTO_INCREMENT for table `transaksi_sewa`
 --
 ALTER TABLE `transaksi_sewa`
-  MODIFY `id_sewa` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=260014;
+  MODIFY `id_sewa` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=260021;
 
 --
 -- AUTO_INCREMENT for table `ulasan`
@@ -724,9 +745,7 @@ ALTER TABLE `tracking_mobil`
 ALTER TABLE `transaksi_sewa`
   ADD CONSTRAINT `fk_sewa_akun` FOREIGN KEY (`kode_akun`) REFERENCES `akun` (`kode_akun`),
   ADD CONSTRAINT `fk_sewa_mobil` FOREIGN KEY (`kode_mobil`) REFERENCES `mobil` (`kode_mobil`),
-  ADD CONSTRAINT `fk_sewa_pelanggan` FOREIGN KEY (`id_pelanggan`) REFERENCES `pelanggan` (`id_pelanggan`),
-  ADD CONSTRAINT `fk_sewa_supir` FOREIGN KEY (`id_supir`) REFERENCES `supir` (`id_supir`),
-  ADD CONSTRAINT `fk_transaksi_supir` FOREIGN KEY (`id_supir`) REFERENCES `supir` (`id_supir`) ON DELETE SET NULL ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_sewa_pelanggan` FOREIGN KEY (`id_pelanggan`) REFERENCES `pelanggan` (`id_pelanggan`);
 
 --
 -- Constraints for table `ulasan`
