@@ -15,28 +15,39 @@ if (isset($_POST['simpan_pembayaran'])) {
     $tgl_bayar      = mysqli_real_escape_string($conn, $_POST['tgl_bayar']);    
     $jumlah_bayar   = mysqli_real_escape_string($conn, $_POST['jumlah_bayar']);
     $metode         = mysqli_real_escape_string($conn, $_POST['metode_bayar']);  
-    $jenis_bayar    = mysqli_real_escape_string($conn, $_POST['jenis_pembayaran']); // 'dp' atau 'pelunasan'
+    $jenis_bayar    = mysqli_real_escape_string($conn, $_POST['tipe_pembayaran']); // 'DP' atau 'Lunas'
     
-    $tipe_pembayaran = ($jenis_bayar === 'dp') ? 'DP' : 'Lunas';
+    $tipe_pembayaran = ($jenis_bayar === 'DP') ? 'DP' : 'Lunas';
     $keterangan     = "Pembayaran " . strtoupper($tipe_pembayaran) . " Sewa Mobil ID: " . $id_sewa;
 
     mysqli_begin_transaction($conn);
 
     try {
-        // 1. Ambil KODE_MOBIL dari transaksi_sewa
-        $query_cari_mobil = "SELECT kode_mobil FROM transaksi_sewa WHERE id_sewa = '$id_sewa'";
-        $result_mobil     = mysqli_query($conn, $query_cari_mobil);
+        // 1. Ambil KODE_MOBIL, TOTAL_BAYAR, dan JUMLAH_BAYAR dari transaksi_sewa
+        $query_cek = "SELECT kode_mobil, total_bayar, jumlah_bayar FROM transaksi_sewa WHERE id_sewa = '$id_sewa'";
+        $result_cek = mysqli_query($conn, $query_cek);
         
-        if (!$result_mobil || mysqli_num_rows($result_mobil) == 0) {
+        if (!$result_cek || mysqli_num_rows($result_cek) == 0) {
             throw new Exception("Data sewa tidak ditemukan.");
         }
         
-        $data_mobil = mysqli_fetch_assoc($result_mobil);
-        $kode_mobil = $data_mobil['kode_mobil'];
+        $data_trx = mysqli_fetch_assoc($result_cek);
+        $kode_mobil = $data_trx['kode_mobil'];
+        $total_tagihan = (int)$data_trx['total_bayar'];
+        $sudah_dibayar = (int)$data_trx['jumlah_bayar'];
+        $nominal_input = (int)$jumlah_bayar;
+
+        // LOGIKA PENGUNCI AGAR TIDAK LEBIH DARI TAGIHAN
+        $total_setelah_bayar = $sudah_dibayar + $nominal_input;
+        $nominal_final = $nominal_input;
+
+        if ($total_setelah_bayar > $total_tagihan) {
+            $nominal_final = $total_tagihan - $sudah_dibayar;
+        }
 
         // 2. Simpan ke Tabel Pembayaran
         $query_bayar = "INSERT INTO pembayaran (id_sewa, jenis_pembayaran, metode_pembayaran, tanggal_bayar, jumlah_bayar, status_konfirmasi, keterangan, tipe_pembayaran) 
-                        VALUES ('$id_sewa', '$jenis_bayar', '$metode', '$tgl_bayar', '$jumlah_bayar', 'menunggu', '$keterangan', '$tipe_pembayaran')";
+                        VALUES ('$id_sewa', '$jenis_bayar', '$metode', '$tgl_bayar', '$nominal_final', 'menunggu', '$keterangan', '$tipe_pembayaran')";
         
         if (!mysqli_query($conn, $query_bayar)) {
             throw new Exception("Gagal simpan pembayaran: " . mysqli_error($conn));
@@ -46,27 +57,25 @@ if (isset($_POST['simpan_pembayaran'])) {
         
         // 3. Posting ke Jurnal Umum
         $q_debit_sql = "INSERT INTO jurnal (tanggal, kode_akun, Debit, Kredit, keterangan, id_sumber) 
-                        VALUES ('$tgl_bayar', '101', '$jumlah_bayar', 0, '$keterangan', '$id_sumber')";
+                        VALUES ('$tgl_bayar', '101', '$nominal_final', 0, '$keterangan', '$id_sumber')";
         if (!mysqli_query($conn, $q_debit_sql)) {
             throw new Exception("Gagal posting jurnal (Debit): " . mysqli_error($conn));
         }
 
         $q_kredit_sql = "INSERT INTO jurnal (tanggal, kode_akun, Debit, Kredit, keterangan, id_sumber) 
-                         VALUES ('$tgl_bayar', '401', 0, '$jumlah_bayar', '$keterangan', '$id_sumber')";
+                         VALUES ('$tgl_bayar', '401', 0, '$nominal_final', '$keterangan', '$id_sumber')";
         if (!mysqli_query($conn, $q_kredit_sql)) {
             throw new Exception("Gagal posting jurnal (Kredit): " . mysqli_error($conn));
         }
 
-        // --- TAMBAHAN PENTING: Update tabel transaksi_sewa agar SISA di riwayat terupdate ---
-        $q_update_transaksi = "UPDATE transaksi_sewa 
-                               SET jumlah_bayar = jumlah_bayar + $jumlah_bayar 
-                               WHERE id_sewa = '$id_sewa'";
+        // 4. Update tabel transaksi_sewa
+        $q_update_transaksi = "UPDATE transaksi_sewa SET jumlah_bayar = jumlah_bayar + $nominal_final WHERE id_sewa = '$id_sewa'";
         if (!mysqli_query($conn, $q_update_transaksi)) {
             throw new Exception("Gagal mengupdate jumlah bayar di transaksi: " . mysqli_error($conn));
         }
 
-        // 4. Update status transaksi_sewa & ketersediaan mobil
-        if ($jenis_bayar == 'pelunasan') {
+        // 5. Update status transaksi_sewa & ketersediaan mobil
+        if ($total_setelah_bayar >= $total_tagihan) {
             if (!mysqli_query($conn, "UPDATE transaksi_sewa SET status_sewa = 'selesai' WHERE id_sewa = '$id_sewa'")) {
                 throw new Exception("Gagal update status transaksi sewa: " . mysqli_error($conn));
             }
@@ -80,14 +89,12 @@ if (isset($_POST['simpan_pembayaran'])) {
         }
 
         mysqli_commit($conn);
-        echo "<script>alert('Pembayaran Berhasil Dikirim! Mohon tunggu konfirmasi admin.'); window.location='riwayat_pembayaran.php';</script>";
+        // Respon sukses untuk AJAX
+        echo "success";
 
     } catch (Exception $e) {
         mysqli_rollback($conn);
-        echo "<div style='color:red; padding:20px; border:1px solid red; font-family: sans-serif; max-width:600px; margin:50px auto; background:#fff5f5; border-radius:10px;'>";
-        echo "<strong>Terjadi Kesalahan Sistem:</strong><br>" . htmlspecialchars($e->getMessage());
-        echo "<br><br><a href='pembayaran.php' style='color: blue; font-weight:bold;'>Kembali ke Form</a>";
-        echo "</div>";
+        echo "Error: " . htmlspecialchars($e->getMessage());
     }
 } else {
     header("Location: pembayaran.php");

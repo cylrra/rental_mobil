@@ -179,7 +179,7 @@ else $greeting = "Selamat Malam";
         ['href' => 'katalog.php',           'icon' => 'bi-car-front-fill',        'title' => 'Katalog Armada',    'sub' => 'Cari & booking mobil',        'color' => 'var(--clear-blue)'],
         ['href' => 'transaksi.php',         'icon' => 'bi-calendar2-check-fill',  'title' => 'Pesanan Saya',      'sub' => 'Status rental aktif',         'color' => 'var(--light-blue)'],
         ['href' => 'riwayat_pembayaran.php','icon' => 'bi-wallet2',               'title' => 'Keuangan',          'sub' => 'Riwayat & bayar nota',        'color' => 'var(--clear-blue)'],
-        ['href' => 'grafik_rating.php',     'icon' => 'bi-star-fill',             'title' => 'Ulasan & Rating',   'sub' => 'Nilai pengalaman sewa',       'color' => '#856404'],
+        ['href' => 'ulasan_rating.php',     'icon' => 'bi-star-fill',             'title' => 'Ulasan & Rating',   'sub' => 'Nilai pengalaman sewa',       'color' => '#856404'],
         ['href' => 'edit_profil.php',       'icon' => 'bi-person-gear',           'title' => 'Pengaturan Akun',   'sub' => 'Profil & verifikasi',         'color' => 'var(--lilac-dust)'],
         ['href' => 'bantuan.php',           'icon' => 'bi-headset',               'title' => 'Bantuan & CS',      'sub' => 'FAQ & live chat',             'color' => 'var(--clear-blue)'],
     ];

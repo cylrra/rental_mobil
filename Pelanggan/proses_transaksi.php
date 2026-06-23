@@ -2,7 +2,14 @@
 session_start();
 include 'koneksi.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
+// Cek apakah request berasal dari form POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    
+    // Pastikan user sudah login
+    if (!isset($_SESSION['id_pelanggan'])) {
+        echo "Error: Sesi berakhir, silakan login kembali.";
+        exit();
+    }
     
     $id_pelanggan  = $_SESSION['id_pelanggan'];
     $kode_mobil    = $_POST['kode_mobil'];
@@ -11,30 +18,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
     $lama_sewa     = (int)$_POST['lama_sewa'];
     $lokasi_jemput = $_POST['lokasi_jemput'];
     $alamat_detail = $_POST['alamat_detail'];
-    $id_supir      = (!empty($_POST['id_supir']) && is_numeric($_POST['id_supir'])) ? (int)$_POST['id_supir'] : NULL;
-    $status_sewa   = 'menunggu_konfirmasi';
+    
+    // Logika supir: Jika kirim "999" maka pakai supir, jika tidak maka NULL/Lepas Kunci
+    $id_supir = (isset($_POST['id_supir']) && $_POST['id_supir'] == '999') ? 999 : NULL;
+    $status_sewa   = 'pending';
 
     // AMBIL TARIF DARI DB
     $q_tarif = mysqli_query($conn, "SELECT tarif_per_hari FROM mobil WHERE kode_mobil = '$kode_mobil'");
+    if (!$q_tarif) {
+        echo "Error: Gagal mengambil data tarif.";
+        exit();
+    }
     $d_tarif = mysqli_fetch_assoc($q_tarif);
-    $tarif_mobil = $d_tarif['tarif_per_hari'];
+    $tarif_mobil = $d_tarif['tarif_per_hari'] ?? 0;
+    
+    // Tarif supir tetap 200rb
     $tarif_supir = ($id_supir !== NULL) ? 200000 : 0;
     
     // HITUNG TOTAL
     $total_bayar = ($tarif_mobil + $tarif_supir) * $lama_sewa;
 
-    // INSERT KE DB (Pastikan tabel Anda punya kolom total_bayar)
+    // INSERT KE DB
     $stmt = $conn->prepare("INSERT INTO transaksi_sewa 
             (id_pelanggan, kode_mobil, nama_penyewa, id_supir, tanggal_sewa, lama_sewa, lokasi_jemput, alamat_detail, status_sewa, total_bayar) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-    $stmt->bind_param("ississsssi", $id_pelanggan, $kode_mobil, $nama_penyewa, $id_supir, $tanggal_sewa, $lama_sewa, $lokasi_jemput, $alamat_detail, $status_sewa, $total_bayar);
+    if ($stmt) {
+        $stmt->bind_param("ississsssi", $id_pelanggan, $kode_mobil, $nama_penyewa, $id_supir, $tanggal_sewa, $lama_sewa, $lokasi_jemput, $alamat_detail, $status_sewa, $total_bayar);
 
-    if ($stmt->execute()) {
-        echo "<script>alert('Berhasil!'); window.location='riwayat_pembayaran.php';</script>";
+        if ($stmt->execute()) {
+            // KIRIM RESPONSE "sukses" agar AJAX di transaksi.php tahu proses selesai
+            echo "sukses"; 
+        } else {
+            echo "Error Database: " . $stmt->error;
+        }
+        $stmt->close();
     } else {
-        echo "Error: " . $stmt->error;
+        echo "Error Query: " . $conn->error;
     }
-    $stmt->close();
+} else {
+    echo "Metode request tidak valid.";
 }
 ?>

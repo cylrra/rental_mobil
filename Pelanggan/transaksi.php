@@ -31,6 +31,8 @@ if ($query_user) {
 <head>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root { --deep-navy: #0f172a; --clear-blue: #3071a4; --frost-veil: #f8fafc; --lilac-dust: #94a3b8; }
         body { font-family: 'Outfit', sans-serif; background-color: #f1f5f9; }
@@ -75,8 +77,7 @@ if ($query_user) {
                     <h5 class="fw-bold m-0"><i class="bi bi-plus-circle me-2 text-primary"></i>Form Sewa Baru</h5>
                 </div>
                 <div class="card-body p-4">
-                    <form action="proses_transaksi.php" method="POST" id="formRental">
-                        <input type="hidden" name="id_pelanggan" value="<?= $id_pelanggan ?>">
+                    <form id="formRental"> <input type="hidden" name="id_pelanggan" value="<?= $id_pelanggan ?>">
                         <div class="mb-3">
                             <label class="form-label">Nama Penyewa</label>
                             <input type="text" name="nama_penyewa" class="form-control" value="<?= htmlspecialchars($nama_default) ?>" required>
@@ -128,7 +129,7 @@ if ($query_user) {
                                 <span class="fw-bold text-primary" id="disp_total_biaya" style="font-size: 1.1rem;">Rp 0</span>
                             </div>
                         </div>
-                        <button type="submit" name="submit" class="btn btn-primary w-100 py-3 fw-bold"><i class="bi bi-check-circle me-2"></i>Ajukan Sewa Sekarang</button>
+                        <button type="button" id="btnAjukan" class="btn btn-primary w-100 py-3 fw-bold"><i class="bi bi-check-circle me-2"></i>Ajukan Sewa Sekarang</button>
                     </form>
                 </div>
             </div>
@@ -140,8 +141,7 @@ if ($query_user) {
                     <h5 class="fw-bold m-0"><i class="bi bi-clock-history me-2 text-primary"></i>Pesanan Saya</h5>
                 </div>
                 <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
+                    <div class="table-responsive" id="tabelPesanan"> <table class="table table-hover align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
                                     <th class="ps-4">Order</th>
@@ -153,21 +153,19 @@ if ($query_user) {
                             </thead>
                             <tbody>
                                 <?php
-                                // Query diperbaiki untuk memastikan semua kolom terambil
-                                $sql = "SELECT t.id_sewa, t.tanggal_sewa, t.status_sewa, m.merk, m.nopol 
+                                $sql = "SELECT t.id_sewa, t.tanggal_sewa, t.status_sewa, m.merk, m.nopol, r.id_rating 
                                         FROM transaksi_sewa t 
                                         LEFT JOIN mobil m ON t.kode_mobil = m.kode_mobil 
+                                        LEFT JOIN rating_sewa r ON t.id_sewa = r.id_transaksi
                                         WHERE t.id_pelanggan = '$id_pelanggan' 
                                         ORDER BY t.id_sewa DESC";
                                 $res = mysqli_query($conn, $sql);
                                 
                                 if(mysqli_num_rows($res) > 0) {
                                     while($row = mysqli_fetch_assoc($res)) {
-                                        // Mengatasi jika status kosong (default ke 'pending')
                                         $st = !empty($row['status_sewa']) ? $row['status_sewa'] : 'pending';
                                         $merk = !empty($row['merk']) ? $row['merk'] : 'Mobil Dihapus';
                                         
-                                        // Warna badge dinamis
                                         if($st == 'selesai') { $clr = 'success'; }
                                         elseif($st == 'berjalan') { $clr = 'warning'; }
                                         else { $clr = 'secondary'; }
@@ -177,8 +175,15 @@ if ($query_user) {
                                     <td><strong><?= htmlspecialchars($merk) ?></strong><br><small class="text-muted"><?= htmlspecialchars($row['nopol'] ?? '-') ?></small></td>
                                     <td><?= date('d/m/y', strtotime($row['tanggal_sewa'])) ?></td>
                                     <td class="text-center"><span class="badge rounded-pill bg-<?= $clr ?> opacity-75"><?= ucfirst($st) ?></span></td>
-                                    <td class="text-center pe-4">
+                                    <td class="text-center pe-4 d-flex justify-content-center gap-1">
                                         <a href="riwayat_pembayaran.php" class="btn btn-sm btn-light border rounded-pill px-3">Detail</a>
+                                        <?php if($st == 'selesai'): ?>
+                                            <?php if(empty($row['id_rating'])): ?>
+                                                <a href="ulasan_rating.php?id_sewa=<?= $row['id_sewa'] ?>" class="btn btn-sm btn-warning rounded-pill px-3 fw-semibold"><i class="bi bi-star-fill me-1"></i>Rating</a>
+                                            <?php else: ?>
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 d-flex align-items-center"><i class="bi bi-check2-circle me-1"></i>Dinilai</span>
+                                            <?php endif; ?>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                                 <?php } } else { echo "<tr><td colspan='5' class='text-center py-5 text-muted'>Belum ada transaksi.</td></tr>"; } ?>
@@ -192,7 +197,7 @@ if ($query_user) {
 </div>
 
 <script>
-    // ... (Script fungsi tetap sama, pastikan tidak terhapus)
+    // Fungsi bawaan lo
     function formatRupiah(angka) { return 'Rp ' + new Intl.NumberFormat('id-ID').format(angka); }
     function hitungTotalEstimasi() {
         const mSelect = document.getElementById('kode_mobil_select');
@@ -205,12 +210,41 @@ if ($query_user) {
     }
     function toggleCatatanSupir() { document.getElementById('catatan_supir').style.display = (document.getElementById('id_supir_select').value === "999") ? "block" : "none"; }
     function toggleAlamatInput() { document.getElementById("inputAlamatCustom").style.display = (document.getElementById("lokasiSelect").value === "Antar ke Alamat lainnya") ? "block" : "none"; }
-    document.getElementById('formRental').addEventListener('submit', function(e) {
+
+    // Logika AJAX
+    $('#btnAjukan').click(function() {
         const supirVal = document.getElementById('id_supir_select').value;
-        if (supirVal === "" && "<?= $status_verif ?>" !== 'terverifikasi') {
-            e.preventDefault();
-            alert('⚠️ Akun belum terverifikasi. Sewa Lepas Kunci memerlukan unggahan KTP & SIM di menu profil.');
+        const statusVerif = "<?= $status_verif ?>";
+
+        if (supirVal === "" && statusVerif !== 'terverifikasi') {
+            Swal.fire('Peringatan', 'Akun belum terverifikasi. Sewa Lepas Kunci memerlukan KTP & SIM.', 'warning');
+            return;
         }
+
+        var formData = $('#formRental').serialize();
+
+        $.ajax({
+            url: 'proses_transaksi.php',
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                if (response.trim() === "sukses") {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: 'Pesanan telah diajukan.',
+                        showConfirmButton: true
+                    }).then(() => {
+                        // Refresh tabel saja
+                        $('#tabelPesanan').load(location.href + ' #tabelPesanan > table');
+                        $('#formRental')[0].reset();
+                        $('#disp_total_biaya').text('Rp 0');
+                    });
+                } else {
+                    Swal.fire('Error', response, 'error');
+                }
+            }
+        });
     });
 </script>
 </body>
