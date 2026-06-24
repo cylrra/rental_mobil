@@ -31,18 +31,18 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
 
 <div class="p-8">
     <div class="mb-8">
-        <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Manajemen Transaksi</h1>
+        <h1 class="text-4xl font-black text-[#800000] tracking-tight">Manajemen Transaksi</h1>
         <p class="text-slate-500 mt-1 font-medium italic">Catat penyewaan baru dan pantau transaksi berjalan.</p>
     </div>
 
     <div class="flex flex-col lg:flex-row gap-8">
         <div class="w-full lg:w-1/3">
-            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover-lift">
+            <div class="bg-white rounded-2xl p-6 border border-[#e2e2e2] shadow-sm hover-lift">
                 <div class="flex items-center gap-3 mb-6">
-                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-lg bg-[#800000]/10 text-[#800000] flex items-center justify-center">
                         <i data-lucide="plus-circle" class="w-5 h-5"></i>
                     </div>
-                    <h5 class="text-lg font-bold text-slate-800">Input Transaksi Baru</h5>
+                    <h5 class="text-lg font-bold text-[#1a1c1c]">Input Transaksi Baru</h5>
                 </div>
                 <form action="proses_transaksi.php" method="POST">
                         
@@ -120,19 +120,19 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
                             </div>
                         </div>
 
-                        <button type="submit" name="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl shadow-md shadow-blue-600/20 hover:bg-blue-700 transition-colors mt-4 flex justify-center items-center gap-2">
+                        <button type="submit" name="submit" class="w-full bg-[#d4af37] text-[#1a1c1c] font-bold py-3 rounded-xl shadow-md shadow-[#d4af37]/20 hover:bg-[#c49d2b] transition-colors mt-4 flex justify-center items-center gap-2">
                             <i data-lucide="save" class="w-5 h-5"></i> Simpan Transaksi
                         </button>
                     </form>
                 </div>
             </div>
         <div class="w-full lg:w-2/3">
-            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover-lift">
+            <div class="bg-white rounded-2xl p-6 border border-[#e2e2e2] shadow-sm hover-lift">
                 <div class="flex items-center gap-3 mb-6">
-                    <div class="w-10 h-10 rounded-lg bg-slate-50 text-slate-600 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-lg bg-[#800000]/10 text-[#800000] flex items-center justify-center">
                         <i data-lucide="clock" class="w-5 h-5"></i>
                     </div>
-                    <h5 class="text-lg font-bold text-slate-800">Riwayat Transaksi</h5>
+                    <h5 class="text-lg font-bold text-[#1a1c1c]">Riwayat Transaksi</h5>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
@@ -147,7 +147,8 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
                         </thead>
                             <tbody>
                                 <?php
-                                $sql = "SELECT t.*, p.nama, p.no_telp, m.merk, s.nama_supir 
+                                $sql = "SELECT t.*, p.nama, p.no_telp, m.merk, s.nama_supir,
+                                        IFNULL((SELECT SUM(jumlah_bayar) FROM pembayaran WHERE id_sewa = t.id_sewa), 0) AS uang_dibayar
                                         FROM transaksi_sewa t
                                         JOIN pelanggan p ON t.id_pelanggan = p.id_pelanggan
                                         JOIN mobil m ON t.kode_mobil = m.kode_mobil
@@ -163,13 +164,51 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
                                     <td class="p-4"><span class="font-bold text-slate-800"><?php echo htmlspecialchars($row['nama']); ?></span></td>
                                     <td class="p-4 text-slate-600"><?php echo htmlspecialchars($row['merk']); ?></td>
                                     <td class="p-4">
-                                        <span class="px-3 py-1 text-xs font-bold rounded-full <?php echo ($row['status_sewa'] == 'berjalan') ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'; ?>">
-                                            <?php echo ucfirst($row['status_sewa']); ?>
-                                        </span>
+                                        <div class="flex flex-col gap-1 items-start">
+                                            <?php if ($row['status_sewa'] == 'berjalan'): ?>
+                                                <span class="px-3 py-1 text-xs font-bold rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">
+                                                    Berjalan
+                                                </span>
+                                            <?php elseif ($row['status_sewa'] == 'diterima'): ?>
+                                                <span class="px-3 py-1 text-xs font-bold rounded-full bg-blue-50 text-blue-600 border border-blue-200">
+                                                    Diterima
+                                                </span>
+                                            <?php elseif ($row['status_sewa'] == 'pending'): ?>
+                                                <span class="px-3 py-1 text-xs font-bold rounded-full bg-amber-50 text-amber-600 animate-pulse border border-amber-200">
+                                                    Butuh ACC
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="px-3 py-1 text-xs font-bold rounded-full bg-slate-100 text-slate-500 border border-slate-200">
+                                                    <?php echo ucfirst(htmlspecialchars($row['status_sewa'])); ?>
+                                                </span>
+                                            <?php endif; ?>
+
+                                            <?php 
+                                            // Payment Status Logic
+                                            if ($row['uang_dibayar'] >= $row['total_biaya']) {
+                                                echo '<span class="px-3 py-1 text-[10px] font-black rounded-md bg-green-600 text-white shadow-sm shadow-green-500/30 tracking-wider">LUNAS</span>';
+                                            } elseif ($row['uang_dibayar'] > 0) {
+                                                echo '<span class="px-3 py-1 text-[10px] font-black rounded-md bg-indigo-600 text-white shadow-sm shadow-indigo-500/30 tracking-wider">DP</span>';
+                                            } else {
+                                                echo '<span class="px-3 py-1 text-[10px] font-black rounded-md bg-rose-500 text-white shadow-sm shadow-rose-500/30 tracking-wider">BELUM BAYAR</span>';
+                                            }
+                                            ?>
+                                        </div>
                                     </td>
                                     <td class="p-4 text-center">
                                         <div class="flex items-center justify-center gap-2">
-                                            <a href="edit_transaksi.php?id=<?php echo $row['id_sewa']; ?>" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-colors" title="Edit & Pilih Supir">
+                                            <?php if ($row['status_sewa'] == 'pending'): ?>
+                                                <?php if ($row['pake_supir'] == 'Ya'): ?>
+                                                    <button type="button" onclick="openAccSupirModal(<?= $row['id_sewa'] ?>)" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-colors border border-blue-200" title="Pilih Supir & ACC">
+                                                        <i data-lucide="check-square" class="w-4 h-4"></i>
+                                                    </button>
+                                                <?php else: ?>
+                                                    <a href="acc_transaksi_supir.php?id_sewa=<?= $row['id_sewa'] ?>&id_supir=" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-colors border border-blue-200" title="ACC & Diterima" onclick="return confirm('Apakah Anda yakin ingin menyetujui pesanan Lepas Kunci ini?');">
+                                                        <i data-lucide="calendar-check" class="w-4 h-4"></i>
+                                                    </a>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
+                                            <a href="edit_transaksi.php?id=<?php echo $row['id_sewa']; ?>" class="w-8 h-8 rounded-lg bg-slate-50 text-slate-600 flex items-center justify-center hover:bg-slate-600 hover:text-white transition-colors" title="Edit & Pilih Supir">
                                                 <i data-lucide="edit-2" class="w-4 h-4"></i>
                                             </a>
                                             <a href="pembayaran.php?id=<?php echo $row['id_sewa']; ?>" class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-colors" title="Pembayaran">
@@ -196,23 +235,23 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
 </div>
 
 <style>
-    .driver-card { transition: all 0.2s ease-in-out; border-radius: 12px; }
-    .driver-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.05); border-color: #2563eb !important; }
-    .driver-card.selected { border: 2px solid #2563eb !important; background-color: #eff6ff; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15); }
+    .driver-card { transition: all 0.2s ease-in-out; border-radius: 0.5rem; }
+    .driver-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.04); border-color: #800000 !important; }
+    .driver-card.selected { border: 2px solid #800000 !important; background-color: #ffdad4; box-shadow: 0 4px 12px rgba(128, 0, 0, 0.15); }
     
-    /* Make form inputs look like tailwind */
+    /* Make form inputs look like tailwind with 8px moderate rounding */
     .form-control, .form-select {
-        border-radius: 0.75rem;
-        border-color: #e2e8f0;
+        border-radius: 0.5rem;
+        border-color: #e2e2e2;
         padding: 0.6rem 1rem;
     }
     .form-control:focus, .form-select:focus {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        border-color: #800000;
+        box-shadow: 0 0 0 3px rgba(128, 0, 0, 0.15);
     }
     .select2-container--bootstrap-5 .select2-selection {
-        border-radius: 0.75rem !important;
-        border-color: #e2e8f0 !important;
+        border-radius: 0.5rem !important;
+        border-color: #e2e2e2 !important;
         padding: 0.25rem 0.5rem !important;
         min-height: 42px !important;
     }
@@ -259,7 +298,72 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
             document.getElementById("error_supir").classList.remove('d-none');
         }
     });
+
+    function openAccSupirModal(idSewa) {
+        document.getElementById('accSewaId').value = idSewa;
+        document.getElementById('accSupirIdHidden').value = '';
+        document.querySelectorAll('.acc-driver-card').forEach(c => c.classList.remove('selected'));
+        const modal = new bootstrap.Modal(document.getElementById('accSupirModal'));
+        modal.show();
+    }
+
+    function selectAccDriver(element) {
+        document.querySelectorAll('.acc-driver-card').forEach(c => c.classList.remove('selected'));
+        element.classList.add('selected');
+        document.getElementById('accSupirIdHidden').value = element.getAttribute('data-id');
+    }
+
+    function submitAccSupir() {
+        const supirId = document.getElementById('accSupirIdHidden').value;
+        if (!supirId) {
+            alert('Pilih supir terlebih dahulu!');
+            return;
+        }
+        document.getElementById('formAccSupir').submit();
+    }
 </script>
+
+<!-- MODAL ACC SUPIR -->
+<div class="modal fade" id="accSupirModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-slate-800 text-white border-0 py-3">
+                <h5 class="modal-title font-bold flex items-center gap-2">
+                    <i data-lucide="check-square" class="w-5 h-5"></i> ACC Pesanan & Pilih Supir
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-6 bg-slate-50">
+                <p class="text-slate-600 mb-4 font-medium">Pesanan ini membutuhkan jasa supir. Silakan tugaskan supir yang tersedia sebelum menyetujui transaksi.</p>
+                
+                <form id="formAccSupir" method="POST" action="acc_transaksi_supir.php">
+                    <input type="hidden" name="id_sewa" id="accSewaId" value="">
+                    <input type="hidden" name="id_supir" id="accSupirIdHidden" value="">
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                        <?php
+                        $supir_query = mysqli_query($conn, "SELECT s.* FROM supir s WHERE (SELECT COUNT(*) FROM transaksi_sewa t WHERE t.id_supir = s.id_supir AND t.status_sewa = 'berjalan') = 0");
+                        while($s = mysqli_fetch_array($supir_query)) {
+                        ?>
+                        <div class="card acc-driver-card driver-card border cursor-pointer h-100 bg-white" data-id="<?= $s['id_supir'] ?>" onclick="selectAccDriver(this)">
+                            <div class="card-body p-3 text-center">
+                                <div class="w-12 h-12 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-2">
+                                    <i class="bi bi-person-circle fs-3 text-slate-400"></i>
+                                </div>
+                                <h6 class="mb-0 text-sm font-bold text-slate-800"><?= $s['nama_supir'] ?></h6>
+                            </div>
+                        </div>
+                        <?php } ?>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 bg-slate-100">
+                <button type="button" class="px-4 py-2 bg-slate-300 text-slate-700 font-bold rounded-lg hover:bg-slate-400" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700" onclick="submitAccSupir()">Setujui Transaksi</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="botModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">

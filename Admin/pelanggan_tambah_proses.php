@@ -2,11 +2,36 @@
 include 'koneksi.php';
 
 if (isset($_POST['btn_simpan'])) {
-    $nama    = mysqli_real_escape_string($conn, $_POST['nama']);
-    $email   = mysqli_real_escape_string($conn, $_POST['email']);
-    $alamat  = mysqli_real_escape_string($conn, $_POST['alamat']);
-    $no_telp = mysqli_real_escape_string($conn, $_POST['no_telp']);
-    $no_ktp  = mysqli_real_escape_string($conn, $_POST['no_ktp']);
+    $nama              = mysqli_real_escape_string($conn, trim($_POST['nama']));
+    $email             = mysqli_real_escape_string($conn, trim($_POST['email']));
+    $alamat            = mysqli_real_escape_string($conn, trim($_POST['alamat']));
+    $no_telp           = mysqli_real_escape_string($conn, trim($_POST['no_telp']));
+    $no_ktp            = mysqli_real_escape_string($conn, trim($_POST['no_ktp']));
+    $username          = mysqli_real_escape_string($conn, trim($_POST['username']));
+    $password          = trim($_POST['password']);
+    $status_verifikasi = mysqli_real_escape_string($conn, $_POST['status_verifikasi']);
+
+    // Pastikan username tidak kosong
+    if (empty($username) || empty($password)) {
+        echo "<script>
+                alert('Username dan Password wajib diisi!');
+                window.history.back();
+              </script>";
+        exit();
+    }
+
+    // Cek apakah username sudah terdaftar
+    $cek_user = mysqli_query($conn, "SELECT * FROM pelanggan WHERE username = '$username'");
+    if (mysqli_num_rows($cek_user) > 0) {
+        echo "<script>
+                alert('Username sudah digunakan, pilih username lain!');
+                window.history.back();
+              </script>";
+        exit();
+    }
+
+    // Enkripsi password
+    $password_hashed = password_hash($password, PASSWORD_DEFAULT);
 
     // Pastikan nomor telepon berformat Indonesia (62...)
     $no_telp = preg_replace('/[^0-9]/', '', $no_telp);
@@ -17,15 +42,15 @@ if (isset($_POST['btn_simpan'])) {
     }
 
     // Query simpan ke tabel pelanggan
-    $sql = "INSERT INTO pelanggan (nama, email, alamat, no_telp, no_ktp) 
-            VALUES ('$nama', '$email', '$alamat', '$no_telp', '$no_ktp')";
+    $sql = "INSERT INTO pelanggan (nama, email, username, password, alamat, no_telp, no_ktp, status_verifikasi) 
+            VALUES ('$nama', '$email', '$username', '$password_hashed', '$alamat', '$no_telp', '$no_ktp', '$status_verifikasi')";
     
     $query = mysqli_query($conn, $sql);
 
     if ($query) {
         echo "<script>
-                alert('Data berhasil disimpan!');
-                window.location.href = 'pelanggan.php'; // Ganti dengan nama file utama Anda
+                alert('Data pelanggan berhasil disimpan!');
+                window.location.href = 'pelanggan.php';
               </script>";
     } else {
         echo "<script>

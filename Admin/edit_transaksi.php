@@ -27,6 +27,7 @@ $trx = mysqli_fetch_assoc($query);
 // Handle Form Submission
 if (isset($_POST['update'])) {
     $pake_supir_baru = mysqli_real_escape_string($conn, $_POST['pake_supir']);
+    $status_sewa_baru = mysqli_real_escape_string($conn, $_POST['status_sewa']);
     
     // Default to NULL driver
     $id_supir_db = "NULL";
@@ -55,7 +56,8 @@ if (isset($_POST['update'])) {
                         pake_supir = '$pake_supir_baru', 
                         id_supir = $id_supir_db, 
                         biaya_supir = '$biaya_supir_baru', 
-                        total_biaya = '$total_harga_baru' 
+                        total_biaya = '$total_harga_baru',
+                        status_sewa = '$status_sewa_baru' 
                      WHERE id_sewa = $id_sewa";
                      
     if (mysqli_query($conn, $update_query)) {
@@ -107,8 +109,19 @@ $current_page = 'transaksi.php';
 
                 <form method="POST" action="" class="space-y-6">
                     <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Status Sewa</label>
+                        <select name="status_sewa" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-[#800000] focus:ring focus:ring-[#800000]/20 transition-colors bg-slate-50">
+                            <option value="pending" <?= ($trx['status_sewa'] == 'pending') ? 'selected' : '' ?>>Pending (Butuh ACC)</option>
+                            <option value="diterima" <?= ($trx['status_sewa'] == 'diterima') ? 'selected' : '' ?>>Diterima (Disetujui)</option>
+                            <option value="berjalan" <?= ($trx['status_sewa'] == 'berjalan') ? 'selected' : '' ?>>Berjalan</option>
+                            <option value="DP" <?= ($trx['status_sewa'] == 'DP') ? 'selected' : '' ?>>DP</option>
+                            <option value="selesai" <?= ($trx['status_sewa'] == 'selesai') ? 'selected' : '' ?>>Selesai</option>
+                        </select>
+                    </div>
+
+                    <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Gunakan Layanan Supir?</label>
-                        <select name="pake_supir" id="pake_supir" onchange="toggleSupirBlock()" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors bg-slate-50">
+                        <select name="pake_supir" id="pake_supir" onchange="toggleSupirBlock()" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-[#800000] focus:ring focus:ring-[#800000]/20 transition-colors bg-slate-50">
                             <option value="Tidak" <?= ($trx['pake_supir'] == 'Tidak') ? 'selected' : '' ?>>Tidak (Lepas Kunci)</option>
                             <option value="Ya" <?= ($trx['pake_supir'] == 'Ya') ? 'selected' : '' ?>>Ya (Menggunakan Supir)</option>
                         </select>
@@ -122,7 +135,7 @@ $current_page = 'transaksi.php';
                             // Supir yang tidak sedang memiliki transaksi 'berjalan' ATAU supir yang saat ini ditugaskan di transaksi ini
                             $supir_query = mysqli_query($conn, "SELECT s.* FROM supir s WHERE (SELECT COUNT(*) FROM transaksi_sewa t WHERE t.id_supir = s.id_supir AND t.status_sewa = 'berjalan' AND t.id_sewa != $id_sewa) = 0");
                             while($s = mysqli_fetch_array($supir_query)) {
-                                $isSelected = ($trx['id_supir'] == $s['id_supir']) ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500 ring-opacity-50' : 'border-slate-200 bg-white hover:border-blue-300';
+                                $isSelected = ($trx['id_supir'] == $s['id_supir']) ? 'border-[#800000] bg-red-50 ring-2 ring-[#800000] ring-opacity-50' : 'border-slate-200 bg-white hover:border-red-300';
                             ?>
                             <div class="driver-card cursor-pointer border-2 rounded-xl p-4 transition-all duration-200 <?= $isSelected ?>" data-id="<?= $s['id_supir'] ?>" onclick="selectDriver(this)">
                                 <div class="text-center">
@@ -139,7 +152,7 @@ $current_page = 'transaksi.php';
                     </div>
 
                     <div class="pt-4">
-                        <button type="submit" name="update" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl shadow-md shadow-blue-600/20 hover:bg-blue-700 transition-colors flex justify-center items-center gap-2">
+                        <button type="submit" name="update" class="w-full bg-[#d4af37] text-[#1a1c1c] font-bold py-3 rounded-xl shadow-md shadow-[#d4af37]/20 hover:bg-[#c49d2b] transition-colors flex justify-center items-center gap-2">
                             <i data-lucide="save" class="w-5 h-5"></i> Simpan Perubahan
                         </button>
                     </div>
@@ -158,7 +171,7 @@ $current_page = 'transaksi.php';
         if(status === "Tidak") {
             document.getElementById("id_supir_hidden").value = "";
             document.querySelectorAll('.driver-card').forEach(c => {
-                c.classList.remove('border-blue-500', 'bg-blue-50', 'ring-2', 'ring-blue-500', 'ring-opacity-50');
+                c.classList.remove('border-[#800000]', 'bg-red-50', 'ring-2', 'ring-[#800000]', 'ring-opacity-50');
                 c.classList.add('border-slate-200', 'bg-white');
             });
             document.getElementById("error_supir").classList.add('hidden');
@@ -167,11 +180,11 @@ $current_page = 'transaksi.php';
 
     function selectDriver(element) {
         document.querySelectorAll('.driver-card').forEach(c => {
-            c.classList.remove('border-blue-500', 'bg-blue-50', 'ring-2', 'ring-blue-500', 'ring-opacity-50');
+            c.classList.remove('border-[#800000]', 'bg-red-50', 'ring-2', 'ring-[#800000]', 'ring-opacity-50');
             c.classList.add('border-slate-200', 'bg-white');
         });
         element.classList.remove('border-slate-200', 'bg-white');
-        element.classList.add('border-blue-500', 'bg-blue-50', 'ring-2', 'ring-blue-500', 'ring-opacity-50');
+        element.classList.add('border-[#800000]', 'bg-red-50', 'ring-2', 'ring-[#800000]', 'ring-opacity-50');
         document.getElementById("id_supir_hidden").value = element.getAttribute('data-id');
         document.getElementById("error_supir").classList.add('hidden');
     }

@@ -7,7 +7,6 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 include 'koneksi.php';
 include 'navbar.php'; 
 
-// Fetch active transactions (status_sewa = 'berjalan')
 $query = "SELECT t.id_sewa, p.nama, p.alamat, p.no_telp, m.merk, m.nopol 
           FROM transaksi_sewa t
           JOIN pelanggan p ON t.id_pelanggan = p.id_pelanggan
@@ -17,173 +16,241 @@ $result = mysqli_query($conn, $query);
 
 $active_rentals = [];
 
-// Koordinat simulasi berpusat di Kota Semarang
+// Base coordinate for Semarang
 $center_lat = -6.9932;
 $center_lng = 110.4203;
 
 while ($row = mysqli_fetch_assoc($result)) {
-    // Jarak acak di sekitar Semarang
-    $offset_lat = (rand(-30, 30) / 1000);
-    $offset_lng = (rand(-30, 30) / 1000);
+    // Generate distinct start and end points for routing
+    $row['pickup_lat'] = $center_lat + (rand(-40, 40) / 1000);
+    $row['pickup_lng'] = $center_lng + (rand(-40, 40) / 1000);
     
-    $row['pickup_lat'] = $center_lat + $offset_lat;
-    $row['pickup_lng'] = $center_lng + $offset_lng;
-    
-    $row['car_lat'] = $row['pickup_lat'] - (rand(5, 15) / 1000);
-    $row['car_lng'] = $row['pickup_lng'] - (rand(5, 15) / 1000);
+    $row['car_lat'] = $row['pickup_lat'] - (rand(15, 30) / 1000);
+    $row['car_lng'] = $row['pickup_lng'] - (rand(15, 30) / 1000);
     
     $active_rentals[] = $row;
 }
 ?>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <script src="https://unpkg.com/lucide@latest"></script>
 
 <style>
-    #map { height: 580px; width: 100%; border-radius: 1.25rem; z-index: 1; }
-    .tracking-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .tracking-card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(79, 70, 229, 0.15); border-color: #4f46e5; }
-    .active-track { border: 2px solid #4f46e5 !important; background-color: #f5f3ff; }
+    #map { height: 600px; width: 100%; border-radius: 1rem; z-index: 1; }
+    .tracking-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #e2e2e2; }
+    .tracking-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -5px rgba(128, 0, 0, 0.15); border-color: #800000; }
+    .active-track { border: 2px solid #800000 !important; background-color: #fffaf9; box-shadow: 0 4px 15px rgba(128,0,0,0.1); }
+    
+    .leaflet-popup-content-wrapper { border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid #e2e2e2; }
+    .leaflet-popup-content { margin: 14px 18px; line-height: 1.5; }
+    
+    .pulse-ring { position: relative; display: inline-flex; }
+    .pulse-ring::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: 50%; background-color: #10b981; animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite; opacity: 0.7; }
+    @keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
+    
+    /* Hide routing container (directions) */
+    .leaflet-routing-container { display: none !important; }
 </style>
 
-<div class="mb-8">
-    <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-3">
-        <i data-lucide="map-pin" class="w-8 h-8 text-indigo-600 animate-pulse"></i> Live Tracking Armada
-    </h1>
-    <p class="text-slate-500 mt-1 font-medium italic">Pantau posisi penjemputan dan pergerakan mobil secara *real-time* (Simulasi Geofencing Semarang).</p>
-</div>
-
-<div class="row g-4">
-    <div class="col-lg-8">
-        <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
-            <div id="map"></div>
+<div class="p-8">
+    <div class="mb-8">
+        <div class="flex items-center gap-4 mb-2">
+            <div class="w-14 h-14 bg-gradient-to-br from-[#800000] to-[#b30000] rounded-2xl flex items-center justify-center shadow-lg shadow-red-900/20 border border-red-800">
+                <i class="bi bi-radar text-white text-3xl animate-pulse"></i>
+            </div>
+            <div>
+                <h1 class="text-4xl font-black text-[#1a1c1c] tracking-tight">
+                    Live <span class="text-[#800000]">Tracking</span>
+                </h1>
+                <p class="text-slate-500 font-medium italic mt-1">Pemantauan armada terintegrasi dengan pemetaan jalan raya nyata.</p>
+            </div>
         </div>
     </div>
-    
-    <div class="col-lg-4">
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between" style="max-height: 605px; min-height: 605px;">
-            <div>
-                <h5 class="font-bold text-slate-800 mb-4 flex items-center gap-2 border-b pb-3 border-slate-100">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-                    <i class="bi bi-broadcast text-indigo-600 fs-5"></i> Armada Berjalan Saat Ini
-                </h5>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <div class="lg:col-span-1">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-[#e2e2e2] flex flex-col h-full" style="max-height: 650px;">
+                <div class="border-b border-[#e2e2e2] pb-4 mb-4">
+                    <h5 class="font-black text-[#1a1c1c] flex items-center gap-2">
+                        <span class="pulse-ring w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1"></span>
+                        Status Armada Aktif
+                    </h5>
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">Total: <?= count($active_rentals) ?> Unit Berjalan</p>
+                </div>
                 
                 <?php if (count($active_rentals) > 0): ?>
-                    <div class="space-y-3 overflow-y-auto pr-1" style="max-height: 480px;">
+                    <div class="space-y-4 overflow-y-auto pr-2 custom-scrollbars" style="max-height: 520px;">
                         <?php foreach ($active_rentals as $index => $rental): ?>
-                            <div class="tracking-card bg-white p-4 rounded-xl border border-slate-200 cursor-pointer" onclick="focusOnMap(<?= $index ?>)" id="card-<?= $index ?>">
-                                <div class="flex justify-between items-start mb-2">
-                                    <h6 class="font-bold text-slate-800 mb-0 flex items-center gap-2">
-                                        <i class="bi bi-tag-fill text-slate-400 text-xs"></i> <?= htmlspecialchars($rental['nopol']) ?>
+                            <div class="tracking-card bg-white p-5 rounded-xl cursor-pointer relative overflow-hidden group" onclick="focusOnMap(<?= $index ?>)" id="card-<?= $index ?>">
+                                <div class="absolute top-0 left-0 w-1 h-full bg-[#800000] scale-y-0 group-hover:scale-y-100 transition-transform origin-top"></div>
+                                
+                                <div class="flex justify-between items-start mb-3">
+                                    <h6 class="font-black text-[#1a1c1c] text-sm flex items-center gap-2">
+                                        <i class="bi bi-car-front-fill text-[#d4af37]"></i> <?= htmlspecialchars($rental['merk']) ?>
                                     </h6>
-                                    <span class="badge bg-indigo-100 text-indigo-700 rounded-full px-2 py-1 text-xs font-semibold">TRX-<?= $rental['id_sewa'] ?></span>
+                                    <span class="bg-[#800000]/10 text-[#800000] font-black rounded-lg px-2 py-1 text-[10px] uppercase tracking-wider">
+                                        #TRX-<?= $rental['id_sewa'] ?>
+                                    </span>
                                 </div>
-                                <p class="text-sm text-slate-600 mb-1 flex items-center gap-2"><i class="bi bi-car-front-fill text-indigo-500"></i> <strong><?= htmlspecialchars($rental['merk']) ?></strong></p>
-                                <p class="text-sm text-slate-600 mb-1 flex items-center gap-2"><i class="bi bi-person-circle text-slate-500"></i> <?= htmlspecialchars($rental['nama']) ?></p>
-                                <p class="text-xs text-slate-500 mt-2 border-t pt-2 flex items-start gap-1"><i class="bi bi-geo-alt-fill text-rose-500 mt-0.5"></i> <span class="line-clamp-2">Jemput: <?= htmlspecialchars($rental['alamat']) ?></span></p>
+                                <div class="space-y-1">
+                                    <p class="text-xs font-bold text-slate-600 flex items-center gap-2"><i class="bi bi-person-badge text-slate-400"></i> <?= htmlspecialchars($rental['nama']) ?></p>
+                                    <p class="text-xs font-bold text-slate-600 flex items-center gap-2"><i class="bi bi-123 text-slate-400"></i> <?= htmlspecialchars($rental['nopol']) ?></p>
+                                    <p class="text-[11px] text-slate-500 mt-2 pt-2 border-t border-dashed border-[#e2e2e2] flex items-start gap-1.5"><i class="bi bi-geo-alt-fill text-rose-500 mt-0.5"></i> <span class="line-clamp-2 leading-tight"><?= htmlspecialchars($rental['alamat']) ?></span></p>
+                                </div>
                             </div>
                         <?php endforeach; ?>
                     </div>
                 <?php else: ?>
-                    <div class="text-center py-20">
-                        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
-                            <i class="bi bi-slash-circle fs-2"></i>
-                        </div>
-                        <h6 class="text-slate-600 font-bold">Tidak ada armada berjalan</h6>
-                        <p class="text-sm text-slate-500 px-4">Semua mobil saat ini siap dan tersedia di dalam garasi pool utama.</p>
+                    <div class="flex flex-col items-center justify-center h-full text-center py-10 opacity-70">
+                        <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4"><i data-lucide="shield-check" class="w-10 h-10 text-emerald-500"></i></div>
+                        <h6 class="text-[#1a1c1c] font-black text-lg">Semua Aman</h6>
+                        <p class="text-sm text-slate-500 font-medium px-4">Tidak ada armada yang sedang disewa saat ini.</p>
                     </div>
                 <?php endif; ?>
             </div>
         </div>
+
+        <div class="lg:col-span-2">
+            <div class="bg-white p-3 rounded-2xl shadow-sm border border-[#e2e2e2] relative">
+                <div class="absolute top-6 right-6 z-[1000] bg-white/90 backdrop-blur-md px-4 py-2 rounded-xl shadow-lg border border-[#e2e2e2] flex items-center gap-3">
+                    <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <span class="text-xs font-black text-[#1a1c1c] uppercase tracking-wider">Live Route Sync</span>
+                </div>
+                <div id="map"></div>
+            </div>
+        </div>
+        
     </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-rotatedmarker@0.2.0/leaflet.rotatedMarker.min.js"></script>
 <script>
     lucide.createIcons();
 
     const rentalsData = <?= json_encode($active_rentals) ?>;
     
-    // PERBAIKAN DI SINI: Menggunakan kurung kurawal {s} agar Tile Layer berfungsi kembali
-    const map = L.map('map').setView([-6.9932, 110.4203], 12);
+    const map = L.map('map').setView([-6.9932, 110.4203], 13);
+    // Modern map tiles
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+        attribution: '&copy; CARTO',
         subdomains: 'abcd',
         maxZoom: 20
     }).addTo(map);
     
-    const carIcon = L.icon({
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/3204/3204121.png', 
-        iconSize: [38, 38],
-        iconAnchor: [19, 19],
-        popupAnchor: [0, -15]
+    // Top-down car icon that can be rotated
+    const carIcon = L.icon({ 
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/2985/2985040.png', 
+        iconSize: [36, 36], 
+        iconAnchor: [18, 18], 
+        popupAnchor: [0, -15], 
+        className: 'drop-shadow-md' 
     });
-    
-    const userIcon = L.icon({
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/819/819865.png', 
-        iconSize: [34, 34],
-        iconAnchor: [17, 34],
-        popupAnchor: [0, -32]
+    const userIcon = L.icon({ 
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/149/149071.png', 
+        iconSize: [36, 36], 
+        iconAnchor: [18, 36], 
+        popupAnchor: [0, -32], 
+        className: 'drop-shadow-md' 
     });
 
-    const markers = [];
+    const trackingInstances = [];
     
     rentalsData.forEach((rental, index) => {
-        const pickupMarker = L.marker([rental.pickup_lat, rental.pickup_lng], {icon: userIcon}).addTo(map);
-        pickupMarker.bindPopup(`
-            <div style="font-family: sans-serif; padding: 2px;">
-                <b style="color: #e11d48;"><i class="bi bi-geo-alt-fill"></i> Titik Jemput Pelanggan</b><br>
-                <span style="font-size: 13px; font-weight: bold; color:#1e293b;">${rental.nama}</span><br>
-                <small style="color: #64748b;">${rental.alamat}</small>
-            </div>
-        `);
+        const dest = L.latLng(rental.pickup_lat, rental.pickup_lng);
+        const origin = L.latLng(rental.car_lat, rental.car_lng);
         
-        const carMarker = L.marker([rental.car_lat, rental.car_lng], {icon: carIcon}).addTo(map);
+        const pickupMarker = L.marker(dest, {icon: userIcon}).addTo(map);
+        const carMarker = L.marker(origin, {icon: carIcon, rotationAngle: 0}).addTo(map);
+        
         carMarker.bindPopup(`
-            <div style="font-family: sans-serif; padding: 2px;">
-                <b style="color: #4f46e5;"><i class="bi bi-car-front-fill"></i> Armada Indomax</b><br>
-                <span style="font-size: 13px; font-weight: bold; color:#1e293b;">${rental.merk} (${rental.nopol})</span><br>
-                <span style="font-size: 11px; color:#10b981; font-weight:600;">Status: OTW Penjemputan...</span>
+            <div style="font-family: 'Montserrat', sans-serif; min-width: 160px;">
+                <b style="color: #d4af37; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px;"><i class="bi bi-car-front-fill"></i> Armada Bergerak</b>
+                <span style="font-size: 14px; font-weight: 900; color: #1a1c1c;">${rental.merk}</span><br>
+                <span style="display: inline-block; background: #f3f3f3; color: #1a1c1c; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; margin-top: 4px;">${rental.nopol}</span>
             </div>
         `);
         
-        markers.push({ pickup: pickupMarker, car: carMarker, data: rental });
-        
-        setInterval(() => {
-            const currentLat = carMarker.getLatLng().lat;
-            const currentLng = carMarker.getLatLng().lng;
+        trackingInstances.push({ car: carMarker, dest: pickupMarker });
+
+        L.Routing.control({
+            waypoints: [origin, dest],
+            createMarker: function() { return null; },
+            lineOptions: { styles: [{color: '#10b981', opacity: 0.8, weight: 5}] },
+            show: false,
+            addWaypoints: false,
+            routeWhileDragging: false,
+            fitSelectedRoutes: false,
+            router: L.Routing.osrmv1({
+                language: 'id',
+                profile: 'driving'
+            })
+        }).on('routesfound', function(e) {
+            const routes = e.routes;
+            const coordinates = routes[0].coordinates;
             
-            const dLat = (rental.pickup_lat - currentLat) * 0.03;
-            const dLng = (rental.pickup_lng - currentLng) * 0.03;
+            let i = 0;
+            // Smooth animation using requestAnimationFrame
+            let startLat = coordinates[0].lat;
+            let startLng = coordinates[0].lng;
             
-            const noiseLat = (Math.random() - 0.5) * 0.00015;
-            const noiseLng = (Math.random() - 0.5) * 0.00015;
-            
-            const newLat = currentLat + dLat + noiseLat;
-            const newLng = currentLng + dLng + noiseLng;
-            
-            carMarker.setLatLng([newLat, newLng]);
-        }, 4000);
+            function move() {
+                if (i < coordinates.length - 1) {
+                    const nextCoord = coordinates[i+1];
+                    const currentCoord = coordinates[i];
+                    
+                    // Calculate angle for rotation
+                    const dy = nextCoord.lat - currentCoord.lat;
+                    const dx = nextCoord.lng - currentCoord.lng;
+                    let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                    // Adjust angle because map coordinates are weird and icon points up
+                    angle = 90 - angle; 
+                    
+                    carMarker.setRotationAngle(angle);
+
+                    // Interpolate steps
+                    let step = 0;
+                    const maxSteps = 30; // higher = smoother but slower
+                    
+                    function animateStep() {
+                        step++;
+                        const lat = currentCoord.lat + ((nextCoord.lat - currentCoord.lat) * (step/maxSteps));
+                        const lng = currentCoord.lng + ((nextCoord.lng - currentCoord.lng) * (step/maxSteps));
+                        
+                        carMarker.setLatLng([lat, lng]);
+                        
+                        if (step < maxSteps) {
+                            requestAnimationFrame(animateStep);
+                        } else {
+                            i++;
+                            setTimeout(move, 50); // wait before next segment
+                        }
+                    }
+                    animateStep();
+                }
+            }
+            setTimeout(move, 2000);
+        }).addTo(map);
     });
     
-    if (markers.length > 0) {
-        const group = new L.featureGroup(markers.map(m => m.pickup).concat(markers.map(m => m.car)));
-        map.fitBounds(group.getBounds().pad(0.15));
+    if (trackingInstances.length > 0) {
+        const bounds = new L.featureGroup(trackingInstances.map(i => i.dest)).getBounds();
+        map.fitBounds(bounds.pad(0.2));
     }
     
     function focusOnMap(index) {
         document.querySelectorAll('.tracking-card').forEach(c => c.classList.remove('active-track'));
         document.getElementById('card-' + index).classList.add('active-track');
         
-        const m = markers[index];
-        map.flyTo(m.car.getLatLng(), 15, {
-            animate: true,
-            duration: 1.2
-        });
-        
-        setTimeout(() => {
-            m.car.openPopup();
-        }, 1200);
+        const instance = trackingInstances[index];
+        map.flyTo(instance.car.getLatLng(), 16, { animate: true, duration: 1.5 });
+        setTimeout(() => { instance.car.openPopup(); }, 1500);
     }
 </script>
+</div></main></div>
+</body>
+</html>

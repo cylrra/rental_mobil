@@ -12,14 +12,15 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 include 'navbar.php'; 
 include 'koneksi.php'; 
 
-// 1. Ambil total Biaya Servis / Perawatan secara otomatis dari tabel JURNAL (Akun 513)
-$query_beban_servis = "SELECT SUM(Debit) AS total_servis FROM jurnal WHERE kode_akun = '513'";
-$res_servis = mysqli_query($conn, $query_beban_servis);
-$row_servis = mysqli_fetch_assoc($res_servis);
-$total_biaya_servis = isset($row_servis['total_servis']) ? floatval($row_servis['total_servis']) : 0;
-
-// 2. Ambil data rekap laba rugi dari database
-$sql = "SELECT periode, pendapatan_total, beban_total, laba_bersih FROM laporan_laba_rugi ORDER BY periode DESC";
+// 1. Ambil data Pendapatan (Akun 4xx) dan Beban (Akun 5xx) secara dinamis dari Jurnal Umum
+$sql = "SELECT 
+            DATE_FORMAT(tanggal, '%Y-%m') AS periode_bulan,
+            SUM(CASE WHEN kode_akun LIKE '4%' THEN Kredit - Debit ELSE 0 END) AS pendapatan_total,
+            SUM(CASE WHEN kode_akun LIKE '5%' THEN Debit - Kredit ELSE 0 END) AS beban_total
+        FROM jurnal 
+        WHERE kode_akun LIKE '4%' OR kode_akun LIKE '5%'
+        GROUP BY periode_bulan
+        ORDER BY periode_bulan DESC";
 $res = mysqli_query($conn, $sql);
 
 $total_pendapatan_kumulatif = 0;
@@ -29,9 +30,7 @@ $total_laba_kumulatif = 0;
 $reports = [];
 if ($res && mysqli_num_rows($res) > 0) {
     while ($row = mysqli_fetch_assoc($res)) {
-        // Gabungkan beban rekap bawaan dengan biaya perawatan kendaraan (Akun 513) secara real-time
-        $row['beban_total'] += $total_biaya_servis;
-        // Hitung ulang laba bersih secara akurat setelah beban diperbarui
+        // Hitung Laba Bersih
         $row['laba_bersih'] = $row['pendapatan_total'] - $row['beban_total'];
 
         $reports[] = $row;
@@ -40,76 +39,102 @@ if ($res && mysqli_num_rows($res) > 0) {
         $total_laba_kumulatif += $row['laba_bersih'];
     }
 }
+
+$bulan_indo = [
+    '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April', 
+    '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus', 
+    '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+];
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h3 class="fw-bold text-dark m-0"><i class="bi bi-calculator me-2 text-danger"></i>Laporan Laba Rugi</h3>
-    <button onclick="window.print()" class="btn btn-sm btn-outline-secondary fw-bold rounded-3 shadow-sm">
-        <i class="bi bi-printer me-1"></i> Cetak Halaman
-    </button>
-</div>
+<div class="p-8">
+    <div class="d-flex justify-content-between align-items-center mb-6">
+        <div>
+            <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-3">
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                    <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
+                </div>
+                Laporan Laba Rugi
+            </h1>
+            <p class="text-slate-500 font-medium mt-1">Laporan pendapatan dan beban secara real-time dari Buku Besar.</p>
+        </div>
+        <button onclick="window.print()" class="bg-slate-800 text-white font-bold py-2.5 px-5 rounded-xl hover:bg-slate-700 transition-colors shadow-sm flex items-center gap-2">
+            <i data-lucide="printer" class="w-4 h-4"></i> Cetak Laporan
+        </button>
+    </div>
 
-<div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm bg-warning text-dark p-3 rounded-4">
-            <small class="text-uppercase fw-bold text-muted" style="font-size: 0.75rem;">Total Pendapatan (Kumulatif)</small>
-            <h3 class="fw-bold m-0 mt-1">Rp <?= number_format($total_pendapatan_kumulatif, 0, ',', '.'); ?></h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 shadow-lg shadow-emerald-500/20 text-white border border-emerald-400">
+            <div class="flex items-center gap-3 mb-2 opacity-90">
+                <i data-lucide="trending-up" class="w-5 h-5"></i>
+                <span class="text-sm font-bold tracking-wider uppercase">Total Pendapatan (Kumulatif)</span>
+            </div>
+            <h3 class="text-3xl font-black mt-2">Rp <?= number_format($total_pendapatan_kumulatif, 0, ',', '.'); ?></h3>
+        </div>
+        
+        <div class="bg-gradient-to-br from-rose-500 to-red-600 rounded-2xl p-6 shadow-lg shadow-rose-500/20 text-white border border-rose-400">
+            <div class="flex items-center gap-3 mb-2 opacity-90">
+                <i data-lucide="trending-down" class="w-5 h-5"></i>
+                <span class="text-sm font-bold tracking-wider uppercase">Total Beban Operasional</span>
+            </div>
+            <h3 class="text-3xl font-black mt-2">Rp <?= number_format($total_beban_kumulatif, 0, ',', '.'); ?></h3>
+        </div>
+        
+        <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 shadow-lg shadow-blue-500/20 text-white border border-blue-500">
+            <div class="flex items-center gap-3 mb-2 opacity-90">
+                <i data-lucide="wallet" class="w-5 h-5"></i>
+                <span class="text-sm font-bold tracking-wider uppercase">Laba Bersih Keseluruhan</span>
+            </div>
+            <h3 class="text-3xl font-black mt-2">Rp <?= number_format($total_laba_kumulatif, 0, ',', '.'); ?></h3>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm bg-danger text-white p-3 rounded-4">
-            <small class="text-uppercase fw-bold text-white-50" style="font-size: 0.75rem;">Total Beban Operasional</small>
-            <h3 class="fw-bold m-0 mt-1">Rp <?= number_format($total_beban_kumulatif, 0, ',', '.'); ?></h3>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card border-0 shadow-sm bg-success text-white p-3 rounded-4">
-            <small class="text-uppercase fw-bold text-white-50" style="font-size: 0.75rem;">Total Laba Bersih</small>
-            <h3 class="fw-bold m-0 mt-1">Rp <?= number_format($total_laba_kumulatif, 0, ',', '.'); ?></h3>
-        </div>
-    </div>
-</div>
 
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle m-0">
-                <thead class="table-light text-secondary text-uppercase" style="font-size: 0.8rem; border-bottom: 2px solid #dee2e6;">
-                    <tr>
-                        <th class="py-3 px-4 text-center" style="width: 15%;">Periode Rekap</th>
-                        <th class="py-3 px-4 text-end">Total Pendapatan</th>
-                        <th class="py-3 px-4 text-end">Total Beban</th>
-                        <th class="py-3 px-4 text-end" style="width: 25%;">Laba Bersih</th>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200">
+                        <th class="py-4 px-6 text-sm font-black text-slate-500 uppercase tracking-wider text-center w-1/4">Periode Bulan</th>
+                        <th class="py-4 px-6 text-sm font-black text-slate-500 uppercase tracking-wider text-right">Pendapatan (Kredit)</th>
+                        <th class="py-4 px-6 text-sm font-black text-slate-500 uppercase tracking-wider text-right">Beban (Debit)</th>
+                        <th class="py-4 px-6 text-sm font-black text-slate-500 uppercase tracking-wider text-right w-1/4">Laba Bersih</th>
                     </tr>
                 </thead>
-                <tbody style="font-size: 0.95rem;">
+                <tbody class="divide-y divide-slate-100">
                     <?php if (empty($reports)): ?>
                         <tr>
-                            <td colspan="4" class="text-center py-5 text-muted">
-                                <i class="bi bi-folder-x fs-1 d-block mb-2 text-secondary"></i>
-                                Belum ada data rekap keuangan yang terekam.
+                            <td colspan="4" class="text-center py-12">
+                                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 text-slate-400 mb-4">
+                                    <i data-lucide="folder-search" class="w-8 h-8"></i>
+                                </div>
+                                <p class="text-slate-500 font-medium">Belum ada data jurnal keuangan yang terekam.</p>
                             </td>
                         </tr>
                     <?php else: ?>
-                        <?php foreach ($reports as $row): ?>
-                            <tr>
-                                <td class="px-4 text-center fw-bold text-secondary">
-                                    <?= date('d M Y', strtotime($row['periode'])); ?>
+                        <?php foreach ($reports as $row): 
+                            $thn_bln = explode('-', $row['periode_bulan']);
+                            $nama_periode = $bulan_indo[$thn_bln[1]] . ' ' . $thn_bln[0];
+                        ?>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="py-4 px-6 text-center">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-slate-100 text-slate-700">
+                                        <?= $nama_periode ?>
+                                    </span>
                                 </td>
-                                <td class="px-4 text-end text-success fw-semibold">
-                                    Rp <?= number_format($row['pendapatan_total'], 2, ',', '.'); ?>
+                                <td class="py-4 px-6 text-right font-bold text-emerald-600">
+                                    Rp <?= number_format($row['pendapatan_total'], 0, ',', '.'); ?>
                                 </td>
-                                <td class="px-4 text-end text-danger fw-semibold">
-                                    Rp <?= number_format($row['beban_total'], 2, ',', '.'); ?>
+                                <td class="py-4 px-6 text-right font-bold text-rose-600">
+                                    Rp <?= number_format($row['beban_total'], 0, ',', '.'); ?>
                                 </td>
-                                <td class="px-4 text-end">
+                                <td class="py-4 px-6 text-right">
                                     <?php if ($row['laba_bersih'] >= 0): ?>
-                                        <span class="badge bg-success-subtle text-success border border-success p-2 rounded-3 w-100 text-end">
-                                            Rp <?= number_format($row['laba_bersih'], 2, ',', '.'); ?>
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 w-full justify-end">
+                                            <i data-lucide="trending-up" class="w-4 h-4"></i> Rp <?= number_format($row['laba_bersih'], 0, ',', '.'); ?>
                                         </span>
                                     <?php else: ?>
-                                        <span class="badge bg-danger-subtle text-danger border border-danger p-2 rounded-3 w-100 text-end">
-                                            Rp <?= number_format($row['laba_bersih'], 2, ',', '.'); ?>
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold bg-rose-50 text-rose-700 border border-rose-200 w-full justify-end">
+                                            <i data-lucide="trending-down" class="w-4 h-4"></i> Rp <?= number_format($row['laba_bersih'], 0, ',', '.'); ?>
                                         </span>
                                     <?php endif; ?>
                                 </td>
@@ -121,9 +146,7 @@ if ($res && mysqli_num_rows($res) > 0) {
         </div>
     </div>
 </div>
-
-</div> </main>
-</div>
+</main></div>
 <script>lucide.createIcons();</script>
 </body>
 </html>

@@ -20,14 +20,14 @@ $total_pelanggan = $data_total['total'] ?? 0;
 
 <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
     <div>
-        <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Data Pelanggan</h1>
+        <h1 class="text-4xl font-black text-[#800000] tracking-tight">Data Pelanggan</h1>
         <p class="text-slate-500 mt-1 font-medium italic">Kelola daftar konsumen dan riwayat penyewa armada Anda.</p>
     </div>
     <div class="flex items-center gap-3">
-        <span class="bg-blue-50 text-blue-600 px-4 py-2.5 rounded-xl text-sm font-bold border border-blue-100 flex items-center gap-2">
+        <span class="bg-[#800000]/5 text-[#800000] px-4 py-2.5 rounded-[8px] text-sm font-bold border border-[#800000]/10 flex items-center gap-2">
             <i data-lucide="users" class="w-4 h-4"></i> <?php echo $total_pelanggan; ?> Terdaftar
         </span>
-        <button onclick="document.getElementById('modalTambah').classList.remove('hidden')" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-blue-600/20 hover:bg-blue-700 transition-all flex items-center gap-2 cursor-pointer">
+        <button onclick="document.getElementById('modalTambah').classList.remove('hidden')" class="bg-[#800000] text-white px-5 py-2.5 rounded-[8px] font-bold text-sm shadow-sm hover:bg-[#600000] transition-all flex items-center gap-2 cursor-pointer border-none">
             <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah Pelanggan
         </button>
     </div>
@@ -90,11 +90,11 @@ $total_pelanggan = $data_total['total'] ?? 0;
                         </p>
                     </td>
                     <td class="py-4 px-6">
-                        <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <a href="pelanggan_edit.php?id=<?php echo $row['id_pelanggan']; ?>" class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center hover:bg-amber-500 hover:text-white transition-colors" title="Edit">
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="pelanggan_edit.php?id=<?php echo $row['id_pelanggan']; ?>" class="w-8 h-8 rounded-[8px] bg-[#d4af37]/10 text-[#d4af37] flex items-center justify-center hover:bg-[#d4af37] hover:text-white transition-colors" title="Edit">
                                 <i data-lucide="edit-2" class="w-4 h-4"></i>
                             </a>
-                            <a href="pelanggan_hapus.php?id=<?php echo $row['id_pelanggan']; ?>" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-colors" title="Hapus" onclick="return confirm('Yakin ingin menghapus pelanggan ini?');">
+                            <a href="pelanggan_hapus.php?id=<?php echo $row['id_pelanggan']; ?>" class="w-8 h-8 rounded-[8px] bg-[#800000]/10 text-[#800000] flex items-center justify-center hover:bg-[#800000] hover:text-white transition-colors" title="Hapus" onclick="return confirm('Yakin ingin menghapus pelanggan ini?');">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </a>
                         </div>
@@ -113,13 +113,13 @@ $total_pelanggan = $data_total['total'] ?? 0;
 
 <div id="modalTambah" class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-sm overflow-y-auto h-full w-full flex items-center justify-center transition-all">
     <div class="relative w-full max-w-lg mx-4">
-        <form action="pelanggan_tambah_proses.php" method="POST" class="bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
+        <form action="pelanggan_tambah_proses.php" method="POST" class="bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden">
             
             <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                <h5 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                    <i data-lucide="user-plus" class="w-5 h-5 text-brand-500"></i> Tambah Pelanggan
+                <h5 class="text-lg font-bold text-[#1a1c1c] flex items-center gap-2">
+                    <i data-lucide="user-plus" class="w-5 h-5 text-[#800000]"></i> Tambah Pelanggan
                 </h5>
-                <button type="button" onclick="document.getElementById('modalTambah').classList.add('hidden')" class="text-slate-400 hover:text-rose-500 transition-colors">
+                <button type="button" onclick="document.getElementById('modalTambah').classList.add('hidden')" class="text-slate-400 hover:text-[#800000] transition-colors">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
@@ -128,34 +128,55 @@ $total_pelanggan = $data_total['total'] ?? 0;
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Nama Lengkap</label>
-                        <input type="text" name="nama" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 p-3" required>
+                        <input type="text" name="nama" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-[8px] focus:ring-[#800000] focus:border-[#800000] p-3" required>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Email Address</label>
-                        <input type="email" name="email" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 p-3">
+                        <input type="email" name="email" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-[8px] focus:ring-[#800000] focus:border-[#800000] p-3">
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Alamat Lengkap</label>
-                    <textarea name="alamat" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 p-3" rows="3" required></textarea>
-                </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">No. Telepon / WA</label>
-                        <input type="number" name="no_telp" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 p-3" required>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Username login</label>
+                        <input type="text" name="username" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-[8px] focus:ring-[#800000] focus:border-[#800000] p-3" required>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">No. KTP</label>
-                        <input type="number" name="no_ktp" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 p-3" required>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Password login</label>
+                        <input type="password" name="password" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-[8px] focus:ring-[#800000] focus:border-[#800000] p-3" required>
                     </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Alamat Lengkap</label>
+                    <textarea name="alamat" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-[8px] focus:ring-[#800000] focus:border-[#800000] p-3" rows="2" required></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">No. KTP</label>
+                        <input type="number" name="no_ktp" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-[8px] focus:ring-[#800000] focus:border-[#800000] p-3" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">No. HP / WhatsApp</label>
+                        <input type="number" name="no_telp" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-[8px] focus:ring-[#800000] focus:border-[#800000] p-3" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Status Verifikasi</label>
+                    <select name="status_verifikasi" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-[8px] focus:ring-[#800000] focus:border-[#800000] p-3" required>
+                        <option value="belum_verifikasi">Belum Terverifikasi</option>
+                        <option value="terverifikasi">Terverifikasi</option>
+                    </select>
                 </div>
             </div>
 
             <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-                <button type="button" onclick="document.getElementById('modalTambah').classList.add('hidden')" class="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors">
+                <button type="button" onclick="document.getElementById('modalTambah').classList.add('hidden')" class="px-5 py-2.5 text-sm font-bold text-[#4d4c4c] bg-white border border-slate-200 rounded-[8px] hover:bg-slate-100 transition-colors">
                     Batal
                 </button>
-                <button type="submit" name="btn_simpan" class="px-5 py-2.5 text-sm font-bold text-white bg-brand-500 rounded-xl shadow-md shadow-brand-500/30 hover:bg-brand-600 transition-colors">
+                <button type="submit" name="btn_simpan" class="px-5 py-2.5 text-sm font-bold text-[#1a1c1c] bg-[#d4af37] rounded-[8px] shadow-sm hover:bg-[#c49d2b] transition-colors border-none">
                     Simpan Pelanggan
                 </button>
             </div>

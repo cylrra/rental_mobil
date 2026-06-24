@@ -8,7 +8,16 @@ if (isset($_POST['simpan_pembayaran'])) {
     $jumlah_bayar = mysqli_real_escape_string($conn, $_POST['jumlah_bayar']);
     $metode       = mysqli_real_escape_string($conn, $_POST['metode_bayar']);  
     $jenis_bayar  = mysqli_real_escape_string($conn, $_POST['jenis_pembayaran']);
+    $bank_tujuan  = isset($_POST['bank_tujuan']) ? mysqli_real_escape_string($conn, $_POST['bank_tujuan']) : '';
     $keterangan   = "Pembayaran Sewa Mobil ID: " . $id_sewa;
+    
+    if ($metode === 'transfer' && !empty($bank_tujuan)) {
+        $bank_name = '';
+        if ($bank_tujuan == '1121') $bank_name = 'BCA';
+        else if ($bank_tujuan == '1122') $bank_name = 'BNI';
+        else if ($bank_tujuan == '1123') $bank_name = 'Mandiri';
+        $keterangan .= " (Transfer $bank_name)";
+    }
 
     mysqli_begin_transaction($conn);
 
@@ -41,7 +50,7 @@ if (isset($_POST['simpan_pembayaran'])) {
         
         // 3. Logika Akuntansi
         // Tentukan akun debit berdasarkan metode pembayaran
-        $akun_debit = ($metode === 'transfer') ? '112' : '111';
+        $akun_debit = ($metode === 'transfer' && !empty($bank_tujuan)) ? $bank_tujuan : '111';
 
         // Baris DEBIT: Kas/Bank bertambah
         $q_debit_sql = "INSERT INTO jurnal (tanggal, kode_akun, Debit, Kredit, keterangan, id_sumber) 
@@ -61,14 +70,27 @@ if (isset($_POST['simpan_pembayaran'])) {
 
         // 4. Update status transaksi_sewa dan mobil HANYA JIKA pelunasan
         if ($jenis_bayar === 'pelunasan') {
-            if (!mysqli_query($conn, "UPDATE transaksi_sewa SET status_sewa = 'selesai' WHERE id_sewa = '$id_sewa'")) {
-                throw new Exception("Gagal update status transaksi sewa: " . mysqli_error($conn));
-            }
+            // Check if the rental period has actually ended before setting it to 'selesai'
+            $check_time = mysqli_query($conn, "SELECT tanggal_sewa, lama_sewa FROM transaksi_sewa WHERE id_sewa = '$id_sewa'");
+            $time_data = mysqli_fetch_assoc($check_time);
+            $end_date_str = date('Y-m-d', strtotime($time_data['tanggal_sewa'] . ' + ' . $time_data['lama_sewa'] . ' days'));
+            $is_ended = (date('Y-m-d') >= $end_date_str);
 
-            // UPDATE STATUS MOBIL menjadi 'tersedia'
-            $query_update_mobil = "UPDATE mobil SET status_mobil = 'tersedia' WHERE kode_mobil = '$kode_mobil'";
-            if (!mysqli_query($conn, $query_update_mobil)) {
-                throw new Exception("Gagal mengubah status mobil menjadi tersedia: " . mysqli_error($conn));
+            if ($is_ended) {
+                if (!mysqli_query($conn, "UPDATE transaksi_sewa SET status_sewa = 'selesai' WHERE id_sewa = '$id_sewa'")) {
+                    throw new Exception("Gagal update status transaksi sewa: " . mysqli_error($conn));
+                }
+
+                // UPDATE STATUS MOBIL menjadi 'tersedia'
+                $query_update_mobil = "UPDATE mobil SET status_mobil = 'tersedia' WHERE kode_mobil = '$kode_mobil'";
+                if (!mysqli_query($conn, $query_update_mobil)) {
+                    throw new Exception("Gagal mengubah status mobil menjadi tersedia: " . mysqli_error($conn));
+                }
+            } else {
+                // Keep it running (berjalan) if the rental period is still ongoing
+                if (!mysqli_query($conn, "UPDATE transaksi_sewa SET status_sewa = 'berjalan' WHERE id_sewa = '$id_sewa'")) {
+                    throw new Exception("Gagal update status transaksi sewa: " . mysqli_error($conn));
+                }
             }
         }
 

@@ -36,7 +36,7 @@ if ($id_pilihan) {
         <div class="w-full lg:w-2/3">
             <div class="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm hover-lift">
                 <div class="flex items-center gap-3 mb-8 pb-4 border-b border-slate-100">
-                    <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <div class="w-12 h-12 rounded-xl bg-[#800000]/10 text-[#800000] flex items-center justify-center">
                         <i data-lucide="wallet" class="w-6 h-6"></i>
                     </div>
                     <div>
@@ -48,7 +48,7 @@ if ($id_pilihan) {
                         
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">ID Transaksi / Sewa</label>
-                            <select name="id_transaksi" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors bg-slate-50" required>
+                            <select name="id_transaksi" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-[#800000] focus:ring focus:ring-[#800000]/20 transition-colors bg-slate-50" required>
                                 <option value="">-- Klik untuk Pilih Transaksi --</option>
                                 <?php 
                                 // Ambil data transaksi berjalan dengan JOIN ke mobil & supir untuk menghitung total tagihan
@@ -83,7 +83,7 @@ if ($id_pilihan) {
                             </select>
                             <?php if($id_pilihan): ?>
                                 <div class="mt-2 text-sm text-emerald-600 font-medium flex items-center gap-1.5">
-                                    <i data-lucide="check-circle" class="w-4 h-4"></i> ID Transaksi #<?= htmlspecialchars($id_pilihan) ?> terpilih otomatis.
+                                    <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i> ID Transaksi #<?= htmlspecialchars($id_pilihan) ?> terpilih otomatis.
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -91,18 +91,27 @@ if ($id_pilihan) {
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
                                 <label class="block text-sm font-bold text-slate-700 mb-2">Tanggal Bayar</label>
-                                <input type="date" name="tgl_bayar" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors bg-slate-50" value="<?php echo date('Y-m-d'); ?>" required>
+                                <input type="date" name="tgl_bayar" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-[#800000] focus:ring focus:ring-[#800000]/20 transition-colors bg-slate-50" value="<?php echo date('Y-m-d'); ?>" required>
                             </div>
                             <div>
                                 <label class="block text-sm font-bold text-slate-700 mb-2">Metode Pembayaran</label>
-                                <select name="metode_bayar" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors bg-slate-50" required>
+                                <select name="metode_bayar" id="metode_bayar" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-[#800000] focus:ring focus:ring-[#800000]/20 transition-colors bg-slate-50" required onchange="toggleBank()">
                                     <option value="cash">Cash / Tunai</option>
                                     <option value="transfer">Transfer Bank</option>
                                 </select>
                             </div>
+                            <div id="bank_container" style="display: none;">
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Bank Tujuan</label>
+                                <select name="bank_tujuan" id="bank_tujuan" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-[#800000] focus:ring focus:ring-[#800000]/20 transition-colors bg-slate-50">
+                                    <option value="">-- Pilih Bank Tujuan --</option>
+                                    <option value="1121">Bank BCA (123456789)</option>
+                                    <option value="1122">Bank BNI (987654321)</option>
+                                    <option value="1123">Bank Mandiri (1122334455)</option>
+                                </select>
+                            </div>
                             <div>
                                 <label class="block text-sm font-bold text-slate-700 mb-2">Jenis Pembayaran</label>
-                                <select name="jenis_pembayaran" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors bg-slate-50" required>
+                                <select name="jenis_pembayaran" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-[#800000] focus:ring focus:ring-[#800000]/20 transition-colors bg-slate-50" required>
                                     <option value="dp">Uang Muka (DP)</option>
                                     <option value="pelunasan">Pelunasan / Lunas</option>
                                 </select>
@@ -112,19 +121,19 @@ if ($id_pilihan) {
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Jumlah Bayar (Rp)</label>
                             <div class="relative flex items-center">
-                                <span class="absolute left-4 font-bold text-blue-600">Rp</span>
+                                <span class="absolute left-4 font-bold text-[#800000]">Rp</span>
                                 <!-- Input text visual untuk tampilan formal/baku dengan separator ribuan -->
-                                <input type="text" id="jumlah_bayar_formatted" class="w-full rounded-xl border-slate-200 pl-12 pr-4 py-3 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors bg-slate-50 font-bold text-blue-700 text-lg" placeholder="Pilih transaksi terlebih dahulu" value="<?php echo !empty($initial_tagihan) ? number_format($initial_tagihan, 0, ',', '.') : ''; ?>" readonly required>
+                                <input type="text" id="jumlah_bayar_formatted" class="w-full rounded-xl border-slate-200 pl-12 pr-4 py-3 focus:border-[#800000] focus:ring focus:ring-[#800000]/20 transition-colors bg-slate-50 font-bold text-[#800000] text-lg" placeholder="Pilih transaksi terlebih dahulu" value="<?php echo !empty($initial_tagihan) ? number_format($initial_tagihan, 0, ',', '.') : ''; ?>" readonly required>
                                 <!-- Input hidden raw untuk dikirimkan ke database agar query SQL tetap berjalan normal -->
                                 <input type="hidden" name="jumlah_bayar" id="jumlah_bayar" value="<?php echo htmlspecialchars($initial_tagihan); ?>">
                             </div>
                         </div>
 
                         <div class="flex flex-col gap-3 pt-2">
-                            <button type="submit" name="simpan_pembayaran" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl shadow-md shadow-blue-600/20 hover:bg-blue-700 transition-colors flex justify-center items-center gap-2">
+                            <button type="submit" name="simpan_pembayaran" class="w-full bg-[#d4af37] text-[#1a1c1c] font-bold py-3 rounded-xl shadow-md shadow-[#d4af37]/20 hover:bg-[#c49d2b] transition-colors flex justify-center items-center gap-2">
                                 <i data-lucide="save" class="w-5 h-5"></i> Simpan Pembayaran & Posting Jurnal
                             </button>
-                            <a href="riwayat_pembayaran.php" class="w-full bg-slate-100 text-slate-600 font-bold py-3 rounded-xl hover:bg-slate-200 transition-colors flex justify-center items-center">
+                            <a href="riwayat_pembayaran.php" class="w-full bg-[#800000] text-white font-bold py-3 rounded-xl hover:bg-[#600000] transition-colors flex justify-center items-center">
                                 Lihat Riwayat
                             </a>
                         </div>
@@ -141,6 +150,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectJenisBayar = document.querySelector('select[name="jenis_pembayaran"]');
     const inputJumlahBayar = document.getElementById('jumlah_bayar');
     const inputJumlahBayarFormatted = document.getElementById('jumlah_bayar_formatted');
+    
+    window.toggleBank = function() {
+        var metode = document.getElementById('metode_bayar').value;
+        var bankContainer = document.getElementById('bank_container');
+        var bankSelect = document.getElementById('bank_tujuan');
+        if (metode === 'transfer') {
+            bankContainer.style.display = 'block';
+            bankSelect.required = true;
+        } else {
+            bankContainer.style.display = 'none';
+            bankSelect.required = false;
+        }
+    };
+    toggleBank();
     
     function updateJumlahBayar() {
         if (selectTransaksi && inputJumlahBayar && inputJumlahBayarFormatted && selectJenisBayar) {

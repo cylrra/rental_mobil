@@ -5,7 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // PROTEKSI: Hanya pelanggan yang boleh masuk
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'pelanggan') {
-    header("Location: login_pelanggan.php");
+    header("Location: login.php");
     exit();
 }
 
@@ -34,13 +34,23 @@ if ($query_user) {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        :root { --deep-navy: #0f172a; --clear-blue: #3071a4; --frost-veil: #f8fafc; --lilac-dust: #94a3b8; }
-        body { font-family: 'Outfit', sans-serif; background-color: #f1f5f9; }
-        .card { border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .form-label { font-weight: 600; color: var(--deep-navy); font-size: 0.9rem; }
-        .form-select, .form-control { border-radius: 10px; padding: 10px 15px; border: 1.5px solid #e2e8f0; }
-        .btn-primary { background-color: var(--clear-blue); border: none; border-radius: 12px; transition: 0.3s; }
-        #catatan_supir { font-size: 0.85rem; color: #dc3545; font-style: italic; display: none; }
+        :root { 
+            --primary: #9e0000; 
+            --secondary: #fdc003; 
+            --background: #f9f9f9; 
+            --on-surface: #1a1c1c; 
+            --border-color: #e2e2e2; 
+        }
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--background); color: var(--on-surface); }
+        .card { border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+        .form-label { font-weight: 700; color: var(--on-surface); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .form-select, .form-control { border-radius: 8px; padding: 10px 15px; border: 1px solid var(--border-color); font-weight: 500; font-size: 0.9rem; }
+        .form-select:focus, .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(158, 0, 0, 0.15); outline: none; }
+        .btn-primary { background-color: var(--secondary); border: none; border-radius: 8px; color: #1a1c1c; font-weight: 700; transition: 0.2s; }
+        .btn-primary:hover { background-color: #e5ad02; color: #1a1c1c; }
+        .btn-outline-primary { border-color: var(--primary); color: var(--primary); border-radius: 8px; font-weight: 700; }
+        .btn-outline-primary:hover { background-color: var(--primary); color: #ffffff; border-color: var(--primary); }
+        #catatan_supir { font-size: 0.85rem; color: var(--primary); font-style: italic; display: none; }
     </style>
 </head>
 <body>
@@ -116,7 +126,7 @@ if ($query_user) {
                         <div class="row g-3 mb-3">
                             <div class="col-6">
                                 <label class="form-label">Tgl Mulai</label>
-                                <input type="date" name="tanggal_sewa" id="tanggal_sewa" class="form-control" value="<?= date('Y-m-d') ?>" required onchange="hitungTotalEstimasi()">
+                                <input type="date" name="tanggal_sewa" id="tanggal_sewa" class="form-control" value="<?= date('Y-m-d', strtotime('+1 day')) ?>" min="<?= date('Y-m-d', strtotime('+1 day')) ?>" required onchange="hitungTotalEstimasi()">
                             </div>
                             <div class="col-6">
                                 <label class="form-label">Durasi (Hari)</label>
@@ -177,6 +187,9 @@ if ($query_user) {
                                     <td class="text-center"><span class="badge rounded-pill bg-<?= $clr ?> opacity-75"><?= ucfirst($st) ?></span></td>
                                     <td class="text-center pe-4 d-flex justify-content-center gap-1">
                                         <a href="riwayat_pembayaran.php" class="btn btn-sm btn-light border rounded-pill px-3">Detail</a>
+                                        <?php if($st == 'berjalan'): ?>
+                                            <a href="tracking.php?id=<?= $row['id_sewa'] ?>" class="btn btn-sm btn-success rounded-pill px-3 fw-semibold text-white shadow-sm" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;"><i class="bi bi-geo-alt-fill me-1"></i>Lacak</a>
+                                        <?php endif; ?>
                                         <?php if($st == 'selesai'): ?>
                                             <?php if(empty($row['id_rating'])): ?>
                                                 <a href="ulasan_rating.php?id_sewa=<?= $row['id_sewa'] ?>" class="btn btn-sm btn-warning rounded-pill px-3 fw-semibold"><i class="bi bi-star-fill me-1"></i>Rating</a>

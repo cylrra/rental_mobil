@@ -55,7 +55,7 @@ $json_growth = json_encode($growth_pct);
         <div class="card shadow-sm border-0 rounded-4 bg-white">
             <div class="card-header bg-white py-4 border-0 d-flex align-items-center justify-content-between px-4">
                 <h5 class="mb-0 fw-bold text-dark">
-                    <i class="bi bi-bar-chart-line-fill text-danger me-2"></i> Tren Statistik Transaksi Bulanan
+                    <i class="bi bi-bar-chart-line-fill text-[#800000] me-2"></i> Tren Statistik Transaksi Bulanan
                 </h5>
             </div>
             <div class="card-body px-4 pb-4">
@@ -84,8 +84,8 @@ $json_growth = json_encode($growth_pct);
                 {
                     label: 'Normal Day (Kuantitas)',
                     data: dataCounts,
-                    backgroundColor: '#ffb3ba', // Pink muda lembut
-                    borderColor: '#ffb3ba',
+                    backgroundColor: '#00b4d8', // Electric Blue
+                    borderColor: '#00b4d8',
                     borderWidth: 1,
                     barPercentage: 0.8,
                     categoryPercentage: 0.6
@@ -93,8 +93,8 @@ $json_growth = json_encode($growth_pct);
                 {
                     label: 'Double Date (Omset Kas)',
                     data: dataRevenues,
-                    backgroundColor: '#ff3b5c', // Pink-merah pekat cerah
-                    borderColor: '#ff3b5c',
+                    backgroundColor: '#ff007f', // Neon Rose/Pink
+                    borderColor: '#ff007f',
                     borderWidth: 1,
                     barPercentage: 0.8,
                     categoryPercentage: 0.6

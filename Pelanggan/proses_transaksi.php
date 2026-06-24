@@ -21,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Logika supir: Jika kirim "999" maka pakai supir, jika tidak maka NULL/Lepas Kunci
     $id_supir = (isset($_POST['id_supir']) && $_POST['id_supir'] == '999') ? 999 : NULL;
+    $pake_supir = ($id_supir !== NULL) ? 'Ya' : 'Tidak';
     $status_sewa   = 'pending';
 
     // AMBIL TARIF DARI DB
@@ -34,17 +35,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Tarif supir tetap 200rb
     $tarif_supir = ($id_supir !== NULL) ? 200000 : 0;
+    $biaya_supir = $tarif_supir * $lama_sewa;
     
     // HITUNG TOTAL
-    $total_bayar = ($tarif_mobil + $tarif_supir) * $lama_sewa;
+    $total_biaya = ($tarif_mobil + $tarif_supir) * $lama_sewa;
+    $total_bayar = $total_biaya;
 
     // INSERT KE DB
     $stmt = $conn->prepare("INSERT INTO transaksi_sewa 
-            (id_pelanggan, kode_mobil, nama_penyewa, id_supir, tanggal_sewa, lama_sewa, lokasi_jemput, alamat_detail, status_sewa, total_bayar) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            (id_pelanggan, kode_mobil, nama_penyewa, pake_supir, id_supir, biaya_supir, tanggal_sewa, lama_sewa, lokasi_jemput, alamat_detail, status_sewa, total_biaya, total_bayar) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
     if ($stmt) {
-        $stmt->bind_param("ississsssi", $id_pelanggan, $kode_mobil, $nama_penyewa, $id_supir, $tanggal_sewa, $lama_sewa, $lokasi_jemput, $alamat_detail, $status_sewa, $total_bayar);
+        $stmt->bind_param("isssidsisssdi", $id_pelanggan, $kode_mobil, $nama_penyewa, $pake_supir, $id_supir, $biaya_supir, $tanggal_sewa, $lama_sewa, $lokasi_jemput, $alamat_detail, $status_sewa, $total_biaya, $total_bayar);
 
         if ($stmt->execute()) {
             // KIRIM RESPONSE "sukses" agar AJAX di transaksi.php tahu proses selesai

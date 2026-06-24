@@ -76,11 +76,24 @@ if (isset($_POST['simpan_pembayaran'])) {
 
         // 5. Update status transaksi_sewa & ketersediaan mobil
         if ($total_setelah_bayar >= $total_tagihan) {
-            if (!mysqli_query($conn, "UPDATE transaksi_sewa SET status_sewa = 'selesai' WHERE id_sewa = '$id_sewa'")) {
-                throw new Exception("Gagal update status transaksi sewa: " . mysqli_error($conn));
-            }
-            if (!mysqli_query($conn, "UPDATE mobil SET status_mobil = 'tersedia' WHERE kode_mobil = '$kode_mobil'")) {
-                throw new Exception("Gagal mengubah status mobil menjadi tersedia: " . mysqli_error($conn));
+            // Check if the rental period has actually ended before setting it to 'selesai'
+            $check_time = mysqli_query($conn, "SELECT tanggal_sewa, lama_sewa FROM transaksi_sewa WHERE id_sewa = '$id_sewa'");
+            $time_data = mysqli_fetch_assoc($check_time);
+            $end_date_str = date('Y-m-d', strtotime($time_data['tanggal_sewa'] . ' + ' . $time_data['lama_sewa'] . ' days'));
+            $is_ended = (date('Y-m-d') >= $end_date_str);
+
+            if ($is_ended) {
+                if (!mysqli_query($conn, "UPDATE transaksi_sewa SET status_sewa = 'selesai' WHERE id_sewa = '$id_sewa'")) {
+                    throw new Exception("Gagal update status transaksi sewa: " . mysqli_error($conn));
+                }
+                if (!mysqli_query($conn, "UPDATE mobil SET status_mobil = 'tersedia' WHERE kode_mobil = '$kode_mobil'")) {
+                    throw new Exception("Gagal mengubah status mobil menjadi tersedia: " . mysqli_error($conn));
+                }
+            } else {
+                // Keep it running (berjalan) if the rental period is still ongoing
+                if (!mysqli_query($conn, "UPDATE transaksi_sewa SET status_sewa = 'berjalan' WHERE id_sewa = '$id_sewa'")) {
+                    throw new Exception("Gagal update status transaksi sewa: " . mysqli_error($conn));
+                }
             }
         } else {
             if (!mysqli_query($conn, "UPDATE transaksi_sewa SET status_sewa = 'DP' WHERE id_sewa = '$id_sewa'")) {
