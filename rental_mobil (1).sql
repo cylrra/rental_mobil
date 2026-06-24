@@ -20,6 +20,8 @@ SET time_zone = "+00:00";
 --
 -- Database: `rental_mobil`
 --
+CREATE DATABASE IF NOT EXISTS `rental_mobil`;
+USE `rental_mobil`;
 
 -- --------------------------------------------------------
 
