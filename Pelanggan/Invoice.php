@@ -55,11 +55,11 @@ $row = [
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #0f172a; padding: 40px 0; }
+        body { font-family: 'Montserrat', sans-serif; background-color: #f8fafc; color: #0f172a; padding: 40px 0; }
         .invoice-box { background-color: white; border: 1px solid #e2e8f0; border-radius: 20px; max-width: 800px; margin: auto; padding: 45px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04); }
         .invoice-header { border-bottom: 2px solid #f1f5f9; padding-bottom: 30px; margin-bottom: 30px; }
         .brand-title { font-weight: 800; color: #0f172a; }
-        .brand-title span { color: #2563eb; }
+        .brand-title span { color: #9e0000; }
         .table-invoice th { background-color: #f8fafc; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0; }
         .btn-print { background-color: #0f172a; color: white; border: none; border-radius: 50px; padding: 10px 24px; font-weight: 600; }
         @media print { .btn-print, .btn-back { display: none !important; } }
@@ -79,7 +79,7 @@ $row = [
                 <p class="text-muted small mb-0">Solo, Jawa Tengah | support@indomax.com</p>
             </div>
             <div class="text-end">
-                <h2 class="fw-bold mb-0 text-uppercase" style="letter-spacing: 1px; color: #1e3a8a;">Invoice</h2>
+                <h2 class="fw-bold mb-0 text-uppercase" style="letter-spacing: 1px; color: #9e0000;">Invoice</h2>
                 <strong class="text-muted">No: #<?php echo $row['no_invoice']; ?></strong>
             </div>
         </div>

@@ -8,7 +8,7 @@
         .container { display: flex; gap: 50px; }
         table { border-collapse: collapse; width: 100%; margin-top: 10px; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #2c3e50; color: white; }
+        th { background-color: #9e0000; color: white; }
         .status-ready { color: green; font-weight: bold; }
         .card { flex: 1; }
     </style>
@@ -68,7 +68,7 @@
 
     <br>
     <a href="index.php">⬅ Kembali ke Beranda</a>
-    <a href="transaksi.php" style="margin-left:20px; color: blue; font-weight: bold;">Mulai Pesan Sekarang ⮕</a>
+    <a href="transaksi.php" style="margin-left:20px; color: #9e0000; font-weight: bold;">Mulai Pesan Sekarang ⮕</a>
 
 </body>
 </html>

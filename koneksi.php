@@ -16,9 +16,14 @@ if (!$conn) {
 
 // 1. Auto-transition 'diterima' to 'berjalan' when the rental date starts (tanggal_sewa <= CURDATE)
 $sql_auto_start = "UPDATE transaksi_sewa 
-                   SET status_sewa = 'berjalan' 
+                   SET status_sewa = 'berjalan', waktu_mulai_perjalanan = NOW() 
                    WHERE status_sewa = 'diterima' AND tanggal_sewa <= CURDATE()";
 mysqli_query($conn, $sql_auto_start);
+
+// 1b. Set start timestamp when rental starts ('berjalan') from any other source
+mysqli_query($conn, "UPDATE transaksi_sewa 
+                     SET waktu_mulai_perjalanan = NOW() 
+                     WHERE status_sewa = 'berjalan' AND waktu_mulai_perjalanan IS NULL");
 
 // 2. Auto-transition fully paid 'berjalan' rentals to 'selesai' only when the duration has ended
 // This keeps the car 'disewa' and status 'berjalan' even if paid upfront, until the rental period actually ends.
@@ -37,6 +42,22 @@ if ($res_finished && mysqli_num_rows($res_finished) > 0) {
         mysqli_query($conn, "UPDATE transaksi_sewa SET status_sewa = 'selesai' WHERE id_sewa = $id_s");
         
         // Release the car
+        mysqli_query($conn, "UPDATE mobil SET status_mobil = 'tersedia' WHERE kode_mobil = '$k_mob'");
+    }
+}
+
+// 2b. Auto-transition 'berjalan' to 'selesai' once the delivery simulation has completed (16 minutes / 960 seconds)
+$sql_delivery_finished = "SELECT id_sewa, kode_mobil 
+                          FROM transaksi_sewa 
+                          WHERE status_sewa = 'berjalan' 
+                            AND waktu_mulai_perjalanan IS NOT NULL 
+                            AND DATE_ADD(waktu_mulai_perjalanan, INTERVAL 960 SECOND) <= NOW()";
+$res_delivery = mysqli_query($conn, $sql_delivery_finished);
+if ($res_delivery && mysqli_num_rows($res_delivery) > 0) {
+    while ($row = mysqli_fetch_assoc($res_delivery)) {
+        $id_s = $row['id_sewa'];
+        $k_mob = $row['kode_mobil'];
+        mysqli_query($conn, "UPDATE transaksi_sewa SET status_sewa = 'selesai' WHERE id_sewa = $id_s");
         mysqli_query($conn, "UPDATE mobil SET status_mobil = 'tersedia' WHERE kode_mobil = '$k_mob'");
     }
 }

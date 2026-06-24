@@ -89,7 +89,7 @@
                         Kelola data armada, jadwal servis, verifikasi transaksi sewa, dan pantau pembukuan sistem.
                     </p>
                 </div>
-                <a href="Admin/login.php" class="w-full border-2 border-[#9e0000] text-white hover:bg-[#9e0000] font-bold py-3 px-4 rounded-lg text-center transition-all duration-200 block">
+                <a href="Admin/login.php" class="w-full bg-[#9e0000] text-white font-bold py-3 px-4 rounded-lg text-center hover:bg-[#9e0000]/90 transition-all duration-200 shadow-md shadow-[#9e0000]/10 block">
                     Masuk Staff / Admin
                 </a>
             </div>

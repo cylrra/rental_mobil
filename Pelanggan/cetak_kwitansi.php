@@ -116,7 +116,7 @@ function terbilang($angka) {
             transition: background 0.2s;
         }
         .btn-print:hover {
-            background: #1e3a8a;
+            background: #9e0000;
         }
         @media print { 
             .btn-print { display: none !important; } 
@@ -129,7 +129,7 @@ function terbilang($angka) {
 
     <div class="kwitansi-container">
         <!-- Stamp Watermark -->
-        <div style="position: absolute; right: 80px; top: 120px; border: 3px solid rgba(37,99,235,0.15); color: rgba(37,99,235,0.15); font-size: 2rem; font-weight: 800; padding: 5px 15px; transform: rotate(-15deg); border-radius: 8px; text-transform: uppercase;">
+        <div style="position: absolute; right: 80px; top: 120px; border: 3px solid rgba(158,0,0,0.15); color: rgba(158,0,0,0.15); font-size: 2rem; font-weight: 800; padding: 5px 15px; transform: rotate(-15deg); border-radius: 8px; text-transform: uppercase;">
             Paid
         </div>
 

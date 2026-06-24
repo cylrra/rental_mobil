@@ -6,11 +6,30 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'pelanggan') {
 }
 include 'koneksi.php';
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['auto_complete']) && $_POST['auto_complete'] == 1) {
+    $id_sewa_post = intval($_POST['id_sewa']);
+    $q_mob = mysqli_query($conn, "SELECT kode_mobil FROM transaksi_sewa WHERE id_sewa = $id_sewa_post");
+    if ($q_mob && mysqli_num_rows($q_mob) > 0) {
+        $r_mob = mysqli_fetch_assoc($q_mob);
+        $k_mob = $r_mob['kode_mobil'];
+        mysqli_query($conn, "UPDATE transaksi_sewa SET status_sewa = 'selesai' WHERE id_sewa = $id_sewa_post");
+        mysqli_query($conn, "UPDATE mobil SET status_mobil = 'tersedia' WHERE kode_mobil = '$k_mob'");
+        header('Content-Type: application/json');
+        echo json_encode(['status' => 'success']);
+    } else {
+        header('Content-Type: application/json');
+        echo json_encode(['status' => 'error']);
+    }
+    exit();
+}
+
 $id_sewa = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $id_pelanggan = $_SESSION['id_pelanggan'];
 
 // Cek kepemilikan transaksi dan status
-$query = "SELECT t.*, p.nama, p.alamat, p.no_telp, m.merk, m.nopol, s.nama_supir 
+$query = "SELECT t.*, p.nama, p.alamat, p.no_telp, m.merk, m.nopol, s.nama_supir,
+                 UNIX_TIMESTAMP(t.waktu_mulai_perjalanan) AS start_ts,
+                 UNIX_TIMESTAMP(NOW()) AS current_ts
           FROM transaksi_sewa t
           JOIN pelanggan p ON t.id_pelanggan = p.id_pelanggan
           JOIN mobil m ON t.kode_mobil = m.kode_mobil
@@ -23,6 +42,10 @@ if (mysqli_num_rows($result) == 0) {
     exit();
 }
 $rental = mysqli_fetch_assoc($result);
+
+$start_ts = $rental['start_ts'] ?? 0;
+$current_ts = $rental['current_ts'] ?? time();
+$elapsed_seconds = ($start_ts > 0) ? ($current_ts - $start_ts) : -1;
 
 // Koordinat simulasi
 $pickup_lat = -6.9932; 
@@ -84,6 +107,67 @@ $start_lng = $pickup_lng - 0.05;
         
         /* Hide routing machine itinerary */
         .leaflet-routing-container { display: none !important; }
+
+        /* Progress Stepper Style */
+        .tracking-stepper {
+            position: relative;
+            padding: 0 10px;
+        }
+        .progress-line-bg {
+            position: absolute;
+            top: 16px;
+            left: 12%;
+            right: 12%;
+            height: 4px;
+            background: #e2e8f0;
+            z-index: 1;
+            border-radius: 2px;
+        }
+        .progress-line-active {
+            position: absolute;
+            top: 16px;
+            left: 12%;
+            width: 0%;
+            height: 4px;
+            background: #10b981;
+            z-index: 2;
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+        .step-item {
+            z-index: 3;
+            width: 25%;
+        }
+        .step-icon {
+            width: 32px;
+            height: 32px;
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            color: #64748b;
+            border-radius: 50%;
+            font-weight: 800;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .step-icon.active {
+            background: #10b981;
+            border-color: #10b981;
+            color: #ffffff;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+        }
+        .step-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #64748b;
+            margin-top: 8px;
+            transition: color 0.3s ease;
+        }
+        .step-label.active {
+            color: #10b981;
+        }
     </style>
 </head>
 <body>
@@ -101,6 +185,29 @@ $start_lng = $pickup_lng - 0.05;
             <h2 class="time" id="eta-text">-- Menit</h2>
         </div>
         <i class="bi bi-clock-history fs-1 opacity-50"></i>
+    </div>
+    
+    <!-- Gojek/Grab Stepper -->
+    <div class="tracking-stepper mb-4 d-flex justify-content-between align-items-center position-relative">
+        <div class="progress-line-bg"></div>
+        <div class="progress-line-active" id="progress-line"></div>
+        
+        <div class="step-item text-center">
+            <div id="step-icon-1" class="step-icon mx-auto">1</div>
+            <div id="step-label-1" class="step-label">Persiapan</div>
+        </div>
+        <div class="step-item text-center">
+            <div id="step-icon-2" class="step-icon mx-auto">2</div>
+            <div id="step-label-2" class="step-label">Menuju Jemput</div>
+        </div>
+        <div class="step-item text-center">
+            <div id="step-icon-3" class="step-icon mx-auto">3</div>
+            <div id="step-label-3" class="step-label">Dalam Perjalanan</div>
+        </div>
+        <div class="step-item text-center">
+            <div id="step-icon-4" class="step-icon mx-auto"><i class="bi bi-check-lg" style="display:none;"></i><span id="step-num-4">4</span></div>
+            <div id="step-label-4" class="step-label">Tiba di Lokasi</div>
+        </div>
     </div>
     
     <div class="driver-info">
@@ -128,6 +235,10 @@ $start_lng = $pickup_lng - 0.05;
 <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-rotatedmarker@0.2.0/leaflet.rotatedMarker.min.js"></script>
 <script>
+    const waktuMulaiPerjalanan = <?= json_encode($start_ts) ?>;
+    const currentServerTime = <?= json_encode($current_ts) ?>;
+    const elapsedSecondsInitial = <?= json_encode($elapsed_seconds) ?>;
+
     const map = L.map('map', { zoomControl: false }).setView([<?= $pickup_lat ?>, <?= $pickup_lng ?>], 13);
     
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
@@ -171,60 +282,161 @@ $start_lng = $pickup_lng - 0.05;
         })
     }).addTo(map);
 
-    control.on('routesfound', function(e) {
-        const routes = e.routes;
-        const summary = routes[0].summary;
-        
-        // Update ETA & Distance
-        document.getElementById('eta-text').innerText = Math.round(summary.totalTime / 60) + ' Menit';
-        document.getElementById('dist-text').innerText = (summary.totalDistance / 1000).toFixed(1) + ' km';
-        
-        // Animate marker along route
-        const coordinates = routes[0].coordinates;
-        let i = 0;
-        
-        function moveMarker() {
-            if (i < coordinates.length - 1) {
-                const nextCoord = coordinates[i+1];
-                const currentCoord = coordinates[i];
-                
-                // Calculate angle for rotation
-                const dy = nextCoord.lat - currentCoord.lat;
-                const dx = nextCoord.lng - currentCoord.lng;
-                let angle = Math.atan2(dy, dx) * 180 / Math.PI;
-                angle = 90 - angle; 
-                carMarker.setRotationAngle(angle);
+    function updateStepper(progressFraction) {
+        const progressLine = document.getElementById('progress-line');
+        const step1Icon = document.getElementById('step-icon-1');
+        const step1Label = document.getElementById('step-label-1');
+        const step2Icon = document.getElementById('step-icon-2');
+        const step2Label = document.getElementById('step-label-2');
+        const step3Icon = document.getElementById('step-icon-3');
+        const step3Label = document.getElementById('step-label-3');
+        const step4Icon = document.getElementById('step-icon-4');
+        const step4Label = document.getElementById('step-label-4');
+        const step4Check = step4Icon.querySelector('.bi-check-lg');
+        const step4Num = document.getElementById('step-num-4');
 
-                let step = 0;
-                const maxSteps = 30;
-                
-                function animateStep() {
-                    step++;
-                    const lat = currentCoord.lat + ((nextCoord.lat - currentCoord.lat) * (step/maxSteps));
-                    const lng = currentCoord.lng + ((nextCoord.lng - currentCoord.lng) * (step/maxSteps));
-                    
-                    carMarker.setLatLng([lat, lng]);
-                    
-                    if (step < maxSteps) {
-                        requestAnimationFrame(animateStep);
-                    } else {
-                        // Adjust map bounds occasionally to keep car and dest in view
-                        if (i % 20 === 0) {
-                            const bounds = L.latLngBounds([coordinates[i], destination]);
-                            map.fitBounds(bounds, {padding: [50, 50], animate: true, duration: 1});
-                        }
-                        
-                        i++;
-                        setTimeout(moveMarker, 50);
-                    }
-                }
-                animateStep();
+        // Reset classes
+        step1Icon.classList.remove('active'); step1Label.classList.remove('active');
+        step2Icon.classList.remove('active'); step2Label.classList.remove('active');
+        step3Icon.classList.remove('active'); step3Label.classList.remove('active');
+        step4Icon.classList.remove('active'); step4Label.classList.remove('active');
+        step4Check.style.display = 'none';
+        step4Num.style.display = 'inline';
+
+        if (progressFraction < 0) {
+            progressLine.style.width = '0%';
+            step1Icon.classList.add('active'); step1Label.classList.add('active');
+        } else if (progressFraction >= 1) {
+            progressLine.style.width = '100%';
+            step1Icon.classList.add('active'); step1Label.classList.add('active');
+            step2Icon.classList.add('active'); step2Label.classList.add('active');
+            step3Icon.classList.add('active'); step3Label.classList.add('active');
+            step4Icon.classList.add('active'); step4Label.classList.add('active');
+            step4Check.style.display = 'inline';
+            step4Num.style.display = 'none';
+        } else {
+            step1Icon.classList.add('active'); step1Label.classList.add('active');
+            
+            let width = 0;
+            if (progressFraction < 0.30) {
+                // Persiapan -> Menuju Jemput (0% to 33% line)
+                step2Icon.classList.add('active'); step2Label.classList.add('active');
+                width = (progressFraction / 0.30) * 33;
+            } else if (progressFraction < 0.90) {
+                // Menuju Jemput -> Dalam Perjalanan (33% to 66% line)
+                step2Icon.classList.add('active'); step2Label.classList.add('active');
+                step3Icon.classList.add('active'); step3Label.classList.add('active');
+                width = 33 + ((progressFraction - 0.30) / 0.60) * 33;
             } else {
-                document.getElementById('eta-text').innerText = 'Tiba di Lokasi';
+                // Dalam Perjalanan -> Tiba (66% to 100% line)
+                step2Icon.classList.add('active'); step2Label.classList.add('active');
+                step3Icon.classList.add('active'); step3Label.classList.add('active');
+                width = 66 + ((progressFraction - 0.90) / 0.10) * 34;
             }
+            progressLine.style.width = width + '%';
+        }
+    }
+
+    let coordinates = [];
+    let totalTime = 0;
+    let summary = null;
+    let routeLoaded = false;
+    let frameCount = 0;
+    const pageLoadTime = Date.now();
+
+    function animateRoute() {
+        if (!coordinates || coordinates.length === 0) {
+            requestAnimationFrame(animateRoute);
+            return;
+        }
+
+        if (elapsedSecondsInitial < 0) {
+            carMarker.setLatLng(origin);
+            document.getElementById('eta-text').innerText = Math.round(totalTime / 60) + ' Menit';
+            document.getElementById('dist-text').innerText = (summary.totalDistance / 1000).toFixed(1) + ' km';
+            updateStepper(-1);
+            
+            const bounds = L.latLngBounds([origin, destination]);
+            map.fitBounds(bounds, {padding: [50, 50]});
+            return;
+        }
+
+        const elapsedMs = (Date.now() - pageLoadTime);
+        const elapsedSeconds = elapsedSecondsInitial + (elapsedMs / 1000);
+        
+        if (elapsedSeconds >= totalTime) {
+            carMarker.setLatLng(destination);
+            document.getElementById('eta-text').innerText = 'Tiba di Lokasi';
+            document.getElementById('dist-text').innerText = '0.0 km';
+            updateStepper(1.0);
+            map.setView(destination, 15);
+            
+            // Auto complete transaction in database and redirect to dashboard
+            fetch('tracking.php?id=' + <?= $id_sewa ?>, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'auto_complete=1&id_sewa=' + <?= $id_sewa ?>
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Mobil telah tiba! Transaksi Anda selesai.');
+                    window.location = 'transaksi.php';
+                }
+            });
+            return;
         }
         
-        setTimeout(moveMarker, 1000);
+        const progressFraction = elapsedSeconds / totalTime;
+        const floatIndex = progressFraction * (coordinates.length - 1);
+        const idx = Math.floor(floatIndex);
+        const subProgress = floatIndex - idx;
+        
+        const currentCoord = coordinates[idx];
+        const nextCoord = coordinates[idx + 1] || currentCoord;
+        
+        const lat = currentCoord.lat + (nextCoord.lat - currentCoord.lat) * subProgress;
+        const lng = currentCoord.lng + (nextCoord.lng - currentCoord.lng) * subProgress;
+        const currentPosition = L.latLng(lat, lng);
+        
+        carMarker.setLatLng(currentPosition);
+        
+        const dy = nextCoord.lat - currentCoord.lat;
+        const dx = nextCoord.lng - currentCoord.lng;
+        if (Math.abs(dy) > 0.000001 || Math.abs(dx) > 0.000001) {
+            let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            angle = 90 - angle; 
+            carMarker.setRotationAngle(angle);
+        }
+        
+        const remainingSeconds = Math.max(0, totalTime - elapsedSeconds);
+        document.getElementById('eta-text').innerText = Math.round(remainingSeconds / 60) + ' Menit';
+        
+        const remainingFraction = 1 - progressFraction;
+        const remainingDistance = (summary.totalDistance * remainingFraction) / 1000;
+        document.getElementById('dist-text').innerText = Math.max(0.1, remainingDistance).toFixed(1) + ' km';
+        
+        updateStepper(progressFraction);
+        
+        if (frameCount % 60 === 0) {
+            const bounds = L.latLngBounds([currentPosition, destination]);
+            map.fitBounds(bounds, {padding: [50, 50], animate: true, duration: 1});
+        }
+        frameCount++;
+        
+        requestAnimationFrame(animateRoute);
+    }
+
+    control.on('routesfound', function(e) {
+        const routes = e.routes;
+        summary = routes[0].summary;
+        totalTime = summary.totalTime;
+        coordinates = routes[0].coordinates;
+        
+        if (!routeLoaded) {
+            routeLoaded = true;
+            animateRoute();
+        }
     });
 </script>
 </body>

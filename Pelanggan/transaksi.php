@@ -121,7 +121,17 @@ if ($query_user) {
                             </select>
                         </div>
                         <div class="mb-3" id="inputAlamatCustom" style="display: none;">
-                            <input type="text" name="alamat_detail" id="alamatDetail" class="form-control" placeholder="Masukkan alamat lengkap">
+                            <input type="text" name="alamat_detail" id="alamatDetail" class="form-control" placeholder="Masukkan alamat penjemputan lengkap">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Lokasi Pengembalian (Antar)</label>
+                            <select name="lokasi_kembali" id="lokasiKembaliSelect" class="form-select" onchange="toggleAlamatKembaliInput()">
+                                <option value="Kembalikan ke Kantor">Kembalikan Langsung ke Kantor</option>
+                                <option value="Jemput di Alamat lainnya">Jemput di Alamat Lainnya</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="inputAlamatKembaliCustom" style="display: none;">
+                            <input type="text" name="alamat_kembali" id="alamatKembaliDetail" class="form-control" placeholder="Masukkan alamat pengembalian lengkap">
                         </div>
                         <div class="row g-3 mb-3">
                             <div class="col-6">
@@ -230,6 +240,7 @@ if ($query_user) {
     }
     function toggleCatatanSupir() { document.getElementById('catatan_supir').style.display = (document.getElementById('id_supir_select').value === "999") ? "block" : "none"; }
     function toggleAlamatInput() { document.getElementById("inputAlamatCustom").style.display = (document.getElementById("lokasiSelect").value === "Antar ke Alamat lainnya") ? "block" : "none"; }
+    function toggleAlamatKembaliInput() { document.getElementById("inputAlamatKembaliCustom").style.display = (document.getElementById("lokasiKembaliSelect").value === "Jemput di Alamat lainnya") ? "block" : "none"; }
 
     // Logika AJAX
     $('#btnAjukan').click(function() {

@@ -54,92 +54,106 @@ if (isset($_POST['register'])) {
 
     <style>
         :root {
-            --primary-blue: #0f172a; /* Slate 900 */
-            --accent-blue: #1e3a8a;  /* Deep blue */
-            --gradient-blue: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
-            --grey-light: #f8fafc;
-            --grey-hint: #e2e8f0;
-            --font-display: 'Outfit', sans-serif;
-            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            /* Dynamic Energy Palette */
+            --primary: #9e0000;         /* Bold Crimson */
+            --secondary-container: #fdc003; /* Energetic Amber */
+            --tertiary: #4d4c4c;        /* Deep Charcoal */
+            --background: #f9f9f9;
+            --surface: #ffffff;
+            --on-surface: #1a1c1c;
+            --outline: #926e69;
         }
 
         body {
-            font-family: var(--font-sans);
-            background: radial-gradient(circle at 10% 20%, rgba(30, 58, 138, 0.05) 0%, transparent 80%),
-                        linear-gradient(120deg, #f8fafc 0%, #e2e8f0 100%);
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #f3f3f3 0%, #eeeeee 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow-x: hidden;
-            padding: 40px 0;
+            padding: 40px 16px;
+            color: var(--on-surface);
         }
 
         .login-container {
             width: 100%;
             max-width: 500px;
-            padding: 15px;
-            z-index: 1;
         }
 
+        /* 8px moderate rounded corners and low-contrast outline */
         .login-card {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06);
-        }
-
-        .brand-header {
-            font-family: var(--font-display);
-            font-weight: 800;
-            color: var(--primary-blue);
-        }
-        .brand-header span {
-            color: #2563eb;
-        }
-
-        .form-control {
-            border-radius: 12px;
-            padding: 10px 14px;
-            border: 1.5px solid rgba(15, 23, 42, 0.1);
-            background-color: rgba(255, 255, 255, 0.8);
-            font-size: 0.95rem;
-        }
-
-        .form-control:focus {
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
-        }
-
-        .btn-submit {
-            background: var(--gradient-blue);
-            border: none;
-            border-radius: 12px;
-            padding: 12px;
-            font-weight: 700;
-            color: white;
-            box-shadow: 0 10px 20px rgba(30, 58, 138, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 30px rgba(30, 58, 138, 0.3);
-            color: white;
+            background: var(--surface);
+            border: 1px solid #e2e2e2;
+            border-radius: 8px; /* 8px moderate radius */
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+            padding: 40px 32px;
         }
 
         .brand-logo-circle {
-            width: 70px;
-            height: 70px;
-            background: var(--gradient-blue);
-            border-radius: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary) 0%, #cc0000 100%);
+            border-radius: 8px; /* 8px rounding */
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 20px;
-            box-shadow: 0 8px 16px rgba(30, 58, 138, 0.2);
+            box-shadow: 0 4px 12px rgba(158, 0, 0, 0.2);
+        }
+
+        .brand-header {
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            color: var(--tertiary);
+        }
+        
+        .brand-header span {
+            color: var(--primary);
+        }
+
+        .form-label {
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--tertiary);
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            border-radius: 8px; /* 8px rounding */
+            padding: 12px 16px;
+            border: 1px solid #e2e2e2;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        /* Focus: border thickens to 2px and changes to primary crimson */
+        .form-control:focus {
+            border: 2px solid var(--primary);
+            box-shadow: none;
+            outline: none;
+        }
+
+        /* Primary CTA uses Energetic Amber with bold dark text */
+        .btn-submit {
+            background-color: var(--secondary-container);
+            color: #1a1c1c;
+            border: none;
+            border-radius: 8px; /* 8px rounding */
+            padding: 14px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(253, 192, 3, 0.15);
+        }
+
+        .btn-submit:hover {
+            background-color: #e5ad02;
+            color: #1a1c1c;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(253, 192, 3, 0.25);
         }
     </style>
 </head>
@@ -203,7 +217,7 @@ if (isset($_POST['register'])) {
                 </button>
 
                 <div class="text-center">
-                    <p class="small text-muted mb-0">Sudah punya akun? <a href="login_pelanggan.php" class="text-primary fw-bold text-decoration-none">Login di Sini</a></p>
+                    <p class="small text-muted mb-0 fw-medium">Sudah punya akun? <a href="login_pelanggan.php" class="text-danger fw-bold text-decoration-none" style="color: var(--primary) !important;">Login di Sini</a></p>
                 </div>
             </form>
         </div>

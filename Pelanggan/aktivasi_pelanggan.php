@@ -66,13 +66,13 @@ if (isset($_POST['aktivasi'])) {
 
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
-            --glass-bg: rgba(255, 255, 255, 0.85);
-            --glass-border: rgba(255, 255, 255, 0.4);
+            --primary-gradient: linear-gradient(135deg, #9e0000 0%, #fdc003 100%);
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --glass-border: rgba(158, 0, 0, 0.15);
         }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: linear-gradient(120deg, #f0f4f8 0%, #e6fffa 100%);
+            background: linear-gradient(120deg, #f9f9f9 0%, #eeeeee 100%);
             min-height: 100vh;
             display: flex; align-items: center; justify-content: center;
             padding: 40px 0;

@@ -67,7 +67,8 @@ $json_growth = json_encode($growth_pct);
     </div>
 </div>
 
-</div> </div> </div> <script>
+</div> </div> </div> 
+<script>
     // 2. CONFIGURASI MULTI-DATASET KOMPARASI BERDAMPINGAN (CHART.JS)
     const ctx = document.getElementById('canvasTransaksi').getContext('2d');
     
@@ -82,21 +83,21 @@ $json_growth = json_encode($growth_pct);
             labels: dataLabels,
             datasets: [
                 {
-                    label: 'Normal Day (Kuantitas)',
+                    label: 'Volume Transaksi (Kuantitas)',
                     data: dataCounts,
-                    backgroundColor: '#00b4d8', // Electric Blue
-                    borderColor: '#00b4d8',
-                    borderWidth: 1,
-                    barPercentage: 0.8,
+                    backgroundColor: 'rgba(212, 175, 55, 0.2)', // Gold transparent
+                    borderColor: '#d4af37',
+                    borderWidth: 1.5,
+                    barPercentage: 0.45,
                     categoryPercentage: 0.6
                 },
                 {
-                    label: 'Double Date (Omset Kas)',
+                    label: 'Omset Penjualan (x100.000 Rp)',
                     data: dataRevenues,
-                    backgroundColor: '#ff007f', // Neon Rose/Pink
-                    borderColor: '#ff007f',
+                    backgroundColor: '#800000', // Maroon
+                    borderColor: '#800000',
                     borderWidth: 1,
-                    barPercentage: 0.8,
+                    barPercentage: 0.45,
                     categoryPercentage: 0.6
                 }
             ]
@@ -110,7 +111,7 @@ $json_growth = json_encode($growth_pct);
                     position: 'top',
                     labels: {
                         boxWidth: 12,
-                        font: { weight: '600', size: 12 }
+                        font: { family: "'Montserrat', sans-serif", weight: '700', size: 11 }
                     }
                 },
                 tooltip: {
@@ -125,14 +126,16 @@ $json_growth = json_encode($growth_pct);
             scales: {
                 y: {
                     beginAtZero: true,
-                    grid: { display: true, color: '#f1f2f6', drawBorder: false },
+                    grid: { display: true, color: '#f3f4f6', drawBorder: false },
                     ticks: {
-                        stepSize: 2,
-                        font: { size: 11, weight: '500' }
+                        font: { family: "'Montserrat', sans-serif", size: 10, weight: '500' }
                     }
                 },
                 x: {
-                    grid: { display: false }
+                    grid: { display: false },
+                    ticks: {
+                        font: { family: "'Montserrat', sans-serif", size: 10, weight: '600' }
+                    }
                 }
             }
         },
@@ -142,15 +145,15 @@ $json_growth = json_encode($growth_pct);
             afterDatasetsDraw(chart) {
                 const { ctx } = chart;
                 ctx.save();
-                ctx.font = 'bold 11px sans-serif';
+                ctx.font = '800 10px Montserrat, sans-serif';
                 
-                // Target Dataset indeks 1 (Double Date / Batang Kanan)
+                // Target Dataset indeks 1 (Omset / Batang Kanan)
                 const meta = chart.getDatasetMeta(1); 
                 meta.data.forEach((bar, index) => {
                     const text = dataGrowth[index];
                     
                     // Kondisi warna: Merah jika minus (-), Hijau jika surplus (+)
-                    ctx.fillStyle = text.includes('-') ? '#ff3838' : '#2ed573';
+                    ctx.fillStyle = text.includes('-') ? '#e11d48' : '#10b981';
                     
                     const x = bar.x;
                     const y = bar.y - 8; // Posisi teks melayang di atas bar
@@ -160,6 +163,13 @@ $json_growth = json_encode($growth_pct);
                 ctx.restore();
             }
         }]
+    });
+
+    // Inisialisasi ikon Lucide di sidebar
+    document.addEventListener('DOMContentLoaded', function() {
+        if(typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
     });
 </script>
 </body>

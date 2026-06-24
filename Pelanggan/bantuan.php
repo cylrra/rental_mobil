@@ -44,9 +44,9 @@ include 'koneksi.php';
             </div>
             <!-- Email -->
             <div class="col-md-4">
-                <div class="card h-100 text-center p-4" style="border: 1px solid rgba(48,113,164,0.25); background: linear-gradient(135deg, rgba(48,113,164,0.04), rgba(135,184,229,0.08));">
+                <div class="card h-100 text-center p-4" style="border: 1px solid rgba(158,0,0,0.25); background: linear-gradient(135deg, rgba(158,0,0,0.04), rgba(158,0,0,0.08));">
                     <div class="mx-auto mb-3 d-flex align-items-center justify-content-center" 
-                         style="width: 60px; height: 60px; background: rgba(48,113,164,0.12); border-radius: 16px;">
+                         style="width: 60px; height: 60px; background: rgba(158,0,0,0.12); border-radius: 16px;">
                         <i class="bi bi-envelope-fill" style="font-size: 1.6rem; color: var(--clear-blue);"></i>
                     </div>
                     <h6 class="fw-bold mb-1" style="color: var(--deep-navy);">Email Kami</h6>
@@ -78,9 +78,9 @@ include 'koneksi.php';
 
     <!-- ═══ FAQ ACCORDION ═══ -->
     <div class="col-lg-8">
-        <div class="card" style="border: 1px solid rgba(135,184,229,0.25);">
+        <div class="card" style="border: 1px solid rgba(158,0,0,0.25);">
             <div class="card-header bg-white border-0 py-3 px-4"
-                 style="border-bottom: 1px solid rgba(135,184,229,0.2) !important; border-radius: 16px 16px 0 0;">
+                 style="border-bottom: 1px solid rgba(158,0,0,0.2) !important; border-radius: 16px 16px 0 0;">
                 <h5 class="fw-bold m-0" style="color: var(--deep-navy); font-family: 'Outfit', sans-serif;">
                     <i class="bi bi-patch-question me-2" style="color: var(--clear-blue);"></i>Pertanyaan yang Sering Diajukan
                 </h5>
@@ -126,7 +126,7 @@ include 'koneksi.php';
 
                     foreach ($faqs as $i => $faq):
                     ?>
-                    <div class="accordion-item border-0 mb-2" style="border-radius: 12px; overflow: hidden; background: var(--frost-veil); border: 1px solid rgba(135,184,229,0.2) !important;">
+                    <div class="accordion-item border-0 mb-2" style="border-radius: 12px; overflow: hidden; background: var(--frost-veil); border: 1px solid rgba(158,0,0,0.2) !important;">
                         <h2 class="accordion-header">
                             <button class="accordion-button collapsed fw-semibold" type="button" 
                                     data-bs-toggle="collapse" data-bs-target="#faq<?= $i ?>"
@@ -152,7 +152,7 @@ include 'koneksi.php';
     <div class="col-lg-4">
 
         <!-- Info Kantor -->
-        <div class="card mb-4" style="border: 1px solid rgba(135,184,229,0.25);">
+        <div class="card mb-4" style="border: 1px solid rgba(158,0,0,0.25);">
             <div class="card-body p-4">
                 <h6 class="fw-bold mb-3" style="color: var(--deep-navy); font-family: 'Outfit', sans-serif;">
                     <i class="bi bi-geo-alt-fill me-2" style="color: var(--clear-blue);"></i>Lokasi Kantor
@@ -175,7 +175,7 @@ include 'koneksi.php';
         </div>
 
         <!-- Quick Tip Card -->
-        <div class="card" style="background: linear-gradient(135deg, var(--deep-navy), #1a4a85); border: none; color: white;">
+        <div class="card" style="background: linear-gradient(135deg, var(--primary), #600000); border: none; color: white;">
             <div class="card-body p-4">
                 <h6 class="fw-bold mb-3" style="font-family: 'Outfit', sans-serif; color: var(--light-blue);">
                     <i class="bi bi-lightbulb me-2"></i>Tips Sewa Lebih Hemat
@@ -199,10 +199,10 @@ include 'koneksi.php';
 <style>
 .accordion-button::after {
     filter: none;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%233071a4'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%239e0000'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
 }
 .accordion-button:not(.collapsed) {
-    background: rgba(48,113,164,0.08) !important;
+    background: rgba(158,0,0,0.08) !important;
     color: var(--clear-blue) !important;
 }
 </style>

@@ -65,7 +65,7 @@ $total_transaksi = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM transaksi_
     <!-- Promo Banner -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 rounded-4 overflow-hidden shadow-sm" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: white;">
+            <div class="card border-0 rounded-4 overflow-hidden shadow-sm" style="background: linear-gradient(135deg, #0f172a 0%, #9e0000 100%); color: white;">
                 <div class="card-body p-5 position-relative">
                     <div class="row align-items-center">
                         <div class="col-md-8">

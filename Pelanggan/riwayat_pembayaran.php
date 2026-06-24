@@ -33,40 +33,85 @@ while($row = mysqli_fetch_assoc($q_data)) {
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Riwayat Pembayaran</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .btn-invoice { background-color: #ffffff; border: 1px solid #3071a4; color: #3071a4; padding: 5px 15px; display: block; margin-bottom: 5px; text-align: center; width: 100px; text-decoration: none; border-radius: 50px; font-size: 14px; }
-        .btn-invoice:hover { background-color: #f1f5f9; }
-        .btn-bayar { background-color: #3071a4; color: white; border: none; padding: 5px 15px; display: block; width: 100px; text-align: center; text-decoration: none; border-radius: 50px; font-size: 14px; }
-        .btn-bayar:hover { background-color: #255a85; color: white; }
-    </style>
-</head>
-<body>
+<style>
+    .btn-invoice { 
+        background-color: #ffffff; 
+        border: 1px solid var(--primary); 
+        color: var(--primary); 
+        padding: 5px 15px; 
+        display: block; 
+        margin-bottom: 5px; 
+        text-align: center; 
+        width: 100px; 
+        text-decoration: none; 
+        border-radius: 50px; 
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.2s ease-in-out;
+    }
+    .btn-invoice:hover { 
+        background-color: var(--primary); 
+        color: #ffffff;
+    }
+    .btn-bayar { 
+        background-color: var(--primary); 
+        color: white; 
+        border: none; 
+        padding: 5px 15px; 
+        display: block; 
+        width: 100px; 
+        text-align: center; 
+        text-decoration: none; 
+        border-radius: 50px; 
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.2s ease-in-out;
+    }
+    .btn-bayar:hover { 
+        background-color: #7a0000; 
+        color: white; 
+    }
+</style>
 
-<div class="container py-5">
-    <div class="row mb-4">
+<div class="container-fluid px-4 py-2">
+    <div class="row mb-4 g-3">
         <div class="col-md-4">
-            <div class="card shadow-sm border-0 p-3 bg-primary text-white rounded-4">
-                <h6>Total Transaksi</h6>
-                <h3 class="fw-bold"><?= $total_trx ?></h3>
+            <div class="card shadow-sm border-0 p-4 bg-white rounded-4 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted d-block text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Total Transaksi</span>
+                        <h3 class="fw-bold m-0 text-dark"><?= $total_trx ?></h3>
+                    </div>
+                    <div class="p-3 rounded-4" style="background-color: rgba(158, 0, 0, 0.08); color: var(--primary);">
+                        <i class="bi bi-receipt-cutoff fs-4"></i>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card shadow-sm border-0 p-3 bg-success text-white rounded-4">
-                <h6>Total Dibayar</h6>
-                <h3 class="fw-bold">Rp <?= number_format($total_dibayar, 0, ',', '.') ?></h3>
+            <div class="card shadow-sm border-0 p-4 bg-white rounded-4 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted d-block text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Total Dibayar</span>
+                        <h3 class="fw-bold m-0" style="color: var(--primary) !important;">Rp <?= number_format($total_dibayar, 0, ',', '.') ?></h3>
+                    </div>
+                    <div class="p-3 rounded-4" style="background-color: rgba(253, 192, 3, 0.15); color: #785900;">
+                        <i class="bi bi-wallet2 fs-4"></i>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card shadow-sm border-0 p-3 bg-danger text-white rounded-4">
-                <h6>Total Sisa Tagihan</h6>
-                <h3 class="fw-bold">Rp <?= number_format($total_sisa, 0, ',', '.') ?></h3>
+            <div class="card shadow-sm border-0 p-4 bg-white rounded-4 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted d-block text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Total Sisa Tagihan</span>
+                        <h3 class="fw-bold m-0" style="color: var(--primary) !important;">Rp <?= number_format($total_sisa, 0, ',', '.') ?></h3>
+                    </div>
+                    <div class="p-3 rounded-4" style="background-color: rgba(158, 0, 0, 0.08); color: var(--primary);">
+                        <i class="bi bi-exclamation-circle fs-4"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -112,7 +157,8 @@ while($row = mysqli_fetch_assoc($q_data)) {
             $sisa = $total - $dibayar;
             $sisa = ($sisa < 0) ? 0 : $sisa;
             
-            $tujuan = ($row['lokasi_jemput'] === 'Antar ke Alamat lainnya') ? $row['alamat_detail'] : $row['lokasi_jemput'];
+            $tujuan_jemput = ($row['lokasi_jemput'] === 'Antar ke Alamat lainnya') ? $row['alamat_detail'] : $row['lokasi_jemput'];
+            $tujuan_kembali = (!empty($row['lokasi_kembali'])) ? (($row['lokasi_kembali'] === 'Jemput di Alamat lainnya') ? $row['alamat_kembali'] : $row['lokasi_kembali']) : 'Kembalikan ke Kantor';
             
             if (isset($row['status_sewa']) && $row['status_sewa'] == 'selesai') {
                 $status_label = "SELESAI"; $status_class = "bg-success";
@@ -127,7 +173,16 @@ while($row = mysqli_fetch_assoc($q_data)) {
     <tr>
         <td>#SRV-<?= $row['id_sewa'] ?></td>
         <td><strong><?= htmlspecialchars($row['merk'] . ' ' . $row['jenis']) ?></strong></td>
-        <td><?= htmlspecialchars($tujuan) ?></td>
+        <td>
+            <div class="mb-1">
+                <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.62rem; letter-spacing: 0.5px;">Jemput:</small>
+                <span class="d-block font-semibold text-dark" style="font-size: 0.82rem;"><?= htmlspecialchars($tujuan_jemput ?? 'Ambil di Kantor') ?></span>
+            </div>
+            <div>
+                <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.62rem; letter-spacing: 0.5px;">Kembali:</small>
+                <span class="d-block font-semibold text-dark" style="font-size: 0.82rem;"><?= htmlspecialchars($tujuan_kembali) ?></span>
+            </div>
+        </td>
         <td><?= date('d M Y', strtotime($row['tanggal_sewa'])) ?></td>
         <td>Rp <?= number_format($total, 0, ',', '.') ?></td>
         <td>Rp <?= number_format($dibayar, 0, ',', '.') ?></td>

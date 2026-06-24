@@ -18,6 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $lama_sewa     = (int)$_POST['lama_sewa'];
     $lokasi_jemput = $_POST['lokasi_jemput'];
     $alamat_detail = $_POST['alamat_detail'];
+    $lokasi_kembali = $_POST['lokasi_kembali'] ?? 'Kembalikan ke Kantor';
+    $alamat_kembali = $_POST['alamat_kembali'] ?? '';
     
     // Logika supir: Jika kirim "999" maka pakai supir, jika tidak maka NULL/Lepas Kunci
     $id_supir = (isset($_POST['id_supir']) && $_POST['id_supir'] == '999') ? 999 : NULL;
@@ -43,11 +45,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // INSERT KE DB
     $stmt = $conn->prepare("INSERT INTO transaksi_sewa 
-            (id_pelanggan, kode_mobil, nama_penyewa, pake_supir, id_supir, biaya_supir, tanggal_sewa, lama_sewa, lokasi_jemput, alamat_detail, status_sewa, total_biaya, total_bayar) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            (id_pelanggan, kode_mobil, nama_penyewa, pake_supir, id_supir, biaya_supir, tanggal_sewa, lama_sewa, lokasi_jemput, alamat_detail, lokasi_kembali, alamat_kembali, status_sewa, total_biaya, total_bayar) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
     if ($stmt) {
-        $stmt->bind_param("isssidsisssdi", $id_pelanggan, $kode_mobil, $nama_penyewa, $pake_supir, $id_supir, $biaya_supir, $tanggal_sewa, $lama_sewa, $lokasi_jemput, $alamat_detail, $status_sewa, $total_biaya, $total_bayar);
+        $stmt->bind_param("isssidsisssssdi", $id_pelanggan, $kode_mobil, $nama_penyewa, $pake_supir, $id_supir, $biaya_supir, $tanggal_sewa, $lama_sewa, $lokasi_jemput, $alamat_detail, $lokasi_kembali, $alamat_kembali, $status_sewa, $total_biaya, $total_bayar);
 
         if ($stmt->execute()) {
             // KIRIM RESPONSE "sukses" agar AJAX di transaksi.php tahu proses selesai

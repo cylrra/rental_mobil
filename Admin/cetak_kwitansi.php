@@ -59,7 +59,7 @@ function terbilang($angka) {
 
         /* Gaya Umum Layar Browser */
         body { 
-            font-family: 'Segoe UI', Arial, sans-serif; 
+            font-family: 'Montserrat', Arial, sans-serif; 
             color: #333; 
             background-color: #f8f9fa; 
             padding: 30px; 
@@ -91,7 +91,7 @@ function terbilang($angka) {
         }
         .logo-box {
             display: inline-block;
-            background-color: #0f172a; 
+            background-color: #9e0000; 
             color: #fff;
             padding: 10px 18px;
             border-radius: 6px;
@@ -100,7 +100,7 @@ function terbilang($angka) {
             letter-spacing: 1px;
         }
         .logo-box span {
-            color: #38bdf8; 
+            color: #fdc003; 
             font-size: 0.75em;
             display: block;
             font-weight: normal;
@@ -166,7 +166,7 @@ function terbilang($angka) {
             color: #475569;
             font-size: 0.88em;
             padding-left: 10px;
-            border-left: 3px solid #38bdf8;
+            border-left: 3px solid #9e0000;
         }
 
         /* Tanda Tangan */

@@ -27,7 +27,7 @@ $brand_filter = isset($_GET['brand']) ? mysqli_real_escape_string($conn, $_GET['
     <!-- Hero Banner Section -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 rounded-4 overflow-hidden shadow-sm text-white" style="background: linear-gradient(135deg, #0f172a 60%, #1e3a8a 100%); min-height: 180px;">
+            <div class="card border-0 rounded-4 overflow-hidden shadow-sm text-white" style="background: linear-gradient(135deg, #0f172a 60%, #9e0000 100%); min-height: 180px;">
                 <div class="card-body p-5 d-flex align-items-center position-relative">
                     <div style="position: absolute; right: -30px; top: -30px; width: 200px; height: 200px; background: rgba(255,255,255,0.03); border-radius: 50%;"></div>
                     <div>

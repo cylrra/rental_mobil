@@ -2,23 +2,23 @@
 
 /* 1. KUMPULAN WARNA SOFT & PASTEL (PALET MODERN) */
 :root {
-    --bg-main: #f0f4f8;        /* Biru pastel sangat muda untuk background layar */
-    --bg-card: #ffffff;        /* Putih bersih untuk kotak konten/kartu */
-    --sidebar-bg: #ffffff;     /* Putih untuk sidebar agar kontras dengan background */
+    --bg-main: #f9f9f9;        /* Light grey background */
+    --bg-card: #ffffff;        /* Clean white card */
+    --sidebar-bg: #ffffff;     /* White sidebar */
     
-    /* Warna Aksen Biru Soft */
-    --primary-blue: #3b82f6;    /* Biru utama untuk menu aktif / tombol */
-    --primary-light: #e0f2fe;   /* Biru pastel sangat lembut untuk background menu aktif */
+    /* Warna Aksen Crimson Red */
+    --primary-blue: #9e0000;    /* Primary brand red */
+    --primary-light: #ffdad4;   /* Soft pink/red for hover/active states */
     
     /* Warna Teks (Hindari Hitam Pekat) */
-    --text-main: #1e293b;      /* Abu-abu gelap/Navy gelap untuk teks utama */
-    --text-muted: #64748b;     /* Abu-abu soft untuk keterangan kecil */
+    --text-main: #1a1c1c;      /* Deep charcoal */
+    --text-muted: #64748b;     /* Slate text */
     
     /* Warna Pastel Tambahan untuk Indikator */
     --pastel-green-bg: #d1fae5;  /* Latar belakang hijau pastel */
     --pastel-green-text: #065f46;/* Teks hijau tua */
-    --pastel-blue-bg: #e0e7ff;   /* Latar belakang biru/indigo pastel */
-    --pastel-blue-text: #3730a3; /* Teks biru tua */
+    --pastel-blue-bg: #ffdad4;   /* Soft crimson pastel */
+    --pastel-blue-text: #9e0000; /* Dark crimson text */
 }
 
 /* 2. RESET & BASE STYLING */
@@ -31,7 +31,7 @@
 body {
     background-color: var(--bg-main);
     color: var(--text-main);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
     display: flex; /* Membuat Sidebar dan Konten berjejer ke samping */
     min-height: 100vh;
 }

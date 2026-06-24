@@ -21,15 +21,17 @@ if (isset($_SESSION['role']) && $_SESSION['role'] === 'pelanggan') {
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-blue: #0f172a; /* Slate 900 */
-            --accent-blue: #1e3a8a;  /* Deep blue */
-            --gradient-blue: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            /* Dynamic Energy Palette */
+            --primary: #9e0000;         /* Bold Crimson */
+            --primary-blue: #1a1c1c;    /* Deep Charcoal */
+            --accent-blue: #9e0000;     /* Crimson */
+            --gradient-blue: linear-gradient(135deg, #9e0000 0%, #cc0000 100%);
             --grey-light: #f8fafc;
             --grey-hint: #e2e8f0;
-            --text-dark: #0f172a;
+            --text-dark: #1a1c1c;
             --text-muted: #64748b;
-            --font-display: 'Outfit', sans-serif;
-            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --font-display: 'Montserrat', sans-serif;
+            --font-sans: 'Montserrat', sans-serif;
         }
 
         body {
@@ -39,19 +41,24 @@ if (isset($_SESSION['role']) && $_SESSION['role'] === 'pelanggan') {
             overflow-x: hidden;
         }
 
+        /* Override Bootstrap Primary Text */
+        .text-primary {
+            color: var(--primary) !important;
+        }
+
         /* Navbar Styling */
         .navbar-brand {
             font-family: var(--font-display);
             font-weight: 800;
             letter-spacing: -0.5px;
-            color: var(--primary-blue) !important;
+            color: var(--text-dark) !important;
         }
         .navbar-brand span {
-            color: #3b82f6; /* Accent light blue */
+            color: var(--primary) !important;
         }
         .btn-nav-login {
             background-color: transparent;
-            color: var(--accent-blue) ;
+            color: var(--accent-blue);
             border: 2px solid var(--accent-blue);
             border-radius: 50px;
             font-weight: 600;
@@ -69,18 +76,18 @@ if (isset($_SESSION['role']) && $_SESSION['role'] === 'pelanggan') {
             border-radius: 50px;
             font-weight: 600;
             padding: 10px 24px;
-            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25);
+            box-shadow: 0 4px 12px rgba(158, 0, 0, 0.25);
             transition: all 0.3s ease;
         }
         .btn-nav-register:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(30, 58, 138, 0.35);
+            box-shadow: 0 6px 16px rgba(158, 0, 0, 0.35);
             color: white;
         }
 
         /* Hero Section */
         .hero-section {
-            background: radial-gradient(circle at 80% 20%, rgba(30, 58, 138, 0.08) 0%, transparent 50%), white;
+            background: radial-gradient(circle at 80% 20%, rgba(158, 0, 0, 0.05) 0%, transparent 50%), white;
             padding: 120px 0 80px;
             border-bottom: 1px solid var(--grey-hint);
         }
@@ -89,7 +96,7 @@ if (isset($_SESSION['role']) && $_SESSION['role'] === 'pelanggan') {
             font-weight: 800;
             font-size: 3.5rem;
             line-height: 1.1;
-            color: var(--primary-blue);
+            color: var(--text-dark);
             margin-bottom: 20px;
         }
         .hero-title span {
@@ -119,8 +126,8 @@ if (isset($_SESSION['role']) && $_SESSION['role'] === 'pelanggan') {
         .feature-icon {
             width: 60px;
             height: 60px;
-            background-color: #eff6ff;
-            color: #2563eb;
+            background-color: rgba(158, 0, 0, 0.08);
+            color: var(--primary);
             border-radius: 15px;
             display: flex;
             align-items: center;
@@ -167,7 +174,7 @@ if (isset($_SESSION['role']) && $_SESSION['role'] === 'pelanggan') {
             padding: 50px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+            box-shadow: 0 20px 40px rgba(158, 0, 0, 0.15);
         }
         .promo-bubble {
             position: absolute;
