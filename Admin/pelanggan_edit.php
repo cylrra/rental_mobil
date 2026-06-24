@@ -156,10 +156,42 @@ if (isset($_POST['update'])) {
                 <textarea name="alamat" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-[8px] focus:ring-[#800000] focus:border-[#800000] p-3" rows="3" required><?= htmlspecialchars($data['alamat']); ?></textarea>
             </div>
 
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Foto KTP</label>
+                    <?php if (!empty($data['foto_ktp']) && file_exists('../Pelanggan/img/uploads/' . $data['foto_ktp'])): ?>
+                        <div class="border border-slate-200 rounded-[8px] p-2 bg-slate-50 flex items-center justify-center">
+                            <a href="../Pelanggan/img/uploads/<?= htmlspecialchars($data['foto_ktp']); ?>" target="_blank" title="Klik untuk memperbesar">
+                                <img src="../Pelanggan/img/uploads/<?= htmlspecialchars($data['foto_ktp']); ?>" class="max-h-40 rounded object-contain" alt="Foto KTP">
+                            </a>
+                        </div>
+                    <?php else: ?>
+                        <div class="border border-dashed border-slate-300 rounded-[8px] p-4 bg-slate-50 text-center text-xs text-slate-400 font-medium py-8">
+                            <i class="bi bi-image fs-4 mb-1 block"></i> Belum mengunggah KTP
+                        </div>
+                    <?php endif; ?>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Foto SIM</label>
+                    <?php if (!empty($data['foto_sim']) && file_exists('../Pelanggan/img/uploads/' . $data['foto_sim'])): ?>
+                        <div class="border border-slate-200 rounded-[8px] p-2 bg-slate-50 flex items-center justify-center">
+                            <a href="../Pelanggan/img/uploads/<?= htmlspecialchars($data['foto_sim']); ?>" target="_blank" title="Klik untuk memperbesar">
+                                <img src="../Pelanggan/img/uploads/<?= htmlspecialchars($data['foto_sim']); ?>" class="max-h-40 rounded object-contain" alt="Foto SIM">
+                            </a>
+                        </div>
+                    <?php else: ?>
+                        <div class="border border-dashed border-slate-300 rounded-[8px] p-4 bg-slate-50 text-center text-xs text-slate-400 font-medium py-8">
+                            <i class="bi bi-image fs-4 mb-1 block"></i> Belum mengunggah SIM
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
             <div>
                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Status Verifikasi</label>
                 <select name="status_verifikasi" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-[8px] focus:ring-[#800000] focus:border-[#800000] p-3" required>
                     <option value="belum_verifikasi" <?= ($data['status_verifikasi'] === 'belum_verifikasi') ? 'selected' : ''; ?>>Belum Terverifikasi</option>
+                    <option value="dalam_proses" <?= ($data['status_verifikasi'] === 'dalam_proses') ? 'selected' : ''; ?>>Dalam Proses Review</option>
                     <option value="terverifikasi" <?= ($data['status_verifikasi'] === 'terverifikasi') ? 'selected' : ''; ?>>Terverifikasi</option>
                 </select>
             </div>
