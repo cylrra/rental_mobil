@@ -163,7 +163,7 @@ if ($query_user) {
                             </thead>
                             <tbody>
                                 <?php
-                                $sql = "SELECT t.id_sewa, t.tanggal_sewa, t.status_sewa, m.merk, m.nopol, r.id_rating 
+                                $sql = "SELECT t.id_sewa, t.tanggal_sewa, t.status_sewa, t.jumlah_bayar, m.merk, m.nopol, r.id_rating 
                                         FROM transaksi_sewa t 
                                         LEFT JOIN mobil m ON t.kode_mobil = m.kode_mobil 
                                         LEFT JOIN rating_sewa r ON t.id_sewa = r.id_transaksi
@@ -184,7 +184,14 @@ if ($query_user) {
                                     <td class="ps-4 fw-bold text-primary">#<?= $row['id_sewa'] ?></td>
                                     <td><strong><?= htmlspecialchars($merk) ?></strong><br><small class="text-muted"><?= htmlspecialchars($row['nopol'] ?? '-') ?></small></td>
                                     <td><?= date('d/m/y', strtotime($row['tanggal_sewa'])) ?></td>
-                                    <td class="text-center"><span class="badge rounded-pill bg-<?= $clr ?> opacity-75"><?= ucfirst($st) ?></span></td>
+                                    <td class="text-center">
+                                        <span class="badge rounded-pill bg-<?= $clr ?> opacity-75 mb-1"><?= ucfirst($st) ?></span><br>
+                                        <?php if($row['jumlah_bayar'] > 0): ?>
+                                            <small class="text-success fw-bold">Dibayar Rp <?= number_format($row['jumlah_bayar'], 0, ',', '.') ?></small>
+                                        <?php elseif($st == 'pending' || $st == 'diterima'): ?>
+                                            <small class="text-danger fw-bold">Belum Dibayar</small>
+                                        <?php endif; ?>
+                                    </td>
                                     <td class="text-center pe-4 d-flex justify-content-center gap-1">
                                         <a href="riwayat_pembayaran.php" class="btn btn-sm btn-light border rounded-pill px-3">Detail</a>
                                         <?php if($st == 'berjalan'): ?>

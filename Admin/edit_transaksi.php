@@ -110,13 +110,16 @@ $current_page = 'transaksi.php';
                 <form method="POST" action="" class="space-y-6">
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Status Sewa</label>
-                        <select name="status_sewa" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-[#800000] focus:ring focus:ring-[#800000]/20 transition-colors bg-slate-50">
-                            <option value="pending" <?= ($trx['status_sewa'] == 'pending') ? 'selected' : '' ?>>Pending (Butuh ACC)</option>
-                            <option value="diterima" <?= ($trx['status_sewa'] == 'diterima') ? 'selected' : '' ?>>Diterima (Disetujui)</option>
-                            <option value="berjalan" <?= ($trx['status_sewa'] == 'berjalan') ? 'selected' : '' ?>>Berjalan</option>
-                            <option value="DP" <?= ($trx['status_sewa'] == 'DP') ? 'selected' : '' ?>>DP</option>
-                            <option value="selesai" <?= ($trx['status_sewa'] == 'selesai') ? 'selected' : '' ?>>Selesai</option>
-                        </select>
+                        <?php if (in_array($trx['status_sewa'], ['pending', 'diterima'])): ?>
+                            <select name="status_sewa" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-[#800000] focus:ring focus:ring-[#800000]/20 transition-colors bg-slate-50">
+                                <option value="pending" <?= ($trx['status_sewa'] == 'pending') ? 'selected' : '' ?>>Pending (Butuh ACC)</option>
+                                <option value="diterima" <?= ($trx['status_sewa'] == 'diterima') ? 'selected' : '' ?>>Diterima (Disetujui)</option>
+                            </select>
+                        <?php else: ?>
+                            <input type="text" value="<?= ucfirst($trx['status_sewa']) ?>" readonly class="w-full rounded-xl border-slate-200 px-4 py-3 bg-slate-100 text-slate-500 font-bold cursor-not-allowed">
+                            <input type="hidden" name="status_sewa" value="<?= $trx['status_sewa'] ?>">
+                            <small class="text-slate-500 mt-1 block">*Status dikelola otomatis oleh sistem setelah pembayaran (DP/Berjalan/Selesai).</small>
+                        <?php endif; ?>
                     </div>
 
                     <div>

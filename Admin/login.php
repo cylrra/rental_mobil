@@ -13,14 +13,22 @@ if (isset($_POST['login'])) {
     if ($username !== '' && $password !== '') {
         $username = mysqli_real_escape_string($conn, $username);
         
-        if ($username === 'admin' && $password === '12345') {
-            $_SESSION['role'] = 'admin';
-            $_SESSION['nama_user'] = 'Administrator Indomax';
-            
-            header("Location: index.php");
-            exit();
+        $query = mysqli_query($conn, "SELECT * FROM admin WHERE username = '$username'");
+        if ($query && mysqli_num_rows($query) === 1) {
+            $row = mysqli_fetch_assoc($query);
+            if (password_verify($password, $row['password'])) {
+                session_regenerate_id(true);
+                $_SESSION['role'] = 'admin';
+                $_SESSION['id_admin'] = $row['id_admin'];
+                $_SESSION['nama_user'] = $row['nama_lengkap'];
+                
+                header("Location: index.php");
+                exit();
+            } else {
+                $error = "Password admin salah!";
+            }
         } else {
-            $error = "Kombinasi Username & Password Admin salah!";
+            $error = "Username admin tidak ditemukan!";
         }
     } else {
         $error = "Username dan password admin wajib diisi!";

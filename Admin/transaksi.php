@@ -187,8 +187,10 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
                                             // Payment Status Logic
                                             if ($row['uang_dibayar'] >= $row['total_biaya']) {
                                                 echo '<span class="px-3 py-1 text-[10px] font-black rounded-md bg-green-600 text-white shadow-sm shadow-green-500/30 tracking-wider">LUNAS</span>';
+                                                echo '<small class="text-green-600 mt-1 font-bold">Dibayar Rp ' . number_format($row['uang_dibayar'], 0, ',', '.') . '</small>';
                                             } elseif ($row['uang_dibayar'] > 0) {
                                                 echo '<span class="px-3 py-1 text-[10px] font-black rounded-md bg-indigo-600 text-white shadow-sm shadow-indigo-500/30 tracking-wider">DP</span>';
+                                                echo '<small class="text-indigo-600 mt-1 font-bold">Dibayar Rp ' . number_format($row['uang_dibayar'], 0, ',', '.') . '</small>';
                                             } else {
                                                 echo '<span class="px-3 py-1 text-[10px] font-black rounded-md bg-rose-500 text-white shadow-sm shadow-rose-500/30 tracking-wider">BELUM BAYAR</span>';
                                             }

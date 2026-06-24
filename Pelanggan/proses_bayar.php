@@ -16,9 +16,18 @@ if (isset($_POST['simpan_pembayaran'])) {
     $jumlah_bayar   = mysqli_real_escape_string($conn, $_POST['jumlah_bayar']);
     $metode         = mysqli_real_escape_string($conn, $_POST['metode_bayar']);  
     $jenis_bayar    = mysqli_real_escape_string($conn, $_POST['tipe_pembayaran']); // 'DP' atau 'Lunas'
+    $bank_tujuan    = isset($_POST['bank_tujuan']) ? mysqli_real_escape_string($conn, $_POST['bank_tujuan']) : '';
     
     $tipe_pembayaran = ($jenis_bayar === 'DP') ? 'DP' : 'Lunas';
     $keterangan     = "Pembayaran " . strtoupper($tipe_pembayaran) . " Sewa Mobil ID: " . $id_sewa;
+
+    if ($metode === 'Transfer Bank' && !empty($bank_tujuan)) {
+        $bank_name = '';
+        if ($bank_tujuan == '1121') $bank_name = 'BCA';
+        else if ($bank_tujuan == '1122') $bank_name = 'BNI';
+        else if ($bank_tujuan == '1123') $bank_name = 'Mandiri';
+        $keterangan .= " (Transfer $bank_name)";
+    }
 
     mysqli_begin_transaction($conn);
 
@@ -56,14 +65,16 @@ if (isset($_POST['simpan_pembayaran'])) {
         $id_sumber = mysqli_insert_id($conn);
         
         // 3. Posting ke Jurnal Umum
+        $akun_debit = ($metode === 'Transfer Bank' && !empty($bank_tujuan)) ? $bank_tujuan : '111';
+        
         $q_debit_sql = "INSERT INTO jurnal (tanggal, kode_akun, Debit, Kredit, keterangan, id_sumber) 
-                        VALUES ('$tgl_bayar', '101', '$nominal_final', 0, '$keterangan', '$id_sumber')";
+                        VALUES ('$tgl_bayar', '$akun_debit', '$nominal_final', 0, '$keterangan', '$id_sumber')";
         if (!mysqli_query($conn, $q_debit_sql)) {
             throw new Exception("Gagal posting jurnal (Debit): " . mysqli_error($conn));
         }
 
         $q_kredit_sql = "INSERT INTO jurnal (tanggal, kode_akun, Debit, Kredit, keterangan, id_sumber) 
-                         VALUES ('$tgl_bayar', '401', 0, '$nominal_final', '$keterangan', '$id_sumber')";
+                         VALUES ('$tgl_bayar', '411', 0, '$nominal_final', '$keterangan', '$id_sumber')";
         if (!mysqli_query($conn, $q_kredit_sql)) {
             throw new Exception("Gagal posting jurnal (Kredit): " . mysqli_error($conn));
         }

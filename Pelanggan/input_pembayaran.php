@@ -50,10 +50,19 @@ if ($id_pilihan) {
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Metode Pembayaran</label>
-                                <select name="metode_bayar" class="form-select" required>
-                                    <option value="Transfer Bank">Transfer Bank (BCA / Mandiri)</option>
+                                <select name="metode_bayar" id="metode_bayar" class="form-select" required onchange="toggleBank()">
+                                    <option value="Transfer Bank">Transfer Bank (BCA / BNI / Mandiri)</option>
                                     <option value="E-Wallet">E-Wallet (OVO / GoPay / ShopeePay)</option>
                                     <option value="Tunai">Tunai / Cash di Tempat</option>
+                                </select>
+                            </div>
+                            <div class="col-md-12 mb-3" id="bank_container">
+                                <label class="form-label fw-bold text-primary">Bank Tujuan Transfer</label>
+                                <select name="bank_tujuan" id="bank_tujuan" class="form-select border-primary" required>
+                                    <option value="">-- Pilih Rekening Tujuan --</option>
+                                    <option value="1121">Bank BCA - 123456789 a.n RentalKu</option>
+                                    <option value="1122">Bank BNI - 987654321 a.n RentalKu</option>
+                                    <option value="1123">Bank Mandiri - 1122334455 a.n RentalKu</option>
                                 </select>
                             </div>
                         </div>
@@ -111,11 +120,25 @@ if ($id_pilihan) {
         if (tipe === 'Lunas') {
             inputBayar.value = totalTagihan;
         } else if (tipe === 'DP') {
-            inputBayar.value = Math.round(totalTagihan * 0.3);
+            inputBayar.value = Math.round(totalTagihan * 0.5); // DP 50%
         } else {
             inputBayar.value = '';
         }
     }
+
+    function toggleBank() {
+        var metode = document.getElementById('metode_bayar').value;
+        var bankContainer = document.getElementById('bank_container');
+        var bankSelect = document.getElementById('bank_tujuan');
+        if (metode === 'Transfer Bank') {
+            bankContainer.style.display = 'block';
+            bankSelect.required = true;
+        } else {
+            bankContainer.style.display = 'none';
+            bankSelect.required = false;
+        }
+    }
+    toggleBank();
 
     function jalankanSimpan() {
         var form = document.getElementById('formPembayaran');

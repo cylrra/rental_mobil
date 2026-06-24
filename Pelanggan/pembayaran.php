@@ -82,12 +82,22 @@ if ($id_pilihan) {
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label small fw-bold text-secondary">Metode Pembayaran</label>
-                                <select name="metode_bayar" class="form-select py-2-5" required>
-                                    <option value="transfer">Transfer Bank (BCA / Mandiri)</option>
+                                <select name="metode_bayar" id="metode_bayar" class="form-select py-2-5" required onchange="toggleRekening()">
+                                    <option value="transfer">Transfer Bank</option>
                                     <option value="e-wallet">E-Wallet (OVO / GoPay / ShopeePay)</option>
                                     <option value="cash">Tunai / Cash di Tempat</option>
                                 </select>
                             </div>
+                        </div>
+
+                        <!-- Opsi Bank Tujuan (Hanya untuk Transfer) -->
+                        <div class="mb-3" id="rekening_block">
+                            <label class="form-label small fw-bold text-secondary">Pilih Bank Tujuan</label>
+                            <select name="bank_tujuan" id="bank_tujuan" class="form-select py-2-5">
+                                <option value="1121">BCA - 0123456789 a.n PT INDOMAX RENTAL</option>
+                                <option value="1122">BNI - 9876543210 a.n PT INDOMAX RENTAL</option>
+                                <option value="1123">Mandiri - 112233445566 a.n PT INDOMAX RENTAL</option>
+                            </select>
                         </div>
 
                         <!-- DP / LUNAS Selection -->
@@ -95,7 +105,7 @@ if ($id_pilihan) {
                             <label class="form-label small fw-bold text-secondary">Tipe Pembayaran</label>
                             <select name="jenis_pembayaran" id="jenis_pembayaran" class="form-select py-2-5" required onchange="updateEstimasiBayar()">
                                 <option value="pelunasan">Bayar Lunas (100%)</option>
-                                <option value="dp">Uang Muka (DP 30%)</option>
+                                <option value="dp">Uang Muka (DP minimal 50%)</option>
                             </select>
                         </div>
 
@@ -106,7 +116,7 @@ if ($id_pilihan) {
                                 <span class="fw-semibold text-dark" id="disp_tagihan_asli">Rp 0</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center mb-2" id="row_potongan" style="display:none !important;">
-                                <span class="text-muted small" id="label_potongan">DP 30%</span>
+                                <span class="text-muted small" id="label_potongan">DP 50%</span>
                                 <span class="fw-semibold text-danger" id="disp_potongan">Rp 0</span>
                             </div>
                             <hr class="my-2">
@@ -158,13 +168,13 @@ function updateEstimasiBayar() {
 
     const tipe = tipeSelect.value;
     if (tipe === 'dp') {
-        let dp = totalAsli * 0.3;
+        let dp = totalAsli * 0.5;
         hiddenRaw.value = dp;
         dispJumlahBayar.innerText = formatRupiah(dp);
         
         // Show discount/offset breakdown
         rowPotongan.style.setProperty('display', 'flex', 'important');
-        labelPotongan.innerText = 'Uang Muka (DP 30%)';
+        labelPotongan.innerText = 'Uang Muka (DP 50%)';
         dispPotongan.innerText = formatRupiah(dp);
     } else {
         hiddenRaw.value = totalAsli;
@@ -173,9 +183,20 @@ function updateEstimasiBayar() {
     }
 }
 
+function toggleRekening() {
+    const metode = document.getElementById('metode_bayar').value;
+    const blokRekening = document.getElementById('rekening_block');
+    if(metode === 'transfer') {
+        blokRekening.style.display = 'block';
+    } else {
+        blokRekening.style.display = 'none';
+    }
+}
+
 // Run immediately on page load to initialize estimation if redirected with query param ID
 window.onload = function() {
     updateEstimasiBayar();
+    toggleRekening();
 }
 </script>
 
