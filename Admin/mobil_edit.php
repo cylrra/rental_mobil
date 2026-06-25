@@ -30,6 +30,10 @@ if (isset($_POST['update'])) {
     $merk           = mysqli_real_escape_string($conn, trim($_POST['merk']));
     $jenis          = mysqli_real_escape_string($conn, trim($_POST['jenis']));
     $nopol          = mysqli_real_escape_string($conn, trim($_POST['nopol']));
+    $tarif_12_dalam = mysqli_real_escape_string($conn, trim($_POST['tarif_12_dalam']));
+    $tarif_12_luar  = mysqli_real_escape_string($conn, trim($_POST['tarif_12_luar']));
+    $tarif_24_dalam = mysqli_real_escape_string($conn, trim($_POST['tarif_24_dalam']));
+    $tarif_24_luar  = mysqli_real_escape_string($conn, trim($_POST['tarif_24_luar']));
     $tarif_per_hari = mysqli_real_escape_string($conn, trim($_POST['tarif_per_hari']));
     $Unit_Tersedia  = mysqli_real_escape_string($conn, trim($_POST['Unit_Tersedia']));
     $status_mobil   = mysqli_real_escape_string($conn, $_POST['status_mobil']);
@@ -54,6 +58,10 @@ if (isset($_POST['update'])) {
                         merk = '$merk', 
                         jenis = '$jenis', 
                         nopol = '$nopol', 
+                        tarif_12_dalam = '$tarif_12_dalam',
+                        tarif_12_luar = '$tarif_12_luar',
+                        tarif_24_dalam = '$tarif_24_dalam',
+                        tarif_24_luar = '$tarif_24_luar',
                         tarif_per_hari = '$tarif_per_hari',
                         Unit_Tersedia = '$Unit_Tersedia',
                         status_mobil = '$status_mobil', 
@@ -110,9 +118,31 @@ if (isset($_POST['update'])) {
                 </div>
             </div>
 
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Tarif 12 Jam (Dalam Kota)</label>
+                    <input type="number" name="tarif_12_dalam" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 p-3" value="<?= htmlspecialchars($data['tarif_12_dalam']); ?>" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Tarif 12 Jam (Luar Kota)</label>
+                    <input type="number" name="tarif_12_luar" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 p-3" value="<?= htmlspecialchars($data['tarif_12_luar']); ?>" required>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Tarif 24 Jam (Dalam Kota)</label>
+                    <input type="number" name="tarif_24_dalam" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 p-3" value="<?= htmlspecialchars($data['tarif_24_dalam']); ?>" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Tarif 24 Jam (Luar Kota)</label>
+                    <input type="number" name="tarif_24_luar" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 p-3" value="<?= htmlspecialchars($data['tarif_24_luar']); ?>" required>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Tarif Harian (Rp)</label>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Tarif Harian Lama (Opsional)</label>
                     <input type="number" name="tarif_per_hari" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 p-3" value="<?= htmlspecialchars($data['tarif_per_hari']); ?>" required>
                 </div>
                 <div>

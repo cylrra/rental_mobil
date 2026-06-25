@@ -7,6 +7,10 @@ if (isset($_POST['simpan'])) {
     $nopol          = mysqli_real_escape_string($conn, $_POST['nopol']);
     $merk           = mysqli_real_escape_string($conn, $_POST['merk']);
     $jenis          = mysqli_real_escape_string($conn, $_POST['jenis']);
+    $tarif_12_dalam = mysqli_real_escape_string($conn, $_POST['tarif_12_dalam']);
+    $tarif_12_luar  = mysqli_real_escape_string($conn, $_POST['tarif_12_luar']);
+    $tarif_24_dalam = mysqli_real_escape_string($conn, $_POST['tarif_24_dalam']);
+    $tarif_24_luar  = mysqli_real_escape_string($conn, $_POST['tarif_24_luar']);
     $tarif_per_hari = mysqli_real_escape_string($conn, $_POST['tarif_per_hari']);
     $Unit_Tersedia  = mysqli_real_escape_string($conn, $_POST['Unit_Tersedia']);
     
@@ -28,8 +32,8 @@ if (isset($_POST['simpan'])) {
     if (move_uploaded_file($tmp_name, $target_file)) {
         
         // Eksekusi SQL Insert Data (Perhatikan nama kolom sudah disesuaikan!)
-        $query = "INSERT INTO mobil (kode_mobil, nopol, merk, jenis, tarif_per_hari, status_mobil, Unit_Tersedia, Gambar) 
-                  VALUES ('$kode_mobil', '$nopol', '$merk', '$jenis', '$tarif_per_hari', '$status_mobil', '$Unit_Tersedia', '$nama_gambar_unik')";
+        $query = "INSERT INTO mobil (kode_mobil, nopol, merk, jenis, tarif_12_dalam, tarif_12_luar, tarif_24_dalam, tarif_24_luar, tarif_per_hari, status_mobil, Unit_Tersedia, Gambar) 
+                  VALUES ('$kode_mobil', '$nopol', '$merk', '$jenis', '$tarif_12_dalam', '$tarif_12_luar', '$tarif_24_dalam', '$tarif_24_luar', '$tarif_per_hari', '$status_mobil', '$Unit_Tersedia', '$nama_gambar_unik')";
         
         $exec = mysqli_query($conn, $query);
 

@@ -37,6 +37,6 @@ if ($check_date && mysqli_num_rows($check_date) > 0) {
     }
 }
 
-header("Location: transaksi.php?acc_id=" . urlencode($id_sewa));
+header("Location: transaksi.php?acc_wa_id=" . urlencode($id_sewa));
 exit();
 ?>

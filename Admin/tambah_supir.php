@@ -42,9 +42,31 @@ include 'navbar.php';
                         <input type="text" name="no_telp" class="form-control" placeholder="Contoh: 082134567811" required>
                     </div>
 
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-semibold">Tarif 12 Jam (Dalam Kota)</label>
+                            <input type="number" name="tarif_12_dalam" class="form-control" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-semibold">Tarif 12 Jam (Luar Kota)</label>
+                            <input type="number" name="tarif_12_luar" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-semibold">Tarif 24 Jam (Dalam Kota)</label>
+                            <input type="number" name="tarif_24_dalam" class="form-control" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-semibold">Tarif 24 Jam (Luar Kota)</label>
+                            <input type="number" name="tarif_24_luar" class="form-control" required>
+                        </div>
+                    </div>
+
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Tarif Kerja Per Hari (Rp)</label>
-                        <input type="number" name="tarif_supir_per_hari" class="form-control" placeholder="Contoh: 200000" min="0" required>
+                        <label class="form-label fw-semibold">Tarif Kerja Lama (Opsional)</label>
+                        <input type="number" name="tarif_supir_per_hari" class="form-control" placeholder="Contoh: 200000" min="0" value="0">
                     </div>
 
                     <div class="mb-3">

@@ -79,8 +79,13 @@ include 'navbar.php';
                     <h2 class="fw-black mb-0" style="color: #9e0000; font-weight: 900; font-size: 2.2rem;">Rp <?= number_format($jumlah_bayar, 0, ',', '.') ?></h2>
                 </div>
 
+                <?php 
+                $is_cash = (strpos(strtolower($metode), 'cash') !== false || strpos(strtolower($metode), 'tunai') !== false);
+                ?>
                 <div class="mb-4">
-                    <span class="fw-bold text-secondary d-block mb-3" style="font-size: 0.9rem;"><?= $is_qris ? 'Scan QRIS' : 'Nomor Virtual Account' ?></span>
+                    <span class="fw-bold text-secondary d-block mb-3" style="font-size: 0.9rem;">
+                        <?= $is_qris ? 'Scan QRIS' : ($is_cash ? 'Instruksi Pembayaran Tunai' : 'Nomor Virtual Account') ?>
+                    </span>
                     
                     <div class="box-qr-va">
                         <!-- Background Accent -->
@@ -95,6 +100,12 @@ include 'navbar.php';
                             </div>
                             <h5 class="fw-bold text-dark mb-1 position-relative" style="z-index: 10;"><?= htmlspecialchars($metode) ?></h5>
                             <p class="small text-secondary fw-medium position-relative" style="z-index: 10;">Scan QR code di atas menggunakan aplikasi E-Wallet Anda.</p>
+                        <?php elseif ($is_cash): ?>
+                            <div class="d-flex align-items-center justify-content-center gap-2 mb-2 position-relative" style="z-index: 10;">
+                                <i class="bi bi-cash-coin text-success" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark mb-1 position-relative" style="z-index: 10;"><?= htmlspecialchars($metode) ?></h5>
+                            <p class="small text-secondary fw-medium position-relative" style="z-index: 10;">Silakan lakukan pembayaran langsung di loket kami saat Anda mengambil mobil.</p>
                         <?php else: ?>
                             <div class="d-flex align-items-center justify-content-center gap-2 mb-2 position-relative" style="z-index: 10;">
                                 <h3 class="fw-bold text-dark mb-0" style="letter-spacing: 2px;" id="va_number"><?= $virtual_account ?></h3>

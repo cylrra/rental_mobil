@@ -275,6 +275,41 @@ function getIconClass($page, $current_page, $colorClass = 'text-white') {
                     if(localStorage.getItem('adminSidebarState') === 'hidden') {
                         sidebar.classList.add('sidebar-hidden');
                     }
+
+                    // Tambahan Fitur Geser (Swipe) untuk Sembunyikan/Tampilkan Sidebar
+                    let touchstartX = 0;
+                    let touchendX = 0;
+                    const threshold = 50; // Jarak minimal untuk dianggap gesekan
+                    const edgeThreshold = 50; // Area tepi kiri untuk menarik sidebar
+
+                    document.addEventListener('touchstart', function(e) {
+                        touchstartX = e.changedTouches[0].screenX;
+                    }, {passive: true});
+
+                    document.addEventListener('touchend', function(e) {
+                        touchendX = e.changedTouches[0].screenX;
+                        handleSwipeGesture();
+                    }, {passive: true});
+
+                    function handleSwipeGesture() {
+                        const swipeDistance = touchendX - touchstartX;
+                        
+                        // Geser ke Kiri (Sembunyikan Sidebar)
+                        if (swipeDistance < -threshold) {
+                            if (!sidebar.classList.contains('sidebar-hidden')) {
+                                sidebar.classList.add('sidebar-hidden');
+                                localStorage.setItem('adminSidebarState', 'hidden');
+                            }
+                        }
+                        
+                        // Geser ke Kanan (Munculkan Sidebar)
+                        if (swipeDistance > threshold) {
+                            if (touchstartX < edgeThreshold && sidebar.classList.contains('sidebar-hidden')) {
+                                sidebar.classList.remove('sidebar-hidden');
+                                localStorage.setItem('adminSidebarState', 'visible');
+                            }
+                        }
+                    }
                 }
             });
         </script>

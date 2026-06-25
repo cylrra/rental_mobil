@@ -43,9 +43,32 @@ include 'navbar.php';
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Tarif Harian (Rp)</label>
-                    <input type="number" name="tarif_per_hari" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 p-3" placeholder="Contoh: 300000" required>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Tarif 12 Jam (Dalam Kota)</label>
+                    <input type="number" name="tarif_12_dalam" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 p-3" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Tarif 12 Jam (Luar Kota)</label>
+                    <input type="number" name="tarif_12_luar" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 p-3" required>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Tarif 24 Jam (Dalam Kota)</label>
+                    <input type="number" name="tarif_24_dalam" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 p-3" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Tarif 24 Jam (Luar Kota)</label>
+                    <input type="number" name="tarif_24_luar" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 p-3" required>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Tarif Per Hari (Lama/Opsional)</label>
+                    <input type="number" name="tarif_per_hari" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 p-3" placeholder="Contoh: 300000" value="0">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Jumlah Unit (Stok)</label>

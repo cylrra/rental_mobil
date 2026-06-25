@@ -150,7 +150,7 @@ $brand_filter = isset($_GET['brand']) ? mysqli_real_escape_string($conn, $_GET['
                 <div class="card-body d-flex flex-column p-4">
                     <h5 class="fw-bold text-dark mb-1"><?php echo $row['merk']; ?></h5>
                     <p class="text-primary fw-bold mb-3" style="font-size: 1.15rem;">
-                        Rp <?php echo number_format($row['tarif_per_hari'], 0, ',', '.'); ?> <span class="text-muted fw-normal" style="font-size: 0.8rem;">/ Hari</span>
+                        <span class="text-muted fw-normal" style="font-size: 0.8rem;">Mulai </span>Rp <?php echo number_format($row['tarif_12_dalam'], 0, ',', '.'); ?> <span class="text-muted fw-normal" style="font-size: 0.8rem;">/ 12 Jam</span>
                     </p>
                     
                     <!-- Amenities -->
@@ -196,7 +196,11 @@ $brand_filter = isset($_GET['brand']) ? mysqli_real_escape_string($conn, $_GET['
                             <tr><td class="text-muted py-1">Nomor Polisi</td><td class="fw-bold py-1">: <span class="badge bg-light text-dark border"><?php echo $row['nopol']; ?></span></td></tr>
                             <tr><td class="text-muted py-1">Jenis Kategori</td><td class="fw-bold py-1">: <?php echo $row['jenis']; ?></td></tr>
                             <tr><td class="text-muted py-1">Stok Ready</td><td class="fw-bold py-1">: <?php echo $stok; ?> Unit</td></tr>
-                            <tr><td class="text-muted py-1">Biaya Harian</td><td class="fw-bold text-primary py-1">: Rp <?php echo number_format($row['tarif_per_hari'], 0, ',', '.'); ?> / Hari</td></tr>
+                            <tr><td colspan="2" class="text-muted pt-3 pb-1 border-bottom fw-bold"><i class="bi bi-tag-fill me-1"></i> Rincian Tarif Sewa</td></tr>
+                            <tr><td class="text-muted py-1">Dalam Kota (12 Jam)</td><td class="fw-bold text-primary py-1">: Rp <?php echo number_format($row['tarif_12_dalam'], 0, ',', '.'); ?></td></tr>
+                            <tr><td class="text-muted py-1">Dalam Kota (24 Jam)</td><td class="fw-bold text-primary py-1">: Rp <?php echo number_format($row['tarif_24_dalam'], 0, ',', '.'); ?></td></tr>
+                            <tr><td class="text-muted py-1">Luar Kota (12 Jam)</td><td class="fw-bold text-primary py-1">: Rp <?php echo number_format($row['tarif_12_luar'], 0, ',', '.'); ?></td></tr>
+                            <tr><td class="text-muted py-1">Luar Kota (24 Jam)</td><td class="fw-bold text-primary py-1">: Rp <?php echo number_format($row['tarif_24_luar'], 0, ',', '.'); ?></td></tr>
                         </table>
                     </div>
                     <div class="modal-footer border-0 p-3 bg-light">

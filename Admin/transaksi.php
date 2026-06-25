@@ -21,6 +21,30 @@ function formatWhatsAppNumber($phone) {
 
 // Tangkap kode mobil dari URL (jika ada, misalnya dari halaman detail mobil)
 $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['kode']) : '';
+
+// Jika baru saja di ACC dan perlu WhatsApp otomatis
+$auto_wa_script = '';
+if (isset($_GET['acc_wa_id'])) {
+    $wa_id = mysqli_real_escape_string($conn, $_GET['acc_wa_id']);
+    $wa_q = mysqli_query($conn, "SELECT t.total_biaya, t.tanggal_sewa, p.nama, p.no_telp, m.merk 
+                                 FROM transaksi_sewa t
+                                 JOIN pelanggan p ON t.id_pelanggan = p.id_pelanggan
+                                 JOIN mobil m ON t.kode_mobil = m.kode_mobil
+                                 WHERE t.id_sewa = '$wa_id'");
+    if ($wa_row = mysqli_fetch_assoc($wa_q)) {
+        $phone = formatWhatsAppNumber($wa_row['no_telp']);
+        $text = "Halo " . $wa_row['nama'] . ",\n\nPesanan rental mobil *" . $wa_row['merk'] . "* Anda untuk tanggal *" . date('d M Y', strtotime($wa_row['tanggal_sewa'])) . "* telah kami *SETUJUI*.\n\nTotal Tagihan: *Rp " . number_format($wa_row['total_biaya'], 0, ',', '.') . "*\n\nSilakan lanjutkan pembayaran sesuai instruksi di website kami.\n\nTerima kasih,\n*PT INDOMAX RENTAL*";
+        $url = "https://api.whatsapp.com/send?phone=" . $phone . "&text=" . urlencode($text);
+        
+        $auto_wa_script = "<script>
+            window.onload = function() {
+                window.open('{$url}', '_blank');
+                // Clean the URL so it doesn't pop up again on refresh
+                window.history.replaceState({}, document.title, 'transaksi.php');
+            };
+        </script>";
+    }
+}
 ?>
 
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -28,6 +52,7 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 <script src="https://unpkg.com/lucide@latest"></script>
+<?= $auto_wa_script ?>
 
 <div class="p-8">
     <div class="mb-8">
@@ -111,12 +136,29 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Paket Sewa</label>
+                                <select name="durasi_sewa" class="form-select" required>
+                                    <option value="24 Jam">Harian (24 Jam)</option>
+                                    <option value="12 Jam">Setengah Hari (12 Jam)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Area Pemakaian</label>
+                                <select name="area_pemakaian" class="form-select" required>
+                                    <option value="Dalam Kota">Dalam Kota</option>
+                                    <option value="Luar Kota">Luar Kota</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Tanggal Sewa</label>
                                 <input type="date" name="tanggal_sewa" class="form-control" value="<?php echo date('Y-m-d'); ?>" required>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Lama Sewa (Hari)</label>
-                                <input type="number" name="lama_sewa" class="form-control" min="1" required>
+                                <label class="form-label fw-bold">Lama Sewa (Jumlah Paket)</label>
+                                <input type="number" name="lama_sewa" class="form-control" min="1" value="1" required>
                             </div>
                         </div>
 
@@ -147,6 +189,7 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
                                 <th class="p-4 rounded-tl-xl">ID</th>
                                 <th class="p-4">Pelanggan</th>
                                 <th class="p-4">Mobil</th>
+                                <th class="p-4">Jadwal (Ambil & Kembali)</th>
                                 <th class="p-4">Status</th>
                                 <th class="p-4 text-center rounded-tr-xl">Aksi</th>
                             </tr>
@@ -159,7 +202,7 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
                                     $where_clause = "WHERE t.status_sewa = 'pending'";
                                 }
 
-                                $sql = "SELECT t.*, p.nama, p.no_telp, m.merk, s.nama_supir,
+                                $sql = "SELECT t.*, p.nama, p.no_telp, m.merk, m.Gambar, s.nama_supir,
                                         IFNULL((SELECT SUM(jumlah_bayar) FROM pembayaran WHERE id_sewa = t.id_sewa), 0) AS uang_dibayar
                                         FROM transaksi_sewa t
                                         JOIN pelanggan p ON t.id_pelanggan = p.id_pelanggan
@@ -171,11 +214,21 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
                                 
                                 if($res && mysqli_num_rows($res) > 0){
                                     while($row = mysqli_fetch_array($res)) {
+                                        $gambar = !empty($row['Gambar']) && file_exists('img/' . $row['Gambar']) ? 'img/' . $row['Gambar'] : 'https://placehold.co/100x60/f8f9fa/a3a3a3?text=No+Image';
                                 ?>
                                 <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
                                     <td class="p-4 font-bold text-slate-500">#<?php echo $row['id_sewa']; ?></td>
                                     <td class="p-4"><span class="font-bold text-slate-800"><?php echo htmlspecialchars($row['nama']); ?></span></td>
-                                    <td class="p-4 text-slate-600"><?php echo htmlspecialchars($row['merk']); ?></td>
+                                    <td class="p-4">
+                                        <div class="flex items-center gap-3">
+                                            <img src="<?= $gambar ?>" class="rounded-lg shadow-sm w-16 h-10 object-cover border border-slate-200" alt="<?= htmlspecialchars($row['merk']) ?>">
+                                            <span class="text-slate-600 font-semibold"><?php echo htmlspecialchars($row['merk']); ?></span>
+                                        </div>
+                                    </td>
+                                    <td class="p-4 text-slate-600 text-xs">
+                                        <div class="mb-1"><span class="font-bold">Ambil:</span> <?php echo date('d M Y H:i', strtotime($row['tanggal_sewa'])); ?></div>
+                                        <div><span class="font-bold">Kembali:</span> <?php echo $row['tanggal_kembali'] ? date('d M Y H:i', strtotime($row['tanggal_kembali'])) : '-'; ?></div>
+                                    </td>
                                     <td class="p-4">
                                         <div class="flex flex-col gap-1 items-start">
                                             <?php if ($row['status_sewa'] == 'berjalan'): ?>
@@ -217,6 +270,11 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
                                                     <i data-lucide="check-square" class="w-4 h-4"></i>
                                                 </a>
                                             <?php endif; ?>
+                                            <?php if ($row['status_sewa'] == 'berjalan'): ?>
+                                                <button type="button" class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center hover:bg-amber-600 hover:text-white transition-colors" title="Selesaikan Transaksi (Pengembalian)" onclick="openPengembalianModal('<?= $row['id_sewa'] ?>', '<?= $row['tanggal_kembali'] ?>', '<?= $row['total_biaya'] ?>')">
+                                                    <i data-lucide="corner-down-left" class="w-4 h-4"></i>
+                                                </button>
+                                            <?php endif; ?>
                                             <a href="edit_transaksi.php?id=<?php echo $row['id_sewa']; ?>" class="w-8 h-8 rounded-lg bg-slate-50 text-slate-600 flex items-center justify-center hover:bg-slate-600 hover:text-white transition-colors" title="Edit Transaksi">
                                                 <i data-lucide="edit-2" class="w-4 h-4"></i>
                                             </a>
@@ -233,7 +291,7 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
                                     </td>
                                 </tr>
                                 <?php } } else { ?>
-                                    <tr><td colspan='5' class='text-center py-4 text-muted'>Belum ada transaksi.</td></tr>
+                                    <tr><td colspan='6' class='text-center py-4 text-muted'>Belum ada transaksi.</td></tr>
                                 <?php } ?>
                             </tbody>
                     </table>
@@ -425,6 +483,40 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
     </div>
 </div>
 
+<!-- MODAL PENGEMBALIAN -->
+<div class="modal fade" id="pengembalianModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-amber-500 text-white border-0 py-3">
+                <h5 class="modal-title font-bold flex items-center gap-2">
+                    <i data-lucide="corner-down-left" class="w-5 h-5"></i> Pengembalian Kendaraan
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="proses_pengembalian.php" method="POST">
+                <div class="modal-body p-6 bg-slate-50">
+                    <input type="hidden" name="id_sewa" id="kembaliSewaId" value="">
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tanggal Seharusnya Kembali</label>
+                        <input type="date" id="kembaliTglSeharusnya" class="form-control" readonly disabled>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tanggal Aktual Pengembalian</label>
+                        <input type="date" name="waktu_pengembalian_aktual" id="kembaliTglAktual" class="form-control" required value="<?= date('Y-m-d') ?>">
+                        <small class="text-slate-500 mt-1 d-block">Sistem akan otomatis menghitung denda 10% dari total tagihan per hari keterlambatan.</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-slate-100">
+                    <button type="button" class="px-4 py-2 bg-slate-300 text-slate-700 font-bold rounded-lg hover:bg-slate-400" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" name="submit_pengembalian" class="px-4 py-2 bg-amber-600 text-white font-bold rounded-lg hover:bg-amber-700">Proses Pengembalian</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 function openBotModal(idSewa, phone, nama, totalBiaya, tglSewa, lamaSewa, merk, pakeSupir, namaSupir, isAcc = false) {
     if (!phone || phone.trim() === "") {
@@ -462,6 +554,14 @@ function openBotModal(idSewa, phone, nama, totalBiaya, tglSewa, lamaSewa, merk, 
         
         window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(message), '_blank');
     }, 1500);
+}
+
+function openPengembalianModal(idSewa, tglKembali, totalBiaya) {
+    document.getElementById('kembaliSewaId').value = idSewa;
+    document.getElementById('kembaliTglSeharusnya').value = tglKembali;
+    
+    const modal = new bootstrap.Modal(document.getElementById('pengembalianModal'));
+    modal.show();
 }
 </script>
 

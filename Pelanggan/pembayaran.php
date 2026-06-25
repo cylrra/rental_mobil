@@ -106,7 +106,7 @@ if ($id_pilihan) {
                                     <div class="card h-100 payment-card border-2 cursor-pointer bg-light transition-all">
                                         <div class="card-body d-flex align-items-center gap-3 p-3">
                                             <div class="bg-white p-2 rounded shadow-sm d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                                <img src="https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg" style="max-width: 100%; max-height: 100%; object-fit: contain;" alt="BCA">
+                                                <span class="fw-bold fs-5" style="color: #0066AE; letter-spacing: -1px;">BCA</span>
                                             </div>
                                             <div class="fw-bold text-dark text-sm">BCA Virtual Account</div>
                                         </div>
@@ -120,9 +120,23 @@ if ($id_pilihan) {
                                     <div class="card h-100 payment-card border-2 cursor-pointer bg-light transition-all">
                                         <div class="card-body d-flex align-items-center gap-3 p-3">
                                             <div class="bg-white p-2 rounded shadow-sm d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                                <img src="https://upload.wikimedia.org/wikipedia/commons/a/ad/Bank_Mandiri_logo_2016.svg" style="max-width: 100%; max-height: 100%; object-fit: contain;" alt="Mandiri">
+                                                <span class="fw-bold fs-6" style="color: #003D79;">mandiri</span>
                                             </div>
                                             <div class="fw-bold text-dark text-sm">Mandiri Virtual Account</div>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="w-100 h-100">
+                                    <input type="radio" name="metode_bayar" value="Transfer Bank BNI" class="btn-check" required onchange="updatePaymentUI()">
+                                    <div class="card h-100 payment-card border-2 cursor-pointer bg-light transition-all">
+                                        <div class="card-body d-flex align-items-center gap-3 p-3">
+                                            <div class="bg-white p-2 rounded shadow-sm d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                                <span class="fw-black fs-5" style="color: #F15A24; font-style: italic; letter-spacing: -1px;">BNI</span>
+                                            </div>
+                                            <div class="fw-bold text-dark text-sm">BNI Virtual Account</div>
                                         </div>
                                     </div>
                                 </label>
@@ -134,7 +148,7 @@ if ($id_pilihan) {
                                     <div class="card h-100 payment-card border-2 cursor-pointer bg-light transition-all">
                                         <div class="card-body d-flex align-items-center gap-3 p-3">
                                             <div class="bg-white p-2 rounded shadow-sm d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                                <img src="https://upload.wikimedia.org/wikipedia/commons/8/86/Gopay_logo.svg" style="max-width: 100%; max-height: 100%; object-fit: contain;" alt="GoPay">
+                                                <span class="fw-bold fs-6" style="color: #00AED6;">gopay</span>
                                             </div>
                                             <div class="fw-bold text-dark text-sm">GoPay</div>
                                         </div>
@@ -148,9 +162,23 @@ if ($id_pilihan) {
                                     <div class="card h-100 payment-card border-2 cursor-pointer bg-light transition-all">
                                         <div class="card-body d-flex align-items-center gap-3 p-3">
                                             <div class="bg-white p-2 rounded shadow-sm d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                                <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/OVO_logo.svg" style="max-width: 100%; max-height: 100%; object-fit: contain;" alt="OVO">
+                                                <span class="fw-black fs-5" style="color: #4C2A86; letter-spacing: 1px;">OVO</span>
                                             </div>
                                             <div class="fw-bold text-dark text-sm">OVO</div>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="w-100 h-100">
+                                    <input type="radio" name="metode_bayar" value="Cash / Tunai" class="btn-check" required onchange="updatePaymentUI()">
+                                    <div class="card h-100 payment-card border-2 cursor-pointer bg-light transition-all">
+                                        <div class="card-body d-flex align-items-center gap-3 p-3">
+                                            <div class="bg-white p-2 rounded shadow-sm d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                                <i class="bi bi-cash-stack text-success fs-3"></i>
+                                            </div>
+                                            <div class="fw-bold text-dark text-sm">Cash / Tunai (Bayar di Tempat)</div>
                                         </div>
                                     </div>
                                 </label>

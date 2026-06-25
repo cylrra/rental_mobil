@@ -305,7 +305,7 @@ if (isset($_SESSION['role']) && $_SESSION['role'] === 'pelanggan') {
                             <span class="badge bg-light text-dark border rounded-pill mb-2 px-3 py-1"><?php echo strtoupper($row['jenis']); ?></span>
                             <h4 class="fw-bold text-dark mb-1"><?php echo $row['merk']; ?></h4>
                             <p class="text-primary fw-bold fs-5 mb-3">
-                                Rp <?php echo number_format($row['tarif_per_hari'], 0, ',', '.'); ?> <span class="text-muted fw-normal fs-6">/ Hari</span>
+                                <span class="text-muted fw-normal fs-6">Mulai </span>Rp <?php echo number_format($row['tarif_12_dalam'], 0, ',', '.'); ?> <span class="text-muted fw-normal fs-6">/ 12 Jam</span>
                             </p>
                             <hr class="text-muted opacity-25">
                             <div class="d-flex justify-content-between align-items-center">

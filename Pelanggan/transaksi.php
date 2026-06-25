@@ -100,7 +100,12 @@ if ($query_user) {
                                 $mob = mysqli_query($conn, "SELECT * FROM mobil WHERE Unit_Tersedia > 0");
                                 while($m = mysqli_fetch_array($mob)) {
                                     $sel = ($m['kode_mobil'] == $kode_selected) ? 'selected' : '';
-                                    echo "<option value='{$m['kode_mobil']}' data-tarif='{$m['tarif_per_hari']}' $sel>{$m['merk']} {$m['jenis']} (".number_format($m['tarif_per_hari'],0,',','.')."/hr)</option>";
+                                    echo "<option value='{$m['kode_mobil']}' 
+                                        data-tarif-12-dalam='{$m['tarif_12_dalam']}'
+                                        data-tarif-12-luar='{$m['tarif_12_luar']}'
+                                        data-tarif-24-dalam='{$m['tarif_24_dalam']}'
+                                        data-tarif-24-luar='{$m['tarif_24_luar']}'
+                                        $sel>{$m['merk']} {$m['jenis']} (Mulai Rp ".number_format($m['tarif_12_dalam'],0,',','.').")</option>";
                                 }
                                 ?>
                             </select>
@@ -135,12 +140,28 @@ if ($query_user) {
                         </div>
                         <div class="row g-3 mb-3">
                             <div class="col-6">
+                                <label class="form-label">Paket Sewa</label>
+                                <select name="durasi_sewa" id="durasi_sewa" class="form-select" onchange="hitungTotalEstimasi()">
+                                    <option value="24 Jam">Harian (24 Jam)</option>
+                                    <option value="12 Jam">Setengah Hari (12 Jam)</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Area Pemakaian</label>
+                                <select name="area_pemakaian" id="area_pemakaian" class="form-select" onchange="hitungTotalEstimasi()">
+                                    <option value="Dalam Kota">Dalam Kota</option>
+                                    <option value="Luar Kota">Luar Kota</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
                                 <label class="form-label">Tgl Mulai</label>
                                 <input type="date" name="tanggal_sewa" id="tanggal_sewa" class="form-control" value="<?= date('Y-m-d', strtotime('+1 day')) ?>" min="<?= date('Y-m-d', strtotime('+1 day')) ?>" required onchange="hitungTotalEstimasi()">
                             </div>
                             <div class="col-6">
-                                <label class="form-label">Durasi (Hari)</label>
-                                <input type="number" name="lama_sewa" id="lama_sewa" class="form-control" min="1" required oninput="hitungTotalEstimasi()">
+                                <label class="form-label">Jumlah Paket</label>
+                                <input type="number" name="lama_sewa" id="lama_sewa" class="form-control" min="1" value="1" required oninput="hitungTotalEstimasi()">
                             </div>
                         </div>
                         <div class="mb-4 p-3 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
@@ -166,14 +187,14 @@ if ($query_user) {
                                 <tr>
                                     <th class="ps-4">Order</th>
                                     <th>Mobil</th>
-                                    <th>Mulai</th>
+                                    <th>Jadwal (Ambil & Kembali)</th>
                                     <th class="text-center">Status</th>
                                     <th class="text-center pe-4">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php
-                                $sql = "SELECT t.id_sewa, t.tanggal_sewa, t.status_sewa, t.jumlah_bayar, m.merk, m.nopol, r.id_rating 
+                                $sql = "SELECT t.id_sewa, t.tanggal_sewa, t.tanggal_kembali, t.status_sewa, t.jumlah_bayar, m.merk, m.nopol, m.Gambar, r.id_rating 
                                         FROM transaksi_sewa t 
                                         LEFT JOIN mobil m ON t.kode_mobil = m.kode_mobil 
                                         LEFT JOIN rating_sewa r ON t.id_sewa = r.id_transaksi
@@ -185,6 +206,7 @@ if ($query_user) {
                                     while($row = mysqli_fetch_assoc($res)) {
                                         $st = !empty($row['status_sewa']) ? strtolower($row['status_sewa']) : 'pending';
                                         $merk = !empty($row['merk']) ? $row['merk'] : 'Mobil Dihapus';
+                                        $gambar = !empty($row['Gambar']) && file_exists('../Admin/img/' . $row['Gambar']) ? '../Admin/img/' . $row['Gambar'] : 'https://placehold.co/100x60/f8f9fa/a3a3a3?text=No+Image';
                                         
                                         $badge_html = '';
                                         $instruction = '';
@@ -209,8 +231,19 @@ if ($query_user) {
                                 ?>
                                 <tr>
                                     <td class="ps-4 fw-bold text-primary align-middle" style="font-size:13px;">#<?= $row['id_sewa'] ?></td>
-                                    <td class="align-middle"><strong class="text-nowrap" style="font-size:14px;"><?= htmlspecialchars($merk) ?></strong><br><small class="text-muted text-nowrap" style="font-size:11px;"><?= htmlspecialchars($row['nopol'] ?? '-') ?></small></td>
-                                    <td class="align-middle text-nowrap" style="font-size:13px;"><?= date('d M Y', strtotime($row['tanggal_sewa'])) ?></td>
+                                    <td class="align-middle">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <img src="<?= $gambar ?>" class="rounded shadow-sm" style="width: 60px; height: 40px; object-fit: cover; border: 1px solid #eee;" alt="<?= htmlspecialchars($merk) ?>">
+                                            <div>
+                                                <strong class="text-nowrap d-block" style="font-size:14px;"><?= htmlspecialchars($merk) ?></strong>
+                                                <small class="text-muted text-nowrap" style="font-size:11px;"><?= htmlspecialchars($row['nopol'] ?? '-') ?></small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle text-nowrap" style="font-size:12px;">
+                                        <div class="mb-1"><span class="fw-bold">Ambil:</span> <?= date('d M Y H:i', strtotime($row['tanggal_sewa'])) ?></div>
+                                        <div><span class="fw-bold">Kembali:</span> <?= isset($row['tanggal_kembali']) && $row['tanggal_kembali'] ? date('d M Y H:i', strtotime($row['tanggal_kembali'])) : '-' ?></div>
+                                    </td>
                                     <td class="text-center align-middle">
                                         <?= $badge_html ?>
                                         <?= $instruction ?>
@@ -218,6 +251,9 @@ if ($query_user) {
                                     <td class="text-center pe-4 align-middle">
                                         <div class="d-flex justify-content-center align-items-center gap-2 flex-nowrap">
                                             <a href="riwayat_pembayaran.php" class="btn btn-sm btn-light border rounded-pill px-3 text-nowrap" style="font-size: 11px; font-weight: 600;">Detail</a>
+                                            <?php if(in_array($st, ['diterima', 'dp', 'berjalan', 'selesai'])): ?>
+                                                <a href="cetak_invoice.php?id=<?= $row['id_sewa'] ?>" target="_blank" class="btn btn-sm rounded-pill px-3 fw-semibold text-white shadow-sm text-nowrap" style="font-size: 11px; background: #800000; border: none;"><i class="bi bi-printer-fill me-1"></i>Invoice</a>
+                                            <?php endif; ?>
                                             <?php if($st == 'berjalan'): ?>
                                                 <a href="tracking.php?id=<?= $row['id_sewa'] ?>" class="btn btn-sm btn-success rounded-pill px-3 fw-semibold text-white shadow-sm text-nowrap" style="font-size: 11px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;"><i class="bi bi-geo-alt-fill me-1"></i>Lacak</a>
                                             <?php endif; ?>
@@ -247,13 +283,37 @@ if ($query_user) {
     function hitungTotalEstimasi() {
         const mSelect = document.getElementById('kode_mobil_select');
         const sSelect = document.getElementById('id_supir_select');
+        const durasiSewa = document.getElementById('durasi_sewa').value;
+        const areaPemakaian = document.getElementById('area_pemakaian').value;
         const inputHari = document.getElementById('lama_sewa');
         const hari = parseInt(inputHari.value) || 0;
-        let tMobil = (mSelect.selectedIndex > 0) ? parseFloat(mSelect.options[mSelect.selectedIndex].getAttribute('data-tarif')) : 0;
-        let tSupir = (sSelect.selectedIndex > 0) ? parseFloat(sSelect.options[sSelect.selectedIndex].getAttribute('data-tarif-supir')) : 0;
+        
+        let tMobil = 0;
+        let tSupir = 0; // The supir logic in Pelanggan is handled by proses_transaksi.php, but let's just make it simple for frontend estimation
+        
+        if (mSelect.selectedIndex > 0) {
+            const opt = mSelect.options[mSelect.selectedIndex];
+            if (durasiSewa === '12 Jam' && areaPemakaian === 'Dalam Kota') {
+                tMobil = parseFloat(opt.getAttribute('data-tarif-12-dalam'));
+            } else if (durasiSewa === '12 Jam' && areaPemakaian === 'Luar Kota') {
+                tMobil = parseFloat(opt.getAttribute('data-tarif-12-luar'));
+            } else if (durasiSewa === '24 Jam' && areaPemakaian === 'Dalam Kota') {
+                tMobil = parseFloat(opt.getAttribute('data-tarif-24-dalam'));
+            } else {
+                tMobil = parseFloat(opt.getAttribute('data-tarif-24-luar'));
+            }
+        }
+        
+        // Asumsi tarif supir disamakan dengan 200rb/hari atau bisa diambil dari AJAX (tapi ini frontend saja)
+        if (sSelect.selectedIndex > 0 && sSelect.value !== "") {
+            // Kita bisa juga menambah data-tarif-supir-* di option supir jika mau akurat. 
+            // Tapi untuk frontend, kita set default saja karena tarif supir akan dihitung detail di backend.
+            tSupir = parseFloat(sSelect.options[sSelect.selectedIndex].getAttribute('data-tarif-supir')) || 200000;
+        }
+
         document.getElementById('disp_total_biaya').innerText = formatRupiah((tMobil + tSupir) * hari);
     }
-    function toggleCatatanSupir() { document.getElementById('catatan_supir').style.display = (document.getElementById('id_supir_select').value === "999") ? "block" : "none"; }
+    function toggleCatatanSupir() { document.getElementById('catatan_supir').style.display = (document.getElementById('id_supir_select').value !== "") ? "block" : "none"; }
     function toggleAlamatInput() { document.getElementById("inputAlamatCustom").style.display = (document.getElementById("lokasiSelect").value === "Antar ke Alamat lainnya") ? "block" : "none"; }
     function toggleAlamatKembaliInput() { document.getElementById("inputAlamatKembaliCustom").style.display = (document.getElementById("lokasiKembaliSelect").value === "Jemput di Alamat lainnya") ? "block" : "none"; }
 

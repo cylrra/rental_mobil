@@ -152,8 +152,8 @@ $res_detail_pakai = mysqli_query($conn, $query_terpakai);
             
             <div class="mt-auto pt-4 border-t border-slate-100 flex justify-between items-center">
                 <div>
-                    <span class="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Tarif Harian</span>
-                    <span class="text-lg font-extrabold text-blue-600">Rp <?php echo number_format($row['tarif_per_hari'], 0, ',', '.'); ?></span>
+                    <span class="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Mulai Dari</span>
+                    <span class="text-lg font-extrabold text-blue-600">Rp <?php echo number_format($row['tarif_12_dalam'], 0, ',', '.'); ?></span>
                 </div>
                 <div class="flex items-center gap-2">
                     <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>

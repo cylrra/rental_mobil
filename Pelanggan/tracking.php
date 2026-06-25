@@ -43,6 +43,11 @@ if (mysqli_num_rows($result) == 0) {
 }
 $rental = mysqli_fetch_assoc($result);
 
+if ($rental['pake_supir'] === 'Tidak') {
+    echo "<script>alert('Layanan antar-jemput hanya tersedia untuk penyewaan dengan supir. Silakan ambil kendaraan Anda di kantor Indomax Rental Mobil.'); window.location='transaksi.php';</script>";
+    exit();
+}
+
 $start_ts = $rental['start_ts'] ?? 0;
 $current_ts = $rental['current_ts'] ?? time();
 $elapsed_seconds = ($start_ts > 0) ? ($current_ts - $start_ts) : -1;

@@ -24,12 +24,12 @@ $total_mobil = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM mobil WHERE st
 $total_transaksi = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM transaksi_sewa WHERE id_pelanggan = '$id_pelanggan'"));
 ?>
 
-<!-- Import Font Inter -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Import Font Montserrat -->
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-    body, h1, h2, h3, h4, h5, h6, p, span, div, td, th, button, a { font-family: 'Inter', sans-serif !important; }
-    .action-card { transition: all 0.3s ease; border: 1px solid transparent !important; }
-    .action-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(15, 23, 42, 0.08) !important; border-color: rgba(30, 58, 138, 0.1) !important; }
+    body, h1, h2, h3, h4, h5, h6, p, span, div, td, th, button, a { font-family: 'Montserrat', sans-serif !important; }
+    .action-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(226, 232, 240, 0.8) !important; box-shadow: 0 4px 12px rgba(148, 163, 184, 0.08) !important; }
+    .action-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08) !important; border-color: rgba(128, 0, 0, 0.2) !important; }
     .py-1-5 { padding-top: 0.4rem; padding-bottom: 0.4rem; }
     .py-2-5 { padding-top: 0.6rem; padding-bottom: 0.6rem; }
 </style>

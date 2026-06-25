@@ -45,6 +45,35 @@ if ($total_ulasan > 0) {
     }
 }
 
+// Analitik Pendapatan 6 Bulan Terakhir
+$q_revenue = mysqli_query($conn, "SELECT DATE_FORMAT(tanggal_bayar, '%Y-%m') as bulan, SUM(jumlah_bayar) as total 
+                                  FROM pembayaran 
+                                  WHERE tanggal_bayar >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+                                  GROUP BY bulan ORDER BY bulan ASC");
+$revenue_labels = [];
+$revenue_data = [];
+if ($q_revenue) {
+    while($row = mysqli_fetch_assoc($q_revenue)){
+        $revenue_labels[] = date("M Y", strtotime($row['bulan']."-01"));
+        $revenue_data[] = $row['total'];
+    }
+}
+
+// Analitik Mobil Terpopuler
+$q_popular = mysqli_query($conn, "SELECT m.merk, COUNT(t.id_sewa) as total_sewa 
+                                  FROM transaksi_sewa t 
+                                  JOIN mobil m ON t.kode_mobil = m.kode_mobil 
+                                  GROUP BY t.kode_mobil 
+                                  ORDER BY total_sewa DESC LIMIT 5");
+$popular_labels = [];
+$popular_data = [];
+if ($q_popular) {
+    while($row = mysqli_fetch_assoc($q_popular)){
+        $popular_labels[] = $row['merk'];
+        $popular_data[] = $row['total_sewa'];
+    }
+}
+
 include 'navbar.php'; 
 ?>
 
@@ -195,6 +224,32 @@ include 'navbar.php';
 
     </div>
 
+    <!-- Analytics Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 mb-6">
+        <div class="bg-white rounded-2xl border border-[#e2e2e2] shadow-sm p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center">
+                    <i data-lucide="line-chart" class="w-4 h-4 text-green-600"></i>
+                </div>
+                <h5 class="text-base font-black text-[#1a1c1c]">Tren Pendapatan 6 Bulan</h5>
+            </div>
+            <div style="height: 250px;">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+        <div class="bg-white rounded-2xl border border-[#e2e2e2] shadow-sm p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center">
+                    <i data-lucide="pie-chart" class="w-4 h-4 text-orange-600"></i>
+                </div>
+                <h5 class="text-base font-black text-[#1a1c1c]">5 Mobil Terfavorit</h5>
+            </div>
+            <div style="height: 250px;">
+                <canvas id="popularChart"></canvas>
+            </div>
+        </div>
+    </div>
+
     <!-- Recent Transactions -->
     <div class="bg-white rounded-2xl border border-[#e2e2e2] shadow-sm overflow-hidden">
         <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
@@ -269,5 +324,53 @@ include 'navbar.php';
 
 </div></main></div>
 <script>lucide.createIcons();</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const revCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revCtx, {
+        type: 'line',
+        data: {
+            labels: <?= json_encode($revenue_labels) ?>,
+            datasets: [{
+                label: 'Pendapatan (Rp)',
+                data: <?= json_encode($revenue_data) ?>,
+                borderColor: '#800000',
+                backgroundColor: 'rgba(128, 0, 0, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { borderDash: [2, 4] } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    const popCtx = document.getElementById('popularChart').getContext('2d');
+    new Chart(popCtx, {
+        type: 'doughnut',
+        data: {
+            labels: <?= json_encode($popular_labels) ?>,
+            datasets: [{
+                data: <?= json_encode($popular_data) ?>,
+                backgroundColor: ['#800000', '#d4af37', '#166534', '#d97706', '#475569'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } }
+            }
+        }
+    });
+</script>
 </body>
 </html>
