@@ -128,11 +128,17 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
             </div>
         <div class="w-full lg:w-2/3">
             <div class="bg-white rounded-2xl p-6 border border-[#e2e2e2] shadow-sm hover-lift">
-                <div class="flex items-center gap-3 mb-6">
-                    <div class="w-10 h-10 rounded-lg bg-[#800000]/10 text-[#800000] flex items-center justify-center">
-                        <i data-lucide="clock" class="w-5 h-5"></i>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-[#800000]/10 text-[#800000] flex items-center justify-center">
+                            <i data-lucide="clock" class="w-5 h-5"></i>
+                        </div>
+                        <h5 class="text-lg font-bold text-[#1a1c1c]">Riwayat Transaksi</h5>
                     </div>
-                    <h5 class="text-lg font-bold text-[#1a1c1c]">Riwayat Transaksi</h5>
+                    <div class="relative w-full sm:w-64">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="searchInput" onkeyup="liveSearch()" placeholder="Cari pelanggan/ID..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#800000] focus:ring-1 focus:ring-[#800000]">
+                    </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
@@ -145,14 +151,21 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
                                 <th class="p-4 text-center rounded-tr-xl">Aksi</th>
                             </tr>
                         </thead>
-                            <tbody>
+                            <tbody id="tableBody">
                                 <?php
+                                $filter_status = isset($_GET['status']) ? mysqli_real_escape_string($conn, $_GET['status']) : '';
+                                $where_clause = "";
+                                if ($filter_status === 'pending') {
+                                    $where_clause = "WHERE t.status_sewa = 'pending'";
+                                }
+
                                 $sql = "SELECT t.*, p.nama, p.no_telp, m.merk, s.nama_supir,
                                         IFNULL((SELECT SUM(jumlah_bayar) FROM pembayaran WHERE id_sewa = t.id_sewa), 0) AS uang_dibayar
                                         FROM transaksi_sewa t
                                         JOIN pelanggan p ON t.id_pelanggan = p.id_pelanggan
                                         JOIN mobil m ON t.kode_mobil = m.kode_mobil
                                         LEFT JOIN supir s ON t.id_supir = s.id_supir
+                                        $where_clause
                                         ORDER BY t.tanggal_sewa DESC";
                                 $res = mysqli_query($conn, $sql);
                                 
@@ -200,17 +213,11 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
                                     <td class="p-4 text-center">
                                         <div class="flex items-center justify-center gap-2">
                                             <?php if ($row['status_sewa'] == 'pending'): ?>
-                                                <?php if ($row['pake_supir'] == 'Ya'): ?>
-                                                    <button type="button" onclick="openAccSupirModal(<?= $row['id_sewa'] ?>)" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-colors border border-blue-200" title="Pilih Supir & ACC">
-                                                        <i data-lucide="check-square" class="w-4 h-4"></i>
-                                                    </button>
-                                                <?php else: ?>
-                                                    <a href="acc_transaksi_supir.php?id_sewa=<?= $row['id_sewa'] ?>&id_supir=" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-colors border border-blue-200" title="ACC & Diterima" onclick="return confirm('Apakah Anda yakin ingin menyetujui pesanan Lepas Kunci ini?');">
-                                                        <i data-lucide="calendar-check" class="w-4 h-4"></i>
-                                                    </a>
-                                                <?php endif; ?>
+                                                <a href="acc_transaksi_supir.php?id_sewa=<?= $row['id_sewa'] ?>" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-colors border border-blue-200" title="ACC Otomatis (Setujui)" onclick="return confirm('Apakah Anda yakin ingin menyetujui pesanan ini? Sistem akan otomatis mencarikan supir jika dibutuhkan.');">
+                                                    <i data-lucide="check-square" class="w-4 h-4"></i>
+                                                </a>
                                             <?php endif; ?>
-                                            <a href="edit_transaksi.php?id=<?php echo $row['id_sewa']; ?>" class="w-8 h-8 rounded-lg bg-slate-50 text-slate-600 flex items-center justify-center hover:bg-slate-600 hover:text-white transition-colors" title="Edit & Pilih Supir">
+                                            <a href="edit_transaksi.php?id=<?php echo $row['id_sewa']; ?>" class="w-8 h-8 rounded-lg bg-slate-50 text-slate-600 flex items-center justify-center hover:bg-slate-600 hover:text-white transition-colors" title="Edit Transaksi">
                                                 <i data-lucide="edit-2" class="w-4 h-4"></i>
                                             </a>
                                             <a href="pembayaran.php?id=<?php echo $row['id_sewa']; ?>" class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-colors" title="Pembayaran">
@@ -219,7 +226,7 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
                                             <?php 
                                                 $wa_customer_phone = formatWhatsAppNumber($row['no_telp']);
                                             ?>
-                                            <button type="button" class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-colors" title="Bot Kirim Tagihan" onclick="openBotModal('<?= $row['id_sewa'] ?>', '<?= $wa_customer_phone ?>', '<?= htmlspecialchars(addslashes($row['nama'])) ?>', <?= $row['total_biaya'] ?>, '<?= $row['tanggal_sewa'] ?>', <?= $row['lama_sewa'] ?>, '<?= htmlspecialchars(addslashes($row['merk'])) ?>', '<?= $row['pake_supir'] ?>', '<?= htmlspecialchars(addslashes($row['nama_supir'] ?? '')) ?>')">
+                                            <button type="button" class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-colors" title="Bot Kirim Tagihan" onclick="openBotModal('<?= $row['id_sewa'] ?>', '<?= $wa_customer_phone ?>', '<?= htmlspecialchars(addslashes($row['nama'])) ?>', '<?= $row['total_biaya'] ?>', '<?= $row['tanggal_sewa'] ?>', '<?= $row['lama_sewa'] ?>', '<?= htmlspecialchars(addslashes($row['merk'])) ?>', '<?= $row['pake_supir'] ?>', '<?= htmlspecialchars(addslashes($row['nama_supir'] ?? '')) ?>')">
                                                 <i data-lucide="bot" class="w-4 h-4"></i>
                                             </button>
                                         </div>
@@ -323,6 +330,24 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
         }
         document.getElementById('formAccSupir').submit();
     }
+
+    function liveSearch() {
+        const input = document.getElementById("searchInput");
+        const filter = input.value.toUpperCase();
+        const tbody = document.getElementById("tableBody");
+        const tr = tbody.getElementsByTagName("tr");
+
+        for (let i = 0; i < tr.length; i++) {
+            if (tr[i].getElementsByTagName("td").length > 0) {
+                const textContent = tr[i].textContent || tr[i].innerText;
+                if (textContent.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
 </script>
 
 <!-- MODAL ACC SUPIR -->
@@ -401,7 +426,7 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
 </div>
 
 <script>
-function openBotModal(idSewa, phone, nama, totalBiaya, tglSewa, lamaSewa, merk, pakeSupir, namaSupir) {
+function openBotModal(idSewa, phone, nama, totalBiaya, tglSewa, lamaSewa, merk, pakeSupir, namaSupir, isAcc = false) {
     if (!phone || phone.trim() === "") {
         alert("Gagal memproses: Nomor WhatsApp pelanggan tidak valid atau belum terdaftar!");
         return;
@@ -420,7 +445,12 @@ function openBotModal(idSewa, phone, nama, totalBiaya, tglSewa, lamaSewa, merk, 
     let supirText = (pakeSupir === 'Ya') ? `\n👨‍✈️ Supir: ${namaSupir}` : `\n👨‍✈️ Supir: Tidak (Lepas Kunci)`;
     let noteText = (pakeSupir === 'Ya') ? `\n*Catatan:* Biaya di atas belum termasuk pengisian BBM, tarif Tol, Parkir, dan Uang Makan Supir.` : `\n*Catatan:* Biaya di atas belum termasuk pengisian BBM, tarif Tol, dan Parkir.`;
 
-    const message = `Halo Kak *${nama}*,\n\nBerikut adalah rincian tagihan pesanan Anda di *Indomax Rental Mobil*:\n\n*Detail Pesanan:*\n🔖 ID Transaksi: #${idSewa}\n📅 Tanggal Sewa: ${tglSewa}\n⏳ Lama Sewa: ${lamaSewa} Hari\n🚗 Mobil: ${merk}${supirText}\n\n💰 *Total Tagihan: ${formatter.format(totalBiaya)}*\n${noteText}\n\nTerima kasih telah mempercayakan perjalanan Anda bersama Indomax Rental Mobil! 🙏`;
+    let message = '';
+    if (isAcc) {
+        message = `Halo Kak *${nama}*,\n\nKabar gembira! Pesanan Anda di *Indomax Rental Mobil* telah *DISETUJUI (ACC)*.\n\n*Detail Pesanan:*\n🔖 ID Transaksi: #${idSewa}\n📅 Tanggal Sewa: ${tglSewa}\n⏳ Lama Sewa: ${lamaSewa} Hari\n🚗 Mobil: ${merk}${supirText}\n\n💰 *Total Biaya: ${formatter.format(totalBiaya)}*\n\nMohon segera melengkapi pembayaran agar kendaraan dapat disiapkan.\n\nTerima kasih! 🙏`;
+    } else {
+        message = `Halo Kak *${nama}*,\n\nBerikut adalah rincian tagihan pesanan Anda di *Indomax Rental Mobil*:\n\n*Detail Pesanan:*\n🔖 ID Transaksi: #${idSewa}\n📅 Tanggal Sewa: ${tglSewa}\n⏳ Lama Sewa: ${lamaSewa} Hari\n🚗 Mobil: ${merk}${supirText}\n\n💰 *Total Tagihan: ${formatter.format(totalBiaya)}*\n${noteText}\n\nTerima kasih telah mempercayakan perjalanan Anda bersama Indomax Rental Mobil! 🙏`;
+    }
     
     document.getElementById('botMessageContent').textContent = message;
     
@@ -434,5 +464,35 @@ function openBotModal(idSewa, phone, nama, totalBiaya, tglSewa, lamaSewa, merk, 
     }, 1500);
 }
 </script>
+
+<?php
+if (isset($_GET['acc_id'])) {
+    $acc_id = mysqli_real_escape_string($conn, $_GET['acc_id']);
+    $q_bot = mysqli_query($conn, "SELECT t.*, p.nama, p.no_telp, m.merk, s.nama_supir 
+                                  FROM transaksi_sewa t
+                                  JOIN pelanggan p ON t.id_pelanggan = p.id_pelanggan
+                                  JOIN mobil m ON t.kode_mobil = m.kode_mobil
+                                  LEFT JOIN supir s ON t.id_supir = s.id_supir
+                                  WHERE t.id_sewa = '$acc_id'");
+    if ($row_bot = mysqli_fetch_assoc($q_bot)) {
+        $phone = formatWhatsAppNumber($row_bot['no_telp']);
+        $nama = addslashes($row_bot['nama']);
+        $biaya = $row_bot['total_biaya'];
+        $tgl = $row_bot['tanggal_sewa'];
+        $lama = $row_bot['lama_sewa'];
+        $merk = addslashes($row_bot['merk']);
+        $pake_supir = $row_bot['pake_supir'];
+        $nama_supir = addslashes($row_bot['nama_supir'] ?? '');
+        
+        echo "<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                openBotModal('$acc_id', '$phone', '$nama', '$biaya', '$tgl', '$lama', '$merk', '$pake_supir', '$nama_supir', true);
+            }, 500);
+        });
+        </script>";
+    }
+}
+?>
 </body>
 </html>

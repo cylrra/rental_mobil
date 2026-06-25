@@ -162,7 +162,7 @@ if ($query_user) {
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive" id="tabelPesanan"> <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
+                            <thead class="table-light text-nowrap">
                                 <tr>
                                     <th class="ps-4">Order</th>
                                     <th>Mobil</th>
@@ -183,37 +183,52 @@ if ($query_user) {
                                 
                                 if(mysqli_num_rows($res) > 0) {
                                     while($row = mysqli_fetch_assoc($res)) {
-                                        $st = !empty($row['status_sewa']) ? $row['status_sewa'] : 'pending';
+                                        $st = !empty($row['status_sewa']) ? strtolower($row['status_sewa']) : 'pending';
                                         $merk = !empty($row['merk']) ? $row['merk'] : 'Mobil Dihapus';
                                         
-                                        if($st == 'selesai') { $clr = 'success'; }
-                                        elseif($st == 'berjalan') { $clr = 'warning'; }
-                                        else { $clr = 'secondary'; }
+                                        $badge_html = '';
+                                        $instruction = '';
+                                        if ($st == 'pending') {
+                                            $badge_html = '<span class="badge bg-secondary text-white rounded-pill px-2 py-1" style="font-size:11px;">Menunggu Acc</span>';
+                                            $instruction = '<small class="text-muted d-block mt-1 fw-medium text-nowrap" style="font-size:10px;">Mohon tunggu persetujuan</small>';
+                                        } elseif ($st == 'diterima') {
+                                            $badge_html = '<span class="badge bg-primary text-white rounded-pill px-2 py-1" style="font-size:11px;">Menunggu Bayar</span>';
+                                            $instruction = '<a href="pembayaran.php?id='.$row['id_sewa'].'" class="btn btn-sm btn-danger rounded-pill mt-1 fw-bold shadow-sm text-nowrap d-inline-block" style="font-size:10px; padding: 4px 12px; background-color: #9e0000; border-color: #9e0000;">Bayar Sekarang</a>';
+                                        } elseif ($st == 'dp') {
+                                            $badge_html = '<span class="badge bg-info text-dark rounded-pill px-2 py-1" style="font-size:11px;">DP Terbayar</span>';
+                                            $instruction = '<a href="pembayaran.php?id='.$row['id_sewa'].'" class="btn btn-sm btn-outline-primary rounded-pill mt-1 fw-bold text-nowrap d-inline-block" style="font-size:10px; padding: 4px 12px;">Lunasi Kekurangan</a>';
+                                        } elseif ($st == 'berjalan') {
+                                            $badge_html = '<span class="badge bg-warning text-dark rounded-pill px-2 py-1" style="font-size:11px;">Sedang Disewa</span>';
+                                            $instruction = '<small class="text-warning-emphasis d-block mt-1 fw-bold text-nowrap" style="font-size:10px;">Hati-hati berkendara</small>';
+                                        } elseif ($st == 'selesai') {
+                                            $badge_html = '<span class="badge bg-success text-white rounded-pill px-2 py-1" style="font-size:11px;">Selesai</span>';
+                                            $instruction = '<small class="text-success d-block mt-1 fw-bold text-nowrap" style="font-size:10px;">Telah Dikembalikan</small>';
+                                        } else {
+                                            $badge_html = '<span class="badge bg-dark rounded-pill px-2 py-1 text-nowrap">'.$st.'</span>';
+                                        }
                                 ?>
                                 <tr>
-                                    <td class="ps-4 fw-bold text-primary">#<?= $row['id_sewa'] ?></td>
-                                    <td><strong><?= htmlspecialchars($merk) ?></strong><br><small class="text-muted"><?= htmlspecialchars($row['nopol'] ?? '-') ?></small></td>
-                                    <td><?= date('d/m/y', strtotime($row['tanggal_sewa'])) ?></td>
-                                    <td class="text-center">
-                                        <span class="badge rounded-pill bg-<?= $clr ?> opacity-75 mb-1"><?= ucfirst($st) ?></span><br>
-                                        <?php if($row['jumlah_bayar'] > 0): ?>
-                                            <small class="text-success fw-bold">Dibayar Rp <?= number_format($row['jumlah_bayar'], 0, ',', '.') ?></small>
-                                        <?php elseif($st == 'pending' || $st == 'diterima'): ?>
-                                            <small class="text-danger fw-bold">Belum Dibayar</small>
-                                        <?php endif; ?>
+                                    <td class="ps-4 fw-bold text-primary align-middle" style="font-size:13px;">#<?= $row['id_sewa'] ?></td>
+                                    <td class="align-middle"><strong class="text-nowrap" style="font-size:14px;"><?= htmlspecialchars($merk) ?></strong><br><small class="text-muted text-nowrap" style="font-size:11px;"><?= htmlspecialchars($row['nopol'] ?? '-') ?></small></td>
+                                    <td class="align-middle text-nowrap" style="font-size:13px;"><?= date('d M Y', strtotime($row['tanggal_sewa'])) ?></td>
+                                    <td class="text-center align-middle">
+                                        <?= $badge_html ?>
+                                        <?= $instruction ?>
                                     </td>
-                                    <td class="text-center pe-4 d-flex justify-content-center gap-1">
-                                        <a href="riwayat_pembayaran.php" class="btn btn-sm btn-light border rounded-pill px-3">Detail</a>
-                                        <?php if($st == 'berjalan'): ?>
-                                            <a href="tracking.php?id=<?= $row['id_sewa'] ?>" class="btn btn-sm btn-success rounded-pill px-3 fw-semibold text-white shadow-sm" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;"><i class="bi bi-geo-alt-fill me-1"></i>Lacak</a>
-                                        <?php endif; ?>
-                                        <?php if($st == 'selesai'): ?>
-                                            <?php if(empty($row['id_rating'])): ?>
-                                                <a href="ulasan_rating.php?id_sewa=<?= $row['id_sewa'] ?>" class="btn btn-sm btn-warning rounded-pill px-3 fw-semibold"><i class="bi bi-star-fill me-1"></i>Rating</a>
-                                            <?php else: ?>
-                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 d-flex align-items-center"><i class="bi bi-check2-circle me-1"></i>Dinilai</span>
+                                    <td class="text-center pe-4 align-middle">
+                                        <div class="d-flex justify-content-center align-items-center gap-2 flex-nowrap">
+                                            <a href="riwayat_pembayaran.php" class="btn btn-sm btn-light border rounded-pill px-3 text-nowrap" style="font-size: 11px; font-weight: 600;">Detail</a>
+                                            <?php if($st == 'berjalan'): ?>
+                                                <a href="tracking.php?id=<?= $row['id_sewa'] ?>" class="btn btn-sm btn-success rounded-pill px-3 fw-semibold text-white shadow-sm text-nowrap" style="font-size: 11px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;"><i class="bi bi-geo-alt-fill me-1"></i>Lacak</a>
                                             <?php endif; ?>
-                                        <?php endif; ?>
+                                            <?php if($st == 'selesai'): ?>
+                                                <?php if(empty($row['id_rating'])): ?>
+                                                    <a href="ulasan_rating.php?id_sewa=<?= $row['id_sewa'] ?>" class="btn btn-sm btn-warning rounded-pill px-3 fw-semibold text-nowrap" style="font-size: 11px;"><i class="bi bi-star-fill me-1"></i>Rating</a>
+                                                <?php else: ?>
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 d-flex align-items-center text-nowrap" style="font-size: 11px;"><i class="bi bi-check2-circle me-1"></i>Dinilai</span>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
+                                        </div>
                                     </td>
                                 </tr>
                                 <?php } } else { echo "<tr><td colspan='5' class='text-center py-5 text-muted'>Belum ada transaksi.</td></tr>"; } ?>

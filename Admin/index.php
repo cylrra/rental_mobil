@@ -10,17 +10,16 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 
 include 'koneksi.php'; 
 
-$query_mobil = mysqli_query($conn, "SELECT COUNT(*) as total FROM mobil");
-$total_mobil = mysqli_fetch_assoc($query_mobil)['total'] ?? 0;
-
-$query_transaksi = mysqli_query($conn, "SELECT COUNT(*) as total FROM transaksi_sewa");
-$total_transaksi = mysqli_fetch_assoc($query_transaksi)['total'] ?? 0;
+$q_unit = mysqli_query($conn, "SELECT SUM(Unit_Tersedia) as total_unit FROM mobil");
+$total_unit = mysqli_fetch_assoc($q_unit)['total_unit'] ?? 0;
 
 $query_berjalan = mysqli_query($conn, "SELECT COUNT(*) as total FROM transaksi_sewa WHERE status_sewa = 'berjalan'");
 $total_berjalan = mysqli_fetch_assoc($query_berjalan)['total'] ?? 0;
 
-$query_pelanggan = mysqli_query($conn, "SELECT COUNT(*) as total FROM pelanggan");
-$total_pelanggan = mysqli_fetch_assoc($query_pelanggan)['total'] ?? 0;
+$armada_tersedia = max(0, $total_unit - $total_berjalan);
+
+$query_pending = mysqli_query($conn, "SELECT COUNT(*) as total FROM transaksi_sewa WHERE status_sewa = 'pending'");
+$total_pending = mysqli_fetch_assoc($query_pending)['total'] ?? 0;
 
 $query_pendapatan = mysqli_query($conn, "SELECT SUM(jumlah_bayar) as total FROM pembayaran");
 $total_pendapatan = mysqli_fetch_assoc($query_pendapatan)['total'] ?? 0;
@@ -85,9 +84,9 @@ include 'navbar.php';
             <div class="w-12 h-12 bg-white/15 rounded-xl flex items-center justify-center mb-4 backdrop-blur-sm">
                 <i data-lucide="truck" class="w-6 h-6 text-white"></i>
             </div>
-            <p class="text-white/70 text-xs font-bold uppercase tracking-wider mb-1">Total Armada</p>
-            <h3 class="text-4xl font-black"><?= $total_mobil ?></h3>
-            <p class="text-white/60 text-xs mt-1">Unit Terdaftar</p>
+            <p class="text-white/70 text-xs font-bold uppercase tracking-wider mb-1">Armada Tersedia</p>
+            <h3 class="text-4xl font-black"><?= $armada_tersedia ?></h3>
+            <p class="text-white/60 text-xs mt-1">Unit Siap Sewa</p>
         </a>
 
         <a href="transaksi.php" class="stat-card bg-gradient-to-br from-[#d4af37] to-[#a07c10] rounded-2xl p-6 shadow-lg shadow-[#d4af37]/20 text-white relative overflow-hidden block">
@@ -100,14 +99,14 @@ include 'navbar.php';
             <p class="text-white/70 text-xs mt-1">Sedang Berjalan</p>
         </a>
 
-        <a href="pelanggan.php" class="stat-card bg-gradient-to-br from-[#1e3a5f] to-[#0d1f35] rounded-2xl p-6 shadow-lg shadow-[#1e3a5f]/20 text-white relative overflow-hidden block">
+        <a href="transaksi.php?status=pending" class="stat-card bg-gradient-to-br from-[#d97706] to-[#92400e] rounded-2xl p-6 shadow-lg shadow-[#d97706]/20 text-white relative overflow-hidden block">
             <div class="absolute -right-4 -top-4 w-24 h-24 bg-white/5 rounded-full"></div>
             <div class="w-12 h-12 bg-white/15 rounded-xl flex items-center justify-center mb-4">
-                <i data-lucide="users" class="w-6 h-6 text-white"></i>
+                <i data-lucide="clock" class="w-6 h-6 text-white"></i>
             </div>
-            <p class="text-white/70 text-xs font-bold uppercase tracking-wider mb-1">Pelanggan</p>
-            <h3 class="text-4xl font-black"><?= $total_pelanggan ?></h3>
-            <p class="text-white/60 text-xs mt-1">Terdaftar</p>
+            <p class="text-white/70 text-xs font-bold uppercase tracking-wider mb-1">Transaksi Pending</p>
+            <h3 class="text-4xl font-black"><?= $total_pending ?></h3>
+            <p class="text-white/60 text-xs mt-1">Butuh ACC</p>
         </a>
 
         <a href="laporan_laba_rugi.php" class="stat-card bg-gradient-to-br from-[#166534] to-[#052e16] rounded-2xl p-6 shadow-lg shadow-[#166534]/20 text-white relative overflow-hidden block">
@@ -136,18 +135,13 @@ include 'navbar.php';
             <div class="grid grid-cols-3 sm:grid-cols-4 gap-4">
                 <?php
                 $menus = [
-                    ['href'=>'transaksi.php', 'icon'=>'clipboard-list', 'label'=>'Transaksi', 'bg'=>'bg-[#800000]/10', 'text'=>'text-[#800000]', 'hover_bg'=>'group-hover:bg-[#800000]'],
-                    ['href'=>'pembayaran.php', 'icon'=>'wallet', 'label'=>'Pembayaran', 'bg'=>'bg-[#d4af37]/10', 'text'=>'text-[#a07c10]', 'hover_bg'=>'group-hover:bg-[#d4af37]'],
-                    ['href'=>'mobil.php', 'icon'=>'truck', 'label'=>'Armada', 'bg'=>'bg-blue-50', 'text'=>'text-blue-600', 'hover_bg'=>'group-hover:bg-blue-600'],
-                    ['href'=>'pelanggan.php', 'icon'=>'users', 'label'=>'Pelanggan', 'bg'=>'bg-purple-50', 'text'=>'text-purple-600', 'hover_bg'=>'group-hover:bg-purple-600'],
                     ['href'=>'supir.php', 'icon'=>'user-square', 'label'=>'Supir', 'bg'=>'bg-cyan-50', 'text'=>'text-cyan-600', 'hover_bg'=>'group-hover:bg-cyan-600'],
-                    ['href'=>'jadwal_service.php', 'icon'=>'calendar-check', 'label'=>'Servis', 'bg'=>'bg-orange-50', 'text'=>'text-orange-600', 'hover_bg'=>'group-hover:bg-orange-600'],
-                    ['href'=>'jurnal_umum.php', 'icon'=>'book-open', 'label'=>'Jurnal', 'bg'=>'bg-emerald-50', 'text'=>'text-emerald-600', 'hover_bg'=>'group-hover:bg-emerald-600'],
-                    ['href'=>'cetak_kwitansi.php', 'icon'=>'printer', 'label'=>'Invoice', 'bg'=>'bg-rose-50', 'text'=>'text-rose-600', 'hover_bg'=>'group-hover:bg-rose-600'],
-                    ['href'=>'laporan_laba_rugi.php', 'icon'=>'trending-up', 'label'=>'Laba Rugi', 'bg'=>'bg-teal-50', 'text'=>'text-teal-600', 'hover_bg'=>'group-hover:bg-teal-600'],
-                    ['href'=>'grafik_rating.php', 'icon'=>'star', 'label'=>'Rating', 'bg'=>'bg-amber-50', 'text'=>'text-amber-600', 'hover_bg'=>'group-hover:bg-amber-600'],
-                    ['href'=>'grafik_transaksi.php', 'icon'=>'bar-chart-3', 'label'=>'Grafik', 'bg'=>'bg-indigo-50', 'text'=>'text-indigo-600', 'hover_bg'=>'group-hover:bg-indigo-600'],
+                    ['href'=>'mobil.php', 'icon'=>'truck', 'label'=>'Mobil', 'bg'=>'bg-blue-50', 'text'=>'text-blue-600', 'hover_bg'=>'group-hover:bg-blue-600'],
+                    ['href'=>'pelanggan.php', 'icon'=>'users', 'label'=>'Pelanggan', 'bg'=>'bg-purple-50', 'text'=>'text-purple-600', 'hover_bg'=>'group-hover:bg-purple-600'],
+                    ['href'=>'jadwal_service.php', 'icon'=>'calendar-check', 'label'=>'Service', 'bg'=>'bg-orange-50', 'text'=>'text-orange-600', 'hover_bg'=>'group-hover:bg-orange-600'],
                     ['href'=>'tracking.php', 'icon'=>'map-pin', 'label'=>'Tracking', 'bg'=>'bg-red-50', 'text'=>'text-red-600', 'hover_bg'=>'group-hover:bg-red-600'],
+                    ['href'=>'riwayat_jurnal_umum.php', 'icon'=>'book-open', 'label'=>'Riwayat Jurnal', 'bg'=>'bg-emerald-50', 'text'=>'text-emerald-600', 'hover_bg'=>'group-hover:bg-emerald-600'],
+                    ['href'=>'pembayaran.php', 'icon'=>'wallet', 'label'=>'Pembayaran', 'bg'=>'bg-[#d4af37]/10', 'text'=>'text-[#a07c10]', 'hover_bg'=>'group-hover:bg-[#d4af37]'],
                 ];
                 foreach($menus as $m):
                 ?>
@@ -162,7 +156,7 @@ include 'navbar.php';
         </div>
 
         <!-- Rating Summary -->
-        <div class="bg-white rounded-2xl p-6 border border-[#e2e2e2] shadow-sm">
+        <a href="grafik_rating.php" class="bg-white rounded-2xl p-6 border border-[#e2e2e2] shadow-sm block hover:border-[#800000] transition-colors cursor-pointer group">
             <div class="flex items-center gap-3 mb-5">
                 <div class="w-9 h-9 rounded-lg bg-[#d4af37]/15 flex items-center justify-center">
                     <i data-lucide="star" class="w-4 h-4 text-[#d4af37]"></i>
@@ -197,7 +191,7 @@ include 'navbar.php';
                 </div>
                 <?php endfor; ?>
             </div>
-        </div>
+        </a>
 
     </div>
 

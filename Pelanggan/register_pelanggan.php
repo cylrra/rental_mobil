@@ -209,8 +209,29 @@ if (isset($_POST['register'])) {
                 
                 <div class="mb-4">
                     <label class="form-label small fw-bold text-secondary">Password</label>
-                    <input type="password" name="password" class="form-control" placeholder="Buat password minimal 6 karakter" required>
+                    <div class="input-group">
+                        <input type="password" name="password" id="passwordField" class="form-control border-end-0" placeholder="Buat password minimal 6 karakter" required>
+                        <span class="input-group-text bg-white border-start-0" style="cursor: pointer; border-radius: 0 8px 8px 0; border-color: #e2e2e2;" onclick="togglePassword()">
+                            <i class="bi bi-eye text-secondary" id="toggleIcon"></i>
+                        </span>
+                    </div>
                 </div>
+
+                <script>
+                    function togglePassword() {
+                        const passwordField = document.getElementById('passwordField');
+                        const toggleIcon = document.getElementById('toggleIcon');
+                        if (passwordField.type === 'password') {
+                            passwordField.type = 'text';
+                            toggleIcon.classList.remove('bi-eye');
+                            toggleIcon.classList.add('bi-eye-slash');
+                        } else {
+                            passwordField.type = 'password';
+                            toggleIcon.classList.remove('bi-eye-slash');
+                            toggleIcon.classList.add('bi-eye');
+                        }
+                    }
+                </script>
 
                 <button type="submit" name="register" class="btn btn-submit w-100 mb-3">
                     Daftar Akun <i class="bi bi-arrow-right-short ms-1 fs-5"></i>

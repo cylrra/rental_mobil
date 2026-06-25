@@ -35,7 +35,7 @@ function getIconClass($page, $current_page, $colorClass = 'text-white') {
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap-5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Google Fonts Montserrat -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
     <!-- Lucide Icons -->
@@ -148,6 +148,14 @@ function getIconClass($page, $current_page, $colorClass = 'text-white') {
             transform: translateY(-4px);
             box-shadow: 0 12px 24px rgba(0, 0, 0, 0.04);
         }
+        
+        /* Sidebar transition */
+        #sidebar {
+            transition: margin-left 0.3s ease-in-out;
+        }
+        .sidebar-hidden {
+            margin-left: -18rem; /* w-72 = 18rem */
+        }
     </style>
 </head>
 <body class="bg-[#f9f9f9] text-[#1a1c1c] font-sans antialiased">
@@ -228,9 +236,14 @@ function getIconClass($page, $current_page, $colorClass = 'text-white') {
     <main class="flex-1 flex flex-col h-screen overflow-hidden bg-[#f9f9f9]">
         
         <header class="h-20 header-constellation flex items-center justify-between px-10 shrink-0 sticky top-0 z-10">
-            <div class="transform transition-transform hover:translate-x-1 cursor-default">
-                <h2 class="text-xs font-black text-[#d4af37] uppercase tracking-[0.2em]">Sistem Informasi Armada</h2>
-                <h3 class="text-2xl font-black text-[#800000] tracking-tight mt-0.5">PT INDOMAX RENTAL</h3>
+            <div class="flex items-center gap-4">
+                <button id="sidebarToggle" class="p-2 rounded-lg hover:bg-black/5 text-[#800000] transition-colors focus:outline-none focus:ring-2 focus:ring-[#800000]/20" title="Toggle Sidebar">
+                    <i class="w-6 h-6" data-lucide="menu"></i>
+                </button>
+                <div class="transform transition-transform hover:translate-x-1 cursor-default">
+                    <h2 class="text-xs font-black text-[#d4af37] uppercase tracking-[0.2em]">Sistem Informasi Armada</h2>
+                    <h3 class="text-2xl font-black text-[#800000] tracking-tight mt-0.5">PT INDOMAX RENTAL</h3>
+                </div>
             </div>
             <div class="flex items-center gap-3 bg-white border border-[#e2e2e2] hover:border-[#800000] hover:shadow-md hover:-translate-y-1 transition-all duration-300 px-4 py-2 rounded-xl cursor-pointer group">
                 <div class="w-10 h-10 rounded-lg bg-[#800000]/10 flex items-center justify-center text-[#800000] group-hover:bg-[#800000] group-hover:text-white transition-colors duration-300">
@@ -244,3 +257,24 @@ function getIconClass($page, $current_page, $colorClass = 'text-white') {
         </header>
  
         <div class="flex-1 overflow-y-auto p-10 space-y-10 custom-scrollbars relative">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const sidebar = document.getElementById('sidebar');
+                const toggleBtn = document.getElementById('sidebarToggle');
+                
+                if (sidebar && toggleBtn) {
+                    toggleBtn.addEventListener('click', function() {
+                        sidebar.classList.toggle('sidebar-hidden');
+                        if(sidebar.classList.contains('sidebar-hidden')) {
+                            localStorage.setItem('adminSidebarState', 'hidden');
+                        } else {
+                            localStorage.setItem('adminSidebarState', 'visible');
+                        }
+                    });
+                    
+                    if(localStorage.getItem('adminSidebarState') === 'hidden') {
+                        sidebar.classList.add('sidebar-hidden');
+                    }
+                }
+            });
+        </script>

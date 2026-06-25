@@ -223,9 +223,28 @@ if (isset($_POST['login'])) {
                         <span class="input-group-text border-end-0">
                             <i class="bi bi-key text-secondary"></i>
                         </span>
-                        <input type="password" name="password" class="form-control border-start-0" placeholder="Password" style="border-radius: 0 8px 8px 0;" required>
+                        <input type="password" name="password" id="passwordField" class="form-control border-start-0 border-end-0" placeholder="Password" required>
+                        <span class="input-group-text border-start-0" style="cursor: pointer; border-radius: 0 8px 8px 0;" onclick="togglePassword()">
+                            <i class="bi bi-eye text-secondary" id="toggleIcon"></i>
+                        </span>
                     </div>
                 </div>
+
+                <script>
+                    function togglePassword() {
+                        const passwordField = document.getElementById('passwordField');
+                        const toggleIcon = document.getElementById('toggleIcon');
+                        if (passwordField.type === 'password') {
+                            passwordField.type = 'text';
+                            toggleIcon.classList.remove('bi-eye');
+                            toggleIcon.classList.add('bi-eye-slash');
+                        } else {
+                            passwordField.type = 'password';
+                            toggleIcon.classList.remove('bi-eye-slash');
+                            toggleIcon.classList.add('bi-eye');
+                        }
+                    }
+                </script>
 
                 <button type="submit" name="login" class="btn btn-submit w-100 mb-4">
                     Masuk Sebagai Admin <i class="bi bi-arrow-right-short ms-1 fs-5"></i>

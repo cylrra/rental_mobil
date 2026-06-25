@@ -44,7 +44,11 @@ $res_detail_pakai = mysqli_query($conn, $query_terpakai);
         <p class="text-slate-500 mt-1 font-medium italic">Kelola ketersediaan dan detail kendaraan operasional.</p>
     </div>
     
-    <div class="flex flex-wrap items-center gap-3">
+    <div class="flex flex-wrap items-center justify-end gap-3 w-full lg:w-auto">
+        <div class="relative w-full sm:w-64 mb-2 lg:mb-0">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" id="searchInput" onkeyup="liveSearch()" placeholder="Cari mobil..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#800000] focus:ring-1 focus:ring-[#800000]">
+        </div>
         <span class="bg-blue-50 text-blue-600 px-4 py-2.5 rounded-xl text-sm font-bold border border-blue-100 flex items-center gap-2">
             <i data-lucide="layers" class="w-4 h-4"></i> <?php echo $total_tipe; ?> Tipe Mobil
         </span>
@@ -97,7 +101,7 @@ $res_detail_pakai = mysqli_query($conn, $query_terpakai);
             }
     ?>
     
-    <div class="bg-white rounded-[20px] overflow-hidden hover-lift group flex flex-col h-full border border-slate-200 shadow-sm">
+    <div class="car-card bg-white rounded-[20px] overflow-hidden hover-lift group flex flex-col h-full border border-slate-200 shadow-sm">
         
         <div class="relative h-56 w-full overflow-hidden bg-white border-b border-slate-100">
             <div class="absolute top-4 right-4 z-10 flex flex-col gap-2 items-end">
@@ -234,4 +238,20 @@ $res_detail_pakai = mysqli_query($conn, $query_terpakai);
             lucide.createIcons();
         }
     });
+
+    function liveSearch() {
+        const input = document.getElementById("searchInput");
+        const filter = input.value.toUpperCase();
+        const cards = document.getElementsByClassName("car-card");
+
+        for (let i = 0; i < cards.length; i++) {
+            const textContent = cards[i].textContent || cards[i].innerText;
+            if (textContent.toUpperCase().indexOf(filter) > -1) {
+                cards[i].parentElement.style.display = ""; // Assuming cards might be wrapped, actually cards themselves can be hidden
+                cards[i].style.display = "flex";
+            } else {
+                cards[i].style.display = "none";
+            }
+        }
+    }
 </script>

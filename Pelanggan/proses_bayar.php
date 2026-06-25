@@ -21,12 +21,9 @@ if (isset($_POST['simpan_pembayaran'])) {
     $tipe_pembayaran = ($jenis_bayar === 'DP') ? 'DP' : 'Lunas';
     $keterangan     = "Pembayaran " . strtoupper($tipe_pembayaran) . " Sewa Mobil ID: " . $id_sewa;
 
-    if ($metode === 'Transfer Bank' && !empty($bank_tujuan)) {
-        $bank_name = '';
-        if ($bank_tujuan == '1121') $bank_name = 'BCA';
-        else if ($bank_tujuan == '1122') $bank_name = 'BNI';
-        else if ($bank_tujuan == '1123') $bank_name = 'Mandiri';
-        $keterangan .= " (Transfer $bank_name)";
+    // Tambahkan metode spesifik ke keterangan (karena value metode_bayar sekarang "Transfer Bank BCA", dll)
+    if (!empty($metode)) {
+        $keterangan .= " ($metode)";
     }
 
     mysqli_begin_transaction($conn);
@@ -65,7 +62,14 @@ if (isset($_POST['simpan_pembayaran'])) {
         $id_sumber = mysqli_insert_id($conn);
         
         // 3. Posting ke Jurnal Umum
-        $akun_debit = ($metode === 'Transfer Bank' && !empty($bank_tujuan)) ? $bank_tujuan : '111';
+        $akun_debit = '111'; // Default Kas
+        if (strpos(strtolower($metode), 'bca') !== false) {
+            $akun_debit = '1121';
+        } elseif (strpos(strtolower($metode), 'bni') !== false) {
+            $akun_debit = '1122';
+        } elseif (strpos(strtolower($metode), 'mandiri') !== false) {
+            $akun_debit = '1123';
+        }
         
         $q_debit_sql = "INSERT INTO jurnal (tanggal, kode_akun, Debit, Kredit, keterangan, id_sumber) 
                         VALUES ('$tgl_bayar', '$akun_debit', '$nominal_final', 0, '$keterangan', '$id_sumber')";

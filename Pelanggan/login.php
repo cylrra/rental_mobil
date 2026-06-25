@@ -215,9 +215,28 @@ if (isset($_POST['login'])) {
                         <span class="input-group-text bg-light border-end-0" style="border-radius: 8px 0 0 8px; border-color: #e2e2e2;">
                             <i class="bi bi-key text-secondary"></i>
                         </span>
-                        <input type="password" name="password" class="form-control border-start-0" placeholder="Masukkan password" style="border-radius: 0 8px 8px 0;" required>
+                        <input type="password" name="password" id="passwordField" class="form-control border-start-0 border-end-0" placeholder="Masukkan password" required>
+                        <span class="input-group-text bg-light border-start-0" style="cursor: pointer; border-radius: 0 8px 8px 0; border-color: #e2e2e2;" onclick="togglePassword()">
+                            <i class="bi bi-eye text-secondary" id="toggleIcon"></i>
+                        </span>
                     </div>
                 </div>
+
+                <script>
+                    function togglePassword() {
+                        const passwordField = document.getElementById('passwordField');
+                        const toggleIcon = document.getElementById('toggleIcon');
+                        if (passwordField.type === 'password') {
+                            passwordField.type = 'text';
+                            toggleIcon.classList.remove('bi-eye');
+                            toggleIcon.classList.add('bi-eye-slash');
+                        } else {
+                            passwordField.type = 'password';
+                            toggleIcon.classList.remove('bi-eye-slash');
+                            toggleIcon.classList.add('bi-eye');
+                        }
+                    }
+                </script>
 
                 <button type="submit" name="login" class="btn btn-submit w-100 mb-4">
                     Masuk Akun <i class="bi bi-arrow-right-short ms-1 fs-5"></i>

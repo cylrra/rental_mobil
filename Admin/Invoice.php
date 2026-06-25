@@ -1,140 +1,149 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 include "koneksi.php";
 
-// Mengambil ID dari URL (disarankan menggunakan no_invoice atau id_sewa)
+// Ambil ID dari URL (id_sewa)
 $id = isset($_GET['id']) ? mysqli_real_escape_string($conn, $_GET['id']) : '';
 
 if (empty($id)) {
-    die("Data tidak ditemukan.");
+    die("<div style='text-align:center; margin-top:50px; font-family: sans-serif;'><h3>Parameter ID tidak ditemukan.</h3></div>");
 }
 
-// SQL Query yang menghubungkan tabel invoice, pelanggan, dan transaksi_sewa
-// Sesuaikan nama tabel 'invoice' jika di database Anda berbeda
-$query = "SELECT * FROM invoice 
-          JOIN pelanggan ON invoice.id_pelanggan = pelanggan.id_pelanggan 
-          JOIN transaksi_sewa ON invoice.id_sewa = transaksi_sewa.id_sewa
-          WHERE invoice.no_invoice = '$id' OR invoice.id_sewa = '$id'";
+// Ambil data dari transaksi_sewa dan pelanggan
+$query_ts = "SELECT t.*, p.nama as nama, p.alamat, p.no_telp, p.email, m.merk, m.jenis 
+             FROM transaksi_sewa t
+             JOIN pelanggan p ON t.id_pelanggan = p.id_pelanggan 
+             JOIN mobil m ON t.kode_mobil = m.kode_mobil
+             WHERE t.id_sewa = '$id'";
+$res_ts = mysqli_query($conn, $query_ts);
+$row_ts = mysqli_fetch_assoc($res_ts);
 
-$data = mysqli_query($conn, $query);
-$row = mysqli_fetch_assoc($data);
-
-if (!$row) {
-    die("Data invoice tidak ditemukan di database.");
+if (!$row_ts) {
+    die("<div style='text-align:center; margin-top:50px; font-family: sans-serif;'><h3>Data invoice / sewa tidak ditemukan.</h3></div>");
 }
+
+// Cek total dibayar dari pembayaran
+$query_pay = "SELECT SUM(jumlah_bayar) as sudah_dibayar FROM pembayaran WHERE id_sewa = '$id'";
+$res_pay = mysqli_query($conn, $query_pay);
+$sudah_dibayar = (int)mysqli_fetch_assoc($res_pay)['sudah_dibayar'];
+
+// LOGIKA HITUNGAN:
+$total_semua = (int)$row_ts['total_biaya'];
+$sisa_tagihan = $total_semua - $sudah_dibayar;
+
+// Mapping format data agar kompatibel dengan layout
+$row = [
+    'no_invoice' => 'INV-' . str_pad($row_ts['id_sewa'], 5, '0', STR_PAD_LEFT),
+    'tanggal_invoice' => $row_ts['tanggal_sewa'],
+    'jatuh_tempo' => date('Y-m-d', strtotime("+" . $row_ts['lama_sewa'] . " days", strtotime($row_ts['tanggal_sewa']))),
+    'nama' => $row_ts['nama'],
+    'alamat' => $row_ts['alamat'],
+    'no_telp' => $row_ts['no_telp'],
+    'email' => $row_ts['email'],
+    'kode_mobil' => $row_ts['kode_mobil'] . " - " . $row_ts['merk'] . " " . $row_ts['jenis'],
+    'lama_sewa' => $row_ts['lama_sewa'],
+    'total_awal' => $total_semua,
+    'terbayar' => $sudah_dibayar,
+    'sisa_tagihan' => $sisa_tagihan,
+    'potongan_diskon' => 0.00,
+    'status_pembayaran' => ($sisa_tagihan <= 0) ? 'LUNAS' : (($sudah_dibayar > 0) ? 'DP' : 'BELUM LUNAS'),
+    'catatan' => 'Terima kasih telah mempercayakan perjalanan Anda kepada PT INDOMAX RENTAL.'
+];
 ?>
 
-<div id="invoice-box" style="padding: 30px; border: 1px solid #ddd; max-width: 800px; margin: auto; font-family: sans-serif;">
-    <table width="100%">
-        <tr>
-            <td>
-                <h2 style="margin: 0;">INDOMAX RENTAL</h2>
-                <p>Solo, Jawa Tengah</p>
-            </td>
-            <td align="right">
-                <h1 style="color: #444; margin: 0;">INVOICE</h1>
-                <strong>No: #<?php echo $row['no_invoice']; ?></strong>
-            </td>
-        </tr>
-    </table>
-    <hr>
-    
-    <table width="100%" style="margin-top: 20px;">
-        <tr>
-            <td>
-                <strong>Kepada:</strong><br>
-                <?php echo $row['nama_pelanggan']; ?><br>
-                <?php echo $row['alamat']; // Pastikan kolom ini ada di tabel pelanggan ?>
-            </td>
-            <td align="right" valign="top">
-                <strong>Tanggal:</strong> <?php echo date('d/m/Y', strtotime($row['tanggal_invoice'])); ?><br>
-                <strong>Jatuh Tempo:</strong> <?php echo date('d/m/Y', strtotime($row['jatuh_tempo'])); ?>
-            </td>
-        </tr>
-    </table>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice #<?php echo $row['no_invoice']; ?></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body { font-family: 'Montserrat', sans-serif; background-color: #f8fafc; color: #0f172a; padding: 40px 0; }
+        .invoice-box { background-color: white; border: 1px solid #e2e8f0; border-radius: 20px; max-width: 800px; margin: auto; padding: 45px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04); }
+        .invoice-header { border-bottom: 2px solid #f1f5f9; padding-bottom: 30px; margin-bottom: 30px; }
+        .brand-title { font-weight: 800; color: #0f172a; }
+        .brand-title span { color: #9e0000; }
+        .table-invoice th { background-color: #f8fafc; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0; }
+        .btn-print { background-color: #0f172a; color: white; border: none; border-radius: 50px; padding: 10px 24px; font-weight: 600; }
+        @media print { .btn-print, .btn-back, .btn-wa { display: none !important; } }
+    </style>
+</head>
+<body>
 
-    <table border="1" width="100%" cellspacing="0" cellpadding="10" style="margin-top: 30px; border-collapse: collapse;">
-        <thead>
-            <tr style="background: #f8f9fa;">
-                <th>Deskripsi Sewa</th>
-                <th width="150">Harga Satuan</th>
-                <th width="150">Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
-                    Sewa Mobil (<?php echo $row['kode_mobil']; ?>)<br>
-                    <small>Durasi: <?php echo $row['lama_sewa']; ?> Hari</small>
-                </td>
-                <td align="right">Rp <?php echo number_format($row['subtotal'] / $row['lama_sewa'], 0, ',', '.'); ?></td>
-                <td align="right">Rp <?php echo number_format($row['subtotal'], 0, ',', '.'); ?></td>
-            </tr>
-        </tbody>
-        <tfoot>
-            <tr>
-                <th colspan="2" align="right">Subtotal</th>
-                <td align="right">Rp <?php echo number_format($row['subtotal'], 0, ',', '.'); ?></td>
-            </tr>
-            <tr>
-                <th colspan="2" align="right">Diskon</th>
-                <td align="right">- Rp <?php echo number_format($row['potongan_diskon'], 0, ',', '.'); ?></td>
-            </tr>
-            <tr style="background: #eee; font-size: 1.2em;">
-                <th colspan="2" align="right">TOTAL AKHIR</th>
-                <td align="right"><strong>Rp <?php echo number_format($row['total_akhir'], 0, ',', '.'); ?></strong></td>
-            </tr>
-        </tfoot>
-    </table>
+    <div class="invoice-box">
+        <div class="d-flex justify-content-between mb-4 btn-back">
+            <a href="riwayat_pembayaran.php" class="btn btn-sm btn-outline-secondary rounded-pill px-3"><i class="bi bi-arrow-left"></i> Kembali</a>
+            <div>
+                <?php
+                // Generate WA text
+                $wa_text = "Halo " . $row['nama'] . ", berikut adalah rincian tagihan sewa mobil Anda di Indomax Rental:\n\n";
+                $wa_text .= "No. Invoice: " . $row['no_invoice'] . "\n";
+                $wa_text .= "Sisa Tagihan: Rp " . number_format($row['sisa_tagihan'], 0, ',', '.') . "\n";
+                $wa_text .= "Jatuh Tempo: " . date('d M Y', strtotime($row['jatuh_tempo'])) . "\n\n";
+                $wa_text .= "Harap segera melakukan pembayaran jika status belum lunas. Terima kasih.";
+                $wa_url = "https://wa.me/" . preg_replace('/[^0-9]/', '', $row['no_telp']) . "?text=" . urlencode($wa_text);
+                ?>
+                <a href="<?php echo $wa_url; ?>" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 btn-wa me-2"><i class="bi bi-whatsapp"></i> Kirim via WA</a>
+                <button class="btn btn-sm btn-print" onclick="window.print()"><i class="bi bi-printer me-1"></i> Cetak Invoice</button>
+            </div>
+        </div>
 
-    <div style="margin-top: 20px;">
-        <strong>Catatan Khusus:</strong><br>
-        <?php if($row['pake_supir'] == 'Ya'): ?>
-            <p style="color: #e11d48; font-style: italic; margin-top: 5px;">* Biaya yang tercatat di atas HANYA mencakup Biaya Sewa Mobil dan Jasa Supir. Biaya tersebut <strong>BELUM TERMASUK</strong> Biaya Bensin (BBM), Biaya Tol, Parkir, serta Biaya Makan Supir selama perjalanan.</p>
-        <?php else: ?>
-            <p style="color: #e11d48; font-style: italic; margin-top: 5px;">* Biaya yang tercatat di atas HANYA mencakup Biaya Sewa Mobil (Lepas Kunci). Biaya tersebut <strong>BELUM TERMASUK</strong> Biaya Bensin (BBM), Biaya Tol, dan Parkir.</p>
-        <?php endif; ?>
+        <div class="invoice-header d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="brand-title mb-1">🚗 INDOMAX<span>RENTAL</span></h3>
+                <p class="text-muted small mb-0">Solo, Jawa Tengah | support@indomax.com</p>
+            </div>
+            <div class="text-end">
+                <h2 class="fw-bold mb-0 text-uppercase" style="letter-spacing: 1px; color: #9e0000;">Invoice</h2>
+                <strong class="text-muted">No: <?php echo $row['no_invoice']; ?></strong>
+            </div>
+        </div>
         
-        <?php if(!empty($row['catatan'])): ?>
-            <br><strong>Catatan Tambahan:</strong><br>
-            <?php echo $row['catatan']; ?>
-        <?php endif; ?>
-    </div>
+        <div class="row mb-5">
+            <div class="col-md-6">
+                <strong class="text-uppercase text-muted small d-block mb-1">Ditujukan Kepada:</strong>
+                <h5 class="fw-bold mb-1"><?php echo htmlspecialchars($row['nama']); ?></h5>
+                <p class="text-muted small mb-0"><?php echo htmlspecialchars($row['alamat']); ?></p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <p class="mb-1"><strong>Tanggal:</strong> <?php echo date('d M Y', strtotime($row['tanggal_invoice'])); ?></p>
+            </div>
+        </div>
 
-    <div style="margin-top: 50px; text-align: right;">
-        <p>Status Pembayaran: <strong><?php echo strtoupper($row['status_pembayaran']); ?></strong></p>
-        <br><br>
-        <p>( Bagian Keuangan )</p>
-        
-        <?php
-        // Generate WA text
-        $wa_text = "Halo " . $row['nama_pelanggan'] . ", berikut adalah rincian tagihan sewa mobil Anda di Indomax Rental:\n\n";
-        $wa_text .= "No. Invoice: #" . $row['no_invoice'] . "\n";
-        $wa_text .= "Total Akhir: Rp " . number_format($row['total_akhir'], 0, ',', '.') . "\n";
-        $wa_text .= "Jatuh Tempo: " . date('d/m/Y', strtotime($row['jatuh_tempo'])) . "\n\n";
-        $wa_text .= "Harap segera melakukan pembayaran jika status belum lunas. Terima kasih.";
-        $wa_url = "https://wa.me/" . preg_replace('/[^0-9]/', '', $row['no_telp']) . "?text=" . urlencode($wa_text);
-        
-        // Generate Email text
-        $email_subj = "Invoice Indomax Rental #" . $row['no_invoice'];
-        $email_url = "mailto:" . $row['email'] . "?subject=" . urlencode($email_subj) . "&body=" . urlencode($wa_text);
-        ?>
-        
-        <style> 
-            @media print { .btn-actions { display: none; } } 
-            .btn { padding: 10px 20px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; text-decoration: none; display: inline-block; margin-left: 5px; }
-            .btn-print { background: #3c4d70; color: white; }
-            .btn-wa { background: #10b981; color: white; }
-            .btn-email { background: #e11d48; color: white; }
-        </style>
-        
-        <div class="btn-actions" style="margin-top: 20px;">
-            <button class="btn btn-print" onclick="window.print()">Cetak Sekarang</button>
-            <?php if(!empty($row['no_telp'])): ?>
-                <a href="<?php echo $wa_url; ?>" target="_blank" class="btn btn-wa">Kirim via WA</a>
-            <?php endif; ?>
-            <?php if(!empty($row['email'])): ?>
-                <a href="<?php echo $email_url; ?>" target="_blank" class="btn btn-email">Kirim via Email</a>
-            <?php endif; ?>
+        <table class="table align-middle table-invoice">
+            <thead>
+                <tr>
+                    <th class="ps-3">Deskripsi Layanan</th>
+                    <th class="text-end pe-3">Jumlah</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="ps-3 py-3">Total Biaya Sewa</td>
+                    <td class="text-end pe-3 py-3 fw-bold">Rp <?php echo number_format($row['total_awal'], 0, ',', '.'); ?></td>
+                </tr>
+                <tr>
+                    <td class="ps-3 py-3 text-success">Sudah Dibayar</td>
+                    <td class="text-end pe-3 py-3 fw-bold text-success">- Rp <?php echo number_format($row['terbayar'], 0, ',', '.'); ?></td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr style="font-size: 1.2rem;">
+                    <th class="text-end py-4">SISA TAGIHAN</th>
+                    <td class="text-end pe-3 text-primary fw-extrabold py-4">Rp <?php echo number_format($row['sisa_tagihan'], 0, ',', '.'); ?></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="mt-4 text-center">
+            <div class="p-3 border rounded-4 bg-light">
+                <span class="small text-muted text-uppercase fw-bold">Status Pembayaran</span>
+                <h4 class="text-uppercase my-1"><?php echo $row['status_pembayaran']; ?></h4>
+            </div>
         </div>
     </div>
-</div>
+</body>
+</html>

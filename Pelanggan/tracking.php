@@ -27,7 +27,7 @@ $id_sewa = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $id_pelanggan = $_SESSION['id_pelanggan'];
 
 // Cek kepemilikan transaksi dan status
-$query = "SELECT t.*, p.nama, p.alamat, p.no_telp, m.merk, m.nopol, s.nama_supir,
+$query = "SELECT t.*, p.nama, p.alamat, p.no_telp, m.merk, m.nopol, s.nama_supir, s.gambar as gambar_supir,
                  UNIX_TIMESTAMP(t.waktu_mulai_perjalanan) AS start_ts,
                  UNIX_TIMESTAMP(NOW()) AS current_ts
           FROM transaksi_sewa t
@@ -212,7 +212,11 @@ $start_lng = $pickup_lng - 0.05;
     
     <div class="driver-info">
         <div class="driver-avatar">
-            <i class="bi bi-person-fill"></i>
+            <?php if(!empty($rental['gambar_supir'])): ?>
+                <img src="../Admin/img_supir/<?= htmlspecialchars($rental['gambar_supir']) ?>" alt="Foto Supir" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+            <?php else: ?>
+                <i class="bi bi-person-fill"></i>
+            <?php endif; ?>
         </div>
         <div class="driver-details flex-grow-1">
             <h3><?= htmlspecialchars($rental['nama_supir'] ?? 'Tanpa Supir (Lepas Kunci)') ?></h3>

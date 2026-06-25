@@ -34,8 +34,12 @@ $total_pelanggan = $data_total['total'] ?? 0;
 </div>
 
 <div class="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm mb-10 hover-lift">
-    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-white">
+    <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white">
         <h5 class="text-lg font-bold text-slate-800">Daftar Lengkap Pelanggan</h5>
+        <div class="relative w-full sm:w-64">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" id="searchInput" onkeyup="liveSearch()" placeholder="Cari pelanggan..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-[8px] text-sm focus:outline-none focus:border-[#800000] focus:ring-1 focus:ring-[#800000]">
+        </div>
     </div>
 
     <div class="overflow-x-auto">
@@ -49,7 +53,7 @@ $total_pelanggan = $data_total['total'] ?? 0;
                     <th class="py-4 px-6 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Aksi</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 bg-white">
+            <tbody id="tableBody" class="divide-y divide-slate-100 bg-white">
                 <?php
                 // SESUAIKAN NAMA TABEL DAN KOLOM DENGAN DATABASE ANDA
                 $sql_pelanggan = "SELECT * FROM pelanggan ORDER BY id_pelanggan DESC";
@@ -191,6 +195,24 @@ $total_pelanggan = $data_total['total'] ?? 0;
 <script>
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
+    }
+
+    function liveSearch() {
+        const input = document.getElementById("searchInput");
+        const filter = input.value.toUpperCase();
+        const tbody = document.getElementById("tableBody");
+        const tr = tbody.getElementsByTagName("tr");
+
+        for (let i = 0; i < tr.length; i++) {
+            if (tr[i].getElementsByTagName("td").length > 0) {
+                const textContent = tr[i].textContent || tr[i].innerText;
+                if (textContent.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
     }
 </script>
 </body>

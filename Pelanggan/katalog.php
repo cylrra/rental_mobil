@@ -60,15 +60,43 @@ $brand_filter = isset($_GET['brand']) ? mysqli_real_escape_string($conn, $_GET['
         </div>
         <!-- Search Input -->
         <div class="col-lg-4">
-            <form action="katalog.php<?= $brand_filter ? "?brand=" . urlencode($brand_filter) : "" ?>" method="POST" class="shadow-sm rounded-pill overflow-hidden border bg-white p-1 d-flex">
-                <input type="text" name="keyword" class="form-control border-0 px-3 py-2" 
-                       placeholder="Cari nama mobil..." 
-                       value="<?= htmlspecialchars($search); ?>">
-                <button type="submit" name="cari" class="btn btn-primary rounded-pill px-4 fw-bold">
+            <div class="shadow-sm rounded-pill overflow-hidden border bg-white p-1 d-flex">
+                <input type="text" id="liveSearchInput" class="form-control border-0 px-3 py-2" 
+                       placeholder="Ketik nama mobil untuk mencari..." 
+                       value="<?= htmlspecialchars($search); ?>" onkeyup="liveSearch()">
+                <button class="btn btn-primary rounded-pill px-4 fw-bold">
                     <i class="bi bi-search"></i>
                 </button>
-            </form>
+            </div>
         </div>
+    </div>
+    
+    <script>
+        function liveSearch() {
+            let input = document.getElementById('liveSearchInput').value.toLowerCase();
+            let items = document.querySelectorAll('.car-item');
+            let hasVisible = false;
+            
+            items.forEach(item => {
+                let text = item.getAttribute('data-merk');
+                if (text.includes(input)) {
+                    item.style.display = "block";
+                    hasVisible = true;
+                } else {
+                    item.style.display = "none";
+                }
+            });
+            
+            let noResultDiv = document.getElementById('no-result');
+            if (noResultDiv) {
+                if (!hasVisible) {
+                    noResultDiv.style.display = "block";
+                } else {
+                    noResultDiv.style.display = "none";
+                }
+            }
+        }
+    </script>
     </div>
 
     <!-- Active Search Reset info -->
@@ -82,7 +110,7 @@ $brand_filter = isset($_GET['brand']) ? mysqli_real_escape_string($conn, $_GET['
     <?php endif; ?>
 
     <!-- Cars Card Grid -->
-    <div class="row">
+    <div class="row" id="car-list">
         <?php
         // Query dinamis dengan filter brand & keyword
         $sql = "SELECT m.*, (m.Unit_Tersedia - (SELECT COUNT(*) FROM transaksi_sewa t WHERE t.kode_mobil = m.kode_mobil AND t.status_sewa = 'berjalan')) AS stok_realtime FROM mobil m WHERE 1=1";
@@ -108,7 +136,7 @@ $brand_filter = isset($_GET['brand']) ? mysqli_real_escape_string($conn, $_GET['
                 
                 $stok = max(0, (int)$row['stok_realtime']);
         ?>
-        <div class="col-sm-6 col-md-4 col-lg-3 mb-4">
+        <div class="col-sm-6 col-md-4 col-lg-3 mb-4 car-item" data-merk="<?php echo strtolower(htmlspecialchars($row['merk'] . ' ' . $row['jenis'])); ?>">
             <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden card-katalog transition-all">
                 <!-- Cover Image & Badge -->
                 <div class="position-relative bg-light overflow-hidden d-flex align-items-center justify-content-center" style="height: 180px;">
@@ -190,6 +218,11 @@ $brand_filter = isset($_GET['brand']) ? mysqli_real_escape_string($conn, $_GET['
                   </div>';
         }
         ?>
+        
+        <div class="col-12 text-center my-5 py-5" id="no-result" style="display: none;">
+            <i class="bi bi-search text-muted display-1 d-block mb-3"></i>
+            <h5 class="text-muted">Pencarian tidak menemukan hasil.</h5>
+        </div>
     </div>
 </div>
 

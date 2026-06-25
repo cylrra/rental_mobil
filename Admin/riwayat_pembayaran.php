@@ -127,7 +127,15 @@ $sql_grafik = "SELECT
                         $query = mysqli_query($conn, $sql);
                         if ($query && mysqli_num_rows($query) > 0) {
                             while($d = mysqli_fetch_array($query)){
-                                $badge_class = ($d['metode_pembayaran'] == 'Transfer') ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700';
+                                $metode = strtolower($d['metode_pembayaran']);
+                                $badge_class = 'bg-slate-100 text-slate-700'; // Default
+                                if (strpos($metode, 'transfer') !== false || strpos($metode, 'bca') !== false || strpos($metode, 'bni') !== false || strpos($metode, 'mandiri') !== false) {
+                                    $badge_class = 'bg-blue-100 text-blue-700 border border-blue-200';
+                                } elseif (strpos($metode, 'cash') !== false || strpos($metode, 'tunai') !== false) {
+                                    $badge_class = 'bg-emerald-100 text-emerald-700 border border-emerald-200';
+                                } elseif (strpos($metode, 'gopay') !== false || strpos($metode, 'ovo') !== false || strpos($metode, 'dana') !== false || strpos($metode, 'wallet') !== false || strpos($metode, 'qris') !== false) {
+                                    $badge_class = 'bg-purple-100 text-purple-700 border border-purple-200';
+                                }
                         ?>
                         <tr class="hover:bg-slate-50/50 transition-colors">
                             <td class="p-4 text-xs font-bold text-slate-500">#PYM-<?php echo $d['id_pembayaran']; ?></td>
@@ -138,7 +146,7 @@ $sql_grafik = "SELECT
                             <td class="p-4 text-slate-500 text-xs font-medium"><?php echo date('d M Y', strtotime($d['tanggal_bayar'])); ?></td>
                             <td class="p-4">
                                 <span class="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider <?php echo $badge_class; ?>">
-                                    <?php echo $d['metode_pembayaran']; ?>
+                                    <?php echo htmlspecialchars($d['metode_pembayaran']); ?>
                                 </span>
                             </td>
                             <td class="p-4 text-right">

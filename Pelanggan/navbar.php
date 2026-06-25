@@ -214,6 +214,18 @@ $current_page = basename($_SERVER['PHP_SELF']);
             flex-direction: column;
             min-height: 100vh;
         }
+        
+        /* Sidebar Toggle Transitions */
+        #sidebar-wrapper, #page-content-wrapper {
+            transition: all 0.3s ease-in-out;
+        }
+        .sidebar-hidden #sidebar-wrapper {
+            margin-left: -260px;
+        }
+        .sidebar-hidden #page-content-wrapper {
+            margin-left: 0;
+            width: 100%;
+        }
 
         .top-navbar { 
             background: var(--surface); 
@@ -292,10 +304,36 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </div>
     <div id="page-content-wrapper">
         <div class="top-navbar">
-            <div class="top-navbar-title">Sistem Informasi Pengelolaan Armada</div>
+            <div class="d-flex align-items-center gap-3">
+                <button id="sidebarToggle" class="btn btn-sm btn-light border p-1 d-flex align-items-center justify-content-center text-primary" style="width: 36px; height: 36px; border-radius: 8px;" title="Toggle Sidebar">
+                    <i class="bi bi-list fs-4"></i>
+                </button>
+                <div class="top-navbar-title m-0">Sistem Informasi Pengelolaan Armada</div>
+            </div>
             <a href="edit_profil.php" class="top-navbar-user text-decoration-none">
                 <i class="bi bi-person-circle fs-5"></i>
                 <span><?= htmlspecialchars($_SESSION['nama_pelanggan'] ?? 'Pengguna') ?></span>
             </a>
         </div>
         <div class="page-content">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const wrapper = document.getElementById('wrapper');
+                const toggleBtn = document.getElementById('sidebarToggle');
+                
+                if (wrapper && toggleBtn) {
+                    toggleBtn.addEventListener('click', function() {
+                        wrapper.classList.toggle('sidebar-hidden');
+                        if(wrapper.classList.contains('sidebar-hidden')) {
+                            localStorage.setItem('pelangganSidebarState', 'hidden');
+                        } else {
+                            localStorage.setItem('pelangganSidebarState', 'visible');
+                        }
+                    });
+                    
+                    if(localStorage.getItem('pelangganSidebarState') === 'hidden') {
+                        wrapper.classList.add('sidebar-hidden');
+                    }
+                }
+            });
+        </script>

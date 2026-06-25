@@ -7,15 +7,18 @@ include 'koneksi.php';
 ?>
 
 <div class="card shadow-sm border-0 rounded-4 bg-white p-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
         <h3 class="mb-0 fw-bold">
             <i class="bi bi-person-badge-fill text-primary"></i>
             Data Supir
         </h3>
-        <a href="tambah_supir.php" class="btn btn-primary rounded-pill px-4">
-            <i class="bi bi-person-plus-fill me-1"></i>
-            Tambah Supir
-        </a>
+        <div class="d-flex gap-2">
+            <input type="text" id="searchInput" onkeyup="liveSearch()" class="form-control rounded-pill border-0 bg-light" placeholder="Cari nama supir...">
+            <a href="tambah_supir.php" class="btn btn-primary rounded-pill px-4 text-nowrap">
+                <i class="bi bi-person-plus-fill me-1"></i>
+                Tambah Supir
+            </a>
+        </div>
     </div>
 
     <div class="table-responsive">
@@ -30,7 +33,7 @@ include 'koneksi.php';
                     <th class="text-center">Aksi</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="tableBody">
             <?php
             // Query real-time status supir berdasarkan transaksi aktif
             $query = mysqli_query($conn, "SELECT s.*, 
@@ -94,6 +97,26 @@ include 'koneksi.php';
 
 </div> </main>
 </div>
-<script>lucide.createIcons();</script>
+<script>
+    lucide.createIcons();
+
+    function liveSearch() {
+        const input = document.getElementById("searchInput");
+        const filter = input.value.toUpperCase();
+        const tbody = document.getElementById("tableBody");
+        const tr = tbody.getElementsByTagName("tr");
+
+        for (let i = 0; i < tr.length; i++) {
+            if (tr[i].getElementsByTagName("td").length > 0) {
+                const textContent = tr[i].textContent || tr[i].innerText;
+                if (textContent.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>
 </body>
 </html>
