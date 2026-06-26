@@ -57,7 +57,7 @@ if ($id_pilihan) {
                                                               FROM transaksi_sewa t 
                                                               JOIN mobil m ON t.kode_mobil = m.kode_mobil 
                                                               LEFT JOIN supir s ON t.id_supir = s.id_supir 
-                                                              WHERE t.status_sewa = 'berjalan'");
+                                                              WHERE t.status_sewa IN ('pending', 'diterima', 'berjalan') OR (t.status_sewa = 'selesai' AND t.jumlah_bayar < t.total_biaya)");
                                 
                                 while($t = mysqli_fetch_array($sql_t)){
                                     $id_db = trim($t['id_sewa']);

@@ -1,14 +1,19 @@
 <?php
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "rental_mobil";
+// Sesuaikan variabel koneksi ini di file PHP kamu
+$host = "sql112.infinityfree.com";
+$user = "if0_41895608";
+$pass = "wisudabesokya24"; 
+$db   = "if0_41895608_rental_mobil";
 
-$conn = mysqli_connect($host, $user, $pass, $db);
+$koneksi = mysqli_connect($host, $user, $pass, $db);
 
-if (!$conn) {
-    die("Koneksi gagal: " . mysqli_connect_error());
+// Cek koneksi
+if (!$koneksi) {
+    die("Koneksi database gagal: " . mysqli_connect_error());
 }
+
+// Alias to maintain compatibility with existing project code
+$conn = $koneksi;
 
 // ======================================================================
 // AUTO-TRANSITION LOGIC FOR RENTAL STATUSES

@@ -52,9 +52,18 @@
         <h2 class="text-4xl md:text-5xl font-black tracking-tight text-white mb-4 max-w-2xl leading-tight">
             PERFORMA PRIMA,<br><span class="text-[#fdc003]">KENDALI SEPENUHNYA.</span>
         </h2>
-        <p class="text-[#dadada] text-sm md:text-base max-w-lg mb-10 leading-relaxed font-medium">
+        <p class="text-[#dadada] text-sm md:text-base max-w-lg mb-8 leading-relaxed font-medium">
             Selamat datang di portal PT INDOMAX RENTAL. Silakan pilih portal masuk di bawah untuk menyewa armada atau mengelola sistem.
         </p>
+
+        <!-- Jam Operasional -->
+        <div class="mb-10 text-[#dadada] text-sm">
+            <h4 class="font-bold text-[#fdc003] mb-3 uppercase tracking-widest text-xs">Jam Operasional Layanan</h4>
+            <div class="flex flex-col md:flex-row gap-4 justify-center items-center">
+                <span class="bg-[#9e0000]/20 px-4 py-2 rounded-lg border border-[#9e0000]/30"><strong class="text-white">Senin - Jumat:</strong> 08:00 - 20:00 WIB</span>
+                <span class="bg-[#fdc003]/10 px-4 py-2 rounded-lg border border-[#fdc003]/20"><strong class="text-white">Sabtu - Minggu:</strong> 09:00 - 21:00 WIB</span>
+            </div>
+        </div>
 
         <!-- Gateway Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">

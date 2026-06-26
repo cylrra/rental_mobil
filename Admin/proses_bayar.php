@@ -68,6 +68,12 @@ if (isset($_POST['simpan_pembayaran'])) {
             throw new Exception("Gagal posting jurnal (Kredit): " . mysqli_error($conn));
         }
 
+        // UPDATE jumlah_bayar di transaksi_sewa
+        $q_update_transaksi = "UPDATE transaksi_sewa SET jumlah_bayar = jumlah_bayar + $jumlah_bayar WHERE id_sewa = '$id_sewa'";
+        if (!mysqli_query($conn, $q_update_transaksi)) {
+            throw new Exception("Gagal mengupdate jumlah bayar di transaksi: " . mysqli_error($conn));
+        }
+
         // 4. Update status transaksi_sewa dan mobil HANYA JIKA pelunasan
         if ($jenis_bayar === 'pelunasan') {
             // Check if the rental period has actually ended before setting it to 'selesai'
@@ -91,6 +97,10 @@ if (isset($_POST['simpan_pembayaran'])) {
                 if (!mysqli_query($conn, "UPDATE transaksi_sewa SET status_sewa = 'berjalan' WHERE id_sewa = '$id_sewa'")) {
                     throw new Exception("Gagal update status transaksi sewa: " . mysqli_error($conn));
                 }
+            }
+        } else if ($jenis_bayar === 'dp') {
+            if (!mysqli_query($conn, "UPDATE transaksi_sewa SET status_sewa = 'DP' WHERE id_sewa = '$id_sewa' AND status_sewa != 'berjalan'")) {
+                throw new Exception("Gagal update status sewa (DP): " . mysqli_error($conn));
             }
         }
 

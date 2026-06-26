@@ -25,7 +25,7 @@ if (isset($_POST['simpan_gaji'])) {
         $q_supir = mysqli_query($conn, "SELECT nama_supir, tarif_supir_per_hari FROM supir WHERE id_supir = '$id_supir'");
         $s = mysqli_fetch_assoc($q_supir);
         
-        $nominal = $total_hari * $s['tarif_supir_per_hari']; // Timpa input dari form dengan data aman
+        $nominal = ($total_hari * $s['tarif_supir_per_hari']) * 0.85; // Timpa input dari form dengan data aman (85%)
         
         if ($nominal <= 0) {
             echo "<script>alert('Gagal: Tidak ada tagihan gaji yang valid untuk supir ini.'); window.history.back();</script>";
@@ -36,6 +36,7 @@ if (isset($_POST['simpan_gaji'])) {
         $keterangan = "Gaji Supir: " . $nama_supir . " (" . $total_hari . " Hari)";
     } else {
         $keterangan = "Gaji Admin - " . $keterangan;
+        // Nominal menggunakan input dari form agar bisa ditambah uang makan secara manual
     }
 
     mysqli_begin_transaction($conn);
@@ -94,9 +95,10 @@ if (isset($_POST['simpan_gaji'])) {
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Penerima Gaji</label>
+                            <?php $default_jenis = isset($_GET['jenis']) && $_GET['jenis'] === 'admin' ? 'admin' : 'supir'; ?>
                             <select name="jenis_gaji" id="jenis_gaji" class="w-full rounded-xl border-slate-200 px-4 py-3 bg-white" required onchange="toggleSupir()">
-                                <option value="supir">Supir / Driver</option>
-                                <option value="admin">Staff Admin</option>
+                                <option value="supir" <?= $default_jenis === 'supir' ? 'selected' : '' ?>>Supir / Driver</option>
+                                <option value="admin" <?= $default_jenis === 'admin' ? 'selected' : '' ?>>Staff Admin</option>
                             </select>
                         </div>
                     </div>
@@ -121,7 +123,7 @@ if (isset($_POST['simpan_gaji'])) {
                             $q = mysqli_query($conn, "SELECT * FROM supir");
                             while($s = mysqli_fetch_array($q)) {
                                 $hari_belum_dibayar = isset($unpaid_data[$s['id_supir']]) ? $unpaid_data[$s['id_supir']] : 0;
-                                $gaji_belum_dibayar = $hari_belum_dibayar * $s['tarif_supir_per_hari'];
+                                $gaji_belum_dibayar = $hari_belum_dibayar * $s['tarif_supir_per_hari'] * 0.85;
                                 
                                 $label_gaji = ($gaji_belum_dibayar > 0) ? " (Belum dibayar: Rp ".number_format($gaji_belum_dibayar,0,',','.').")" : "";
                                 echo "<option value='".$s['id_supir']."' data-gaji='".$gaji_belum_dibayar."'>".$s['nama_supir'].$label_gaji."</option>";
@@ -178,12 +180,12 @@ if (isset($_POST['simpan_gaji'])) {
             // Trigger change to update nominal if a driver is already selected
             var evt = new Event('change');
             supirSelect.dispatchEvent(evt);
-        } else {
+        } else if (jenis === 'admin') {
             supirContainer.style.display = 'none';
             supirSelect.required = false;
             supirSelect.value = '';
-            nominalInput.readOnly = false;
-            nominalInput.value = '';
+            nominalInput.readOnly = false; // Bisa diedit untuk ditambah uang makan
+            nominalInput.value = '1000000'; // Default gaji pokok
             keteranganInput.value = '';
         }
     }

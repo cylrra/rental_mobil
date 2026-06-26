@@ -196,6 +196,7 @@ function getIconClass($page, $current_page, $colorClass = 'text-white') {
             <div>
                 <h2 class="px-4 mb-3 sidebar-label">Operasional</h2>
                 <div class="space-y-1">
+                    <a class="<?= getLinkClass('jadwal_admin.php', $current_page) ?>" href="jadwal_admin.php"><i class="<?= getIconClass('jadwal_admin.php', $current_page, 'text-blue-300') ?>" data-lucide="calendar-clock"></i><span class="text-sm font-medium">Jadwal Admin</span></a>
                     <a class="<?= getLinkClass(['transaksi.php', 'Transaksi_Baru.php'], $current_page) ?>" href="transaksi.php"><i class="<?= getIconClass(['transaksi.php', 'Transaksi_Baru.php'], $current_page, 'text-cyan-300') ?>" data-lucide="clipboard-list"></i><span class="text-sm font-medium">Transaksi Sewa</span></a>
                     <a class="<?= getLinkClass('tracking.php', $current_page) ?>" href="tracking.php"><i class="<?= getIconClass('tracking.php', $current_page, 'text-red-300') ?>" data-lucide="map-pin"></i><span class="text-sm font-medium">Live Tracking</span></a>
                     <a class="<?= getLinkClass('grafik_rating.php', $current_page) ?>" href="grafik_rating.php"><i class="<?= getIconClass('grafik_rating.php', $current_page, 'text-yellow-300') ?>" data-lucide="star"></i><span class="text-sm font-medium">Rating Pelanggan</span></a>
@@ -214,6 +215,8 @@ function getIconClass($page, $current_page, $colorClass = 'text-white') {
                 <h2 class="px-4 mb-3 sidebar-label">Akuntansi</h2>
                 <div class="space-y-1">
                     <a class="<?= getLinkClass('pembayaran.php', $current_page) ?>" href="pembayaran.php"><i class="<?= getIconClass('pembayaran.php', $current_page, 'text-lime-300') ?>" data-lucide="wallet"></i><span class="text-sm font-medium">Input Pembayaran</span></a>
+                    <a class="<?= getLinkClass('pembayaran_gaji.php', $current_page) ?>" href="pembayaran_gaji.php?jenis=supir"><i class="<?= getIconClass('pembayaran_gaji.php', $current_page, 'text-yellow-400') ?>" data-lucide="hand-coins"></i><span class="text-sm font-medium">Pembayaran Supir</span></a>
+                    <a class="<?= getLinkClass('pembayaran_gaji.php', $current_page) ?>" href="pembayaran_gaji.php?jenis=admin"><i class="<?= getIconClass('pembayaran_gaji.php', $current_page, 'text-amber-400') ?>" data-lucide="banknote"></i><span class="text-sm font-medium">Pembayaran Admin</span></a>
                     <a class="<?= getLinkClass('riwayat_pembayaran.php', $current_page) ?>" href="riwayat_pembayaran.php"><i class="<?= getIconClass('riwayat_pembayaran.php', $current_page, 'text-green-300') ?>" data-lucide="landmark"></i><span class="text-sm font-medium">Riwayat Pembayaran</span></a>
                     <a class="<?= getLinkClass('jurnal_umum.php', $current_page) ?>" href="jurnal_umum.php"><i class="<?= getIconClass('jurnal_umum.php', $current_page, 'text-fuchsia-300') ?>" data-lucide="book-open"></i><span class="text-sm font-medium">Jurnal Umum</span></a>
                     <a class="<?= getLinkClass('riwayat_jurnal_umum.php', $current_page) ?>" href="riwayat_jurnal_umum.php"><i class="<?= getIconClass('riwayat_jurnal_umum.php', $current_page, 'text-fuchsia-300') ?>" data-lucide="book-open"></i><span class="text-sm font-medium">Riwayat Jurnal Umum</span></a>

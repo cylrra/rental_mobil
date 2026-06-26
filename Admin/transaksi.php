@@ -287,6 +287,9 @@ if (isset($_GET['acc_wa_id'])) {
                                             <button type="button" class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-colors" title="Bot Kirim Tagihan" onclick="openBotModal('<?= $row['id_sewa'] ?>', '<?= $wa_customer_phone ?>', '<?= htmlspecialchars(addslashes($row['nama'])) ?>', '<?= $row['total_biaya'] ?>', '<?= $row['tanggal_sewa'] ?>', '<?= $row['lama_sewa'] ?>', '<?= htmlspecialchars(addslashes($row['merk'])) ?>', '<?= $row['pake_supir'] ?>', '<?= htmlspecialchars(addslashes($row['nama_supir'] ?? '')) ?>')">
                                                 <i data-lucide="bot" class="w-4 h-4"></i>
                                             </button>
+                                            <button type="button" class="w-8 h-8 rounded-lg bg-pink-50 text-pink-600 flex items-center justify-center hover:bg-pink-600 hover:text-white transition-colors" title="Bot Tagih DP (50%)" onclick="openBotModal('<?= $row['id_sewa'] ?>', '<?= $wa_customer_phone ?>', '<?= htmlspecialchars(addslashes($row['nama'])) ?>', '<?= $row['total_biaya'] ?>', '<?= $row['tanggal_sewa'] ?>', '<?= $row['lama_sewa'] ?>', '<?= htmlspecialchars(addslashes($row['merk'])) ?>', '<?= $row['pake_supir'] ?>', '<?= htmlspecialchars(addslashes($row['nama_supir'] ?? '')) ?>', false, true)">
+                                                <i data-lucide="message-square-dashed" class="w-4 h-4"></i>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -518,7 +521,7 @@ if (isset($_GET['acc_wa_id'])) {
 </div>
 
 <script>
-function openBotModal(idSewa, phone, nama, totalBiaya, tglSewa, lamaSewa, merk, pakeSupir, namaSupir, isAcc = false) {
+function openBotModal(idSewa, phone, nama, totalBiaya, tglSewa, lamaSewa, merk, pakeSupir, namaSupir, isAcc = false, isDP = false) {
     if (!phone || phone.trim() === "") {
         alert("Gagal memproses: Nomor WhatsApp pelanggan tidak valid atau belum terdaftar!");
         return;
@@ -540,6 +543,9 @@ function openBotModal(idSewa, phone, nama, totalBiaya, tglSewa, lamaSewa, merk, 
     let message = '';
     if (isAcc) {
         message = `Halo Kak *${nama}*,\n\nKabar gembira! Pesanan Anda di *Indomax Rental Mobil* telah *DISETUJUI (ACC)*.\n\n*Detail Pesanan:*\n🔖 ID Transaksi: #${idSewa}\n📅 Tanggal Sewa: ${tglSewa}\n⏳ Lama Sewa: ${lamaSewa} Hari\n🚗 Mobil: ${merk}${supirText}\n\n💰 *Total Biaya: ${formatter.format(totalBiaya)}*\n\nMohon segera melengkapi pembayaran agar kendaraan dapat disiapkan.\n\nTerima kasih! 🙏`;
+    } else if (isDP) {
+        let dpAmount = totalBiaya * 0.5;
+        message = `Halo Kak *${nama}*,\n\nBerikut adalah tagihan Down Payment (DP) pesanan Anda di *Indomax Rental Mobil*:\n\n*Detail Pesanan:*\n🔖 ID Transaksi: #${idSewa}\n📅 Tanggal Sewa: ${tglSewa}\n🚗 Mobil: ${merk}${supirText}\n\n💰 *Tagihan DP (50%): ${formatter.format(dpAmount)}*\nSisa Tagihan: ${formatter.format(totalBiaya - dpAmount)}\n${noteText}\n\nMohon segera melakukan pembayaran DP agar kendaraan dapat kami amankan untuk Anda. Terima kasih! 🙏`;
     } else {
         message = `Halo Kak *${nama}*,\n\nBerikut adalah rincian tagihan pesanan Anda di *Indomax Rental Mobil*:\n\n*Detail Pesanan:*\n🔖 ID Transaksi: #${idSewa}\n📅 Tanggal Sewa: ${tglSewa}\n⏳ Lama Sewa: ${lamaSewa} Hari\n🚗 Mobil: ${merk}${supirText}\n\n💰 *Total Tagihan: ${formatter.format(totalBiaya)}*\n${noteText}\n\nTerima kasih telah mempercayakan perjalanan Anda bersama Indomax Rental Mobil! 🙏`;
     }
