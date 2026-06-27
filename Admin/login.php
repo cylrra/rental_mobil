@@ -143,8 +143,8 @@ if (isset($_POST['login'])) {
             font-weight: 700;
             font-size: 0.75rem;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #dadada;
+            letter-spacing: 0.06em;
+            color: #ffffff;
             margin-bottom: 8px;
         }
 
@@ -161,7 +161,7 @@ if (isset($_POST['login'])) {
         }
 
         .form-control::placeholder {
-            color: rgba(255,255,255,0.4);
+            color: rgba(255,255,255,0.55);
         }
 
         /* Focus: bright crimson border glow */
@@ -175,7 +175,7 @@ if (isset($_POST['login'])) {
 
         .input-group-text {
             background: rgba(0,0,0,0.35);
-            color: rgba(255,255,255,0.6);
+            color: rgba(255,255,255,0.85);
             border-color: rgba(255,255,255,0.18);
         }
 
@@ -213,7 +213,7 @@ if (isset($_POST['login'])) {
                     <i class="bi bi-shield-lock-fill text-white fs-3"></i>
                 </div>
                 <h3 class="brand-header mb-1">INDOMAX<span>STAFF</span></h3>
-                <p class="text-muted small fw-semibold" style="letter-spacing: 0.05em; text-transform: uppercase; font-size: 0.7rem; color: #dadada !important;">Dashboard Login Administrator</p>
+                <p class="fw-semibold" style="letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.7rem; color: rgba(255,255,255,0.70) !important;">Dashboard Login Administrator</p>
             </div>
 
             <?php if (!empty($error)): ?>
@@ -268,7 +268,7 @@ if (isset($_POST['login'])) {
                 </button>
 
                 <div class="text-center d-grid gap-2">
-                    <p class="small text-muted mb-0 fw-medium">Kembali ke <a href="../index.php" class="text-danger fw-bold text-decoration-none" style="color: var(--secondary-container) !important;">Portal Utama</a></p>
+                    <p class="small mb-0 fw-medium" style="color: rgba(255,255,255,0.65);">Kembali ke <a href="../index.php" class="fw-bold text-decoration-none" style="color: #d4af37;">Portal Utama</a></p>
                 </div>
             </form>
         </div>
