@@ -1,27 +1,4 @@
 <?php
-<<<<<<< HEAD
-include 'navbar.php';
-include 'koneksi.php';
-
-// Pastikan pelanggan login
-if (!isset($_SESSION['id_pelanggan'])) {
-    echo "<script>alert('Silakan login terlebih dahulu'); window.location='login_pelanggan.php';</script>";
-    exit;
-}
-
-$id_transaksi = $_GET['id'] ?? ''; // Mengambil ID dari URL
-?>
-
-<div class="page-content">
-    <div class="card p-4">
-        <h4>Berikan Ulasan Layanan</h4>
-        <form action="ulasan_rating.php" method="POST">
-            <input type="hidden" name="id_transaksi" value="<?php echo htmlspecialchars($id_transaksi); ?>">
-            
-            <div class="mb-3">
-                <label>Rating Pelayanan (1-5)</label>
-                <input type="number" name="pely" class="form-control" min="1" max="5" required>
-=======
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -51,10 +28,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_rating'])) {
     }
 
     // Insert ke rating_sewa
-    $query = "INSERT INTO rating_sewa (id_transaksi, id_pelanggan, rating_pelayanan, rating_supir, rating_mobil, ulasan) 
-              VALUES ('$id_transaksi', '$id_pelanggan', '$pely', '$supr', '$mobl', '$ulasan')";
+    $query = "INSERT INTO rating_sewa (id_transaksi, id_pelanggan, rating_pelayanan, rating_supir, rating_mobil, ulasan) VALUES (?, ?, ?, ?, ?, ?)";
+    $stmt = mysqli_prepare($conn, $query);
+    mysqli_stmt_bind_param($stmt, "iiiiis", $id_transaksi, $id_pelanggan, $pely, $supr, $mobl, $ulasan);
     
-    if (mysqli_query($conn, $query)) {
+    if (mysqli_stmt_execute($stmt)) {
         echo "<script>alert('Ulasan berhasil dikirim!'); window.location='input_rating.php';</script>";
         exit;
     } else {
@@ -65,15 +43,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_rating'])) {
 
 // 2. DETEKSI TRANSAKSI YANG BELUM DINILAI
 $unrated_list = [];
-$query_unrated = mysqli_query($conn, "
+$stmt_unrated = mysqli_prepare($conn, "
     SELECT t.id_sewa, m.merk, m.nopol, t.pake_supir 
     FROM transaksi_sewa t
     LEFT JOIN mobil m ON t.kode_mobil = m.kode_mobil
-    WHERE t.id_pelanggan = '$id_pelanggan' 
+    WHERE t.id_pelanggan = ? 
       AND t.status_sewa = 'selesai' 
       AND t.id_sewa NOT IN (SELECT id_transaksi FROM rating_sewa)
     ORDER BY t.id_sewa DESC
 ");
+mysqli_stmt_bind_param($stmt_unrated, "i", $id_pelanggan);
+mysqli_stmt_execute($stmt_unrated);
+$query_unrated = mysqli_stmt_get_result($stmt_unrated);
 
 while ($r = mysqli_fetch_assoc($query_unrated)) {
     $unrated_list[] = $r;
@@ -222,27 +203,9 @@ include 'navbar.php';
                         </div>
                     </form>
                 </div>
->>>>>>> 3e94f89b0148e1f4cea8554f3c108dcc9372a35e
             </div>
-            <div class="mb-3">
-                <label>Rating Supir (1-5)</label>
-                <input type="number" name="supr" class="form-control" min="1" max="5" required>
-            </div>
-            <div class="mb-3">
-                <label>Rating Mobil (1-5)</label>
-                <input type="number" name="mobl" class="form-control" min="1" max="5" required>
-            </div>
-            <div class="mb-3">
-                <label>Ulasan Anda</label>
-                <textarea name="ulasan" class="form-control" required></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary">Kirim Ulasan</button>
-        </form>
+        </div>
     </div>
-<<<<<<< HEAD
-</div>
-=======
-
     <!-- Alert jika form disembunyikan/Isi Nanti -->
     <div class="row mb-4 d-none" id="ratingSkippedAlert">
         <div class="col-lg-8 col-md-10">
@@ -520,4 +483,3 @@ document.addEventListener("DOMContentLoaded", function() {
 <!-- Footer component closes wrapper divs -->
 </div> </body>
 </html>
->>>>>>> 3e94f89b0148e1f4cea8554f3c108dcc9372a35e

@@ -25,8 +25,11 @@ $tipe_bayar     = mysqli_real_escape_string($conn, $_POST['tipe_pembayaran']);
 $query = "SELECT t.*, m.merk, m.nopol 
           FROM transaksi_sewa t 
           JOIN mobil m ON t.kode_mobil = m.kode_mobil 
-          WHERE t.id_sewa = '$id_sewa'";
-$result = mysqli_query($conn, $query);
+          WHERE t.id_sewa = ?";
+$stmt = mysqli_prepare($conn, $query);
+mysqli_stmt_bind_param($stmt, "i", $id_sewa);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
 $data = mysqli_fetch_assoc($result);
 
 // Dummy Account Numbers / QR

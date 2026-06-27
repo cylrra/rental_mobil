@@ -22,7 +22,21 @@ if (isset($_POST['simpan'])) {
     $tmp_name = $_FILES['gambar']['tmp_name'];
     
     // Ciptakan nama unik agar gambar tidak tertimpa jika namanya sama
-    $ext = pathinfo($gambar, PATHINFO_EXTENSION);
+    $ext = strtolower(pathinfo($gambar, PATHINFO_EXTENSION));
+    $valid_extensions = array("jpg", "jpeg", "png", "gif");
+    
+    // Check extension
+    if (!in_array($ext, $valid_extensions)) {
+        echo "<script>alert('Format file tidak didukung! Hanya JPG, JPEG, PNG, dan GIF yang diperbolehkan.'); window.history.back();</script>";
+        exit();
+    }
+    
+    // Check MIME type using getimagesize (prevents fake image files)
+    $image_info = @getimagesize($tmp_name);
+    if ($image_info === false) {
+        echo "<script>alert('File bukan merupakan gambar yang valid!'); window.history.back();</script>";
+        exit();
+    }
     $nama_gambar_unik = time() . '_' . str_replace(' ', '_', $merk) . '.' . $ext;
     
     $target_dir = "img/";
@@ -32,10 +46,10 @@ if (isset($_POST['simpan'])) {
     if (move_uploaded_file($tmp_name, $target_file)) {
         
         // Eksekusi SQL Insert Data (Perhatikan nama kolom sudah disesuaikan!)
-        $query = "INSERT INTO mobil (kode_mobil, nopol, merk, jenis, tarif_12_dalam, tarif_12_luar, tarif_24_dalam, tarif_24_luar, tarif_per_hari, status_mobil, Unit_Tersedia, Gambar) 
-                  VALUES ('$kode_mobil', '$nopol', '$merk', '$jenis', '$tarif_12_dalam', '$tarif_12_luar', '$tarif_24_dalam', '$tarif_24_luar', '$tarif_per_hari', '$status_mobil', '$Unit_Tersedia', '$nama_gambar_unik')";
-        
-        $exec = mysqli_query($conn, $query);
+        $stmt = mysqli_prepare($conn, "INSERT INTO mobil (kode_mobil, nopol, merk, jenis, tarif_12_dalam, tarif_12_luar, tarif_24_dalam, tarif_24_luar, tarif_per_hari, status_mobil, Unit_Tersedia, Gambar) 
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        mysqli_stmt_bind_param($stmt, "ssssdddddsis", $kode_mobil, $nopol, $merk, $jenis, $tarif_12_dalam, $tarif_12_luar, $tarif_24_dalam, $tarif_24_luar, $tarif_per_hari, $status_mobil, $Unit_Tersedia, $nama_gambar_unik);
+        $exec = mysqli_stmt_execute($stmt);
 
         if ($exec) {
             echo "<script>

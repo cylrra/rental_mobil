@@ -21,7 +21,10 @@ if (isset($_POST['btn_simpan'])) {
     }
 
     // Cek apakah username sudah terdaftar
-    $cek_user = mysqli_query($conn, "SELECT * FROM pelanggan WHERE username = '$username'");
+    $stmt_cek = mysqli_prepare($conn, "SELECT * FROM pelanggan WHERE username = ?");
+    mysqli_stmt_bind_param($stmt_cek, "s", $username);
+    mysqli_stmt_execute($stmt_cek);
+    $cek_user = mysqli_stmt_get_result($stmt_cek);
     if (mysqli_num_rows($cek_user) > 0) {
         echo "<script>
                 alert('Username sudah digunakan, pilih username lain!');
@@ -42,10 +45,11 @@ if (isset($_POST['btn_simpan'])) {
     }
 
     // Query simpan ke tabel pelanggan
-    $sql = "INSERT INTO pelanggan (nama, email, username, password, alamat, no_telp, no_ktp, status_verifikasi) 
-            VALUES ('$nama', '$email', '$username', '$password_hashed', '$alamat', '$no_telp', '$no_ktp', '$status_verifikasi')";
+    $stmt = mysqli_prepare($conn, "INSERT INTO pelanggan (nama, email, username, password, alamat, no_telp, no_ktp, status_verifikasi) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    mysqli_stmt_bind_param($stmt, "ssssssss", $nama, $email, $username, $password_hashed, $alamat, $no_telp, $no_ktp, $status_verifikasi);
     
-    $query = mysqli_query($conn, $sql);
+    $query = mysqli_stmt_execute($stmt);
 
     if ($query) {
         echo "<script>

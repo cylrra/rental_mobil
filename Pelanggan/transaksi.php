@@ -12,9 +12,12 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'pelanggan') {
 include 'navbar.php'; 
 include 'koneksi.php'; 
 
-$kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['kode']) : '';
+$kode_selected = isset($_GET['kode']) ? $_GET['kode'] : '';
 $id_pelanggan = $_SESSION['id_pelanggan'];
-$query_user = mysqli_query($conn, "SELECT nama, status_verifikasi FROM pelanggan WHERE id_pelanggan = '$id_pelanggan'");
+$stmt_user = mysqli_prepare($conn, "SELECT nama, status_verifikasi FROM pelanggan WHERE id_pelanggan = ?");
+mysqli_stmt_bind_param($stmt_user, "i", $id_pelanggan);
+mysqli_stmt_execute($stmt_user);
+$query_user = mysqli_stmt_get_result($stmt_user);
 
 if ($query_user) {
     $user_data = mysqli_fetch_assoc($query_user);
@@ -26,45 +29,150 @@ if ($query_user) {
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        :root { 
-            --primary: #9e0000; 
-            --secondary: #fdc003; 
-            --background: #f9f9f9; 
-            --on-surface: #1a1c1c; 
-            --border-color: #e2e2e2; 
-        }
-        body { font-family: 'Montserrat', sans-serif; background-color: var(--background); color: var(--on-surface); }
-        .card { border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
-        .form-label { font-weight: 700; color: var(--on-surface); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
-        .form-select, .form-control { border-radius: 8px; padding: 10px 15px; border: 1px solid var(--border-color); font-weight: 500; font-size: 0.9rem; }
-        .form-select:focus, .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(158, 0, 0, 0.15); outline: none; }
-        .btn-primary { background-color: var(--secondary); border: none; border-radius: 8px; color: #1a1c1c; font-weight: 700; transition: 0.2s; }
-        .btn-primary:hover { background-color: #e5ad02; color: #1a1c1c; }
-        .btn-outline-primary { border-color: var(--primary); color: var(--primary); border-radius: 8px; font-weight: 700; }
-        .btn-outline-primary:hover { background-color: var(--primary); color: #ffffff; border-color: var(--primary); }
-        #catatan_supir { font-size: 0.85rem; color: var(--primary); font-style: italic; display: none; }
-    </style>
-</head>
-<body>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<div class="container py-4">
-    <div class="d-flex align-items-center justify-content-between mb-4">
+<style>
+/* ===== Premium Transaksi UI ===== */
+.tx-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.tx-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+.tx-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--on-surface);
+    margin: 0 0 4px;
+}
+.tx-sub {
+    color: var(--tertiary);
+    font-size: 0.95rem;
+    margin: 0;
+}
+.btn-catalog {
+    background: #fff;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    padding: 10px 24px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.btn-catalog:hover {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(158,0,0,0.2);
+}
+.card-modern {
+    background: #fff;
+    border: 1px solid #E8ECF2;
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(15,23,42,0.03);
+    overflow: hidden;
+}
+.card-header-modern {
+    background: transparent;
+    padding: 24px 24px 0;
+    border-bottom: none;
+}
+.card-header-modern h5 {
+    font-weight: 800;
+    color: var(--on-surface);
+    margin: 0;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.form-label {
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #475569;
+    margin-bottom: 8px;
+}
+.form-control, .form-select {
+    border-radius: 12px;
+    padding: 12px 16px;
+    border: 1px solid #E8ECF2;
+    background: #F8FAFC;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #0F172A;
+    transition: all 0.2s;
+}
+.form-control:focus, .form-select:focus {
+    background: #fff;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(158,0,0,0.08);
+}
+.btn-submit {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 24px;
+    font-weight: 800;
+    font-size: 1rem;
+    width: 100%;
+    transition: all 0.2s;
+}
+.btn-submit:hover {
+    background: #7a0000;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(158,0,0,0.2);
+}
+.table-modern {
+    margin: 0;
+}
+.table-modern th {
+    background: #F8FAFC;
+    color: #475569;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 16px;
+    border-bottom: 1px solid #E8ECF2;
+    font-weight: 800;
+}
+.table-modern td {
+    padding: 16px;
+    border-bottom: 1px solid #E8ECF2;
+    vertical-align: middle;
+}
+.badge-status {
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+.badge-status.pending { background: #F1F5F9; color: #475569; }
+.badge-status.diterima { background: rgba(158,0,0,0.1); color: var(--primary); }
+.badge-status.dp { background: rgba(253,192,3,0.15); color: #b48600; }
+.badge-status.berjalan { background: rgba(13,148,136,0.1); color: #0F766E; }
+.badge-status.selesai { background: rgba(22,163,74,0.1); color: #16A34A; }
+</style>
+
+<div class="tx-wrap">
+    <div class="tx-header">
         <div>
-            <h1 class="fw-bold mb-1" style="color: var(--deep-navy); font-size: 1.75rem;">
-                <i class="bi bi-calendar-check me-2" style="color: var(--clear-blue);"></i>Sewa Mobil & Aktivitas
-            </h1>
-            <p class="text-muted mb-0">Pesan rental baru atau lihat status pesanan Anda di bawah ini.</p>
+            <h1 class="tx-title"><i class="bi bi-calendar-check me-2 text-primary"></i>Sewa Mobil</h1>
+            <p class="tx-sub">Pesan kendaraan baru atau pantau status pesanan aktif Anda.</p>
         </div>
-        <a href="katalog.php" class="btn btn-outline-primary px-4 rounded-pill fw-semibold">
-            <i class="bi bi-grid me-1"></i> Lihat Katalog
+        <a href="katalog.php" class="btn-catalog">
+            <i class="bi bi-grid"></i> Lihat Katalog
         </a>
     </div>
 
@@ -81,10 +189,10 @@ if ($query_user) {
     <?php endif; ?>
 
     <div class="row g-4">
-        <div class="col-lg-5">
-            <div class="card h-100 border-0">
-                <div class="card-header bg-white border-0 pt-4 px-4">
-                    <h5 class="fw-bold m-0"><i class="bi bi-plus-circle me-2 text-primary"></i>Form Sewa Baru</h5>
+        <div class="col-lg-4">
+            <div class="card-modern h-100">
+                <div class="card-header-modern">
+                    <h5><i class="bi bi-plus-circle text-primary"></i> Form Sewa</h5>
                 </div>
                 <div class="card-body p-4">
                     <form id="formRental"> <input type="hidden" name="id_pelanggan" value="<?= $id_pelanggan ?>">
@@ -94,30 +202,53 @@ if ($query_user) {
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Pilih Mobil</label>
-                            <select name="kode_mobil" id="kode_mobil_select" class="form-select" required onchange="hitungTotalEstimasi()">
+                            <select name="kode_mobil" id="kode_mobil_select" class="form-select" required onchange="hitungTotal()">
                                 <option value="">— Pilih Armada —</option>
                                 <?php
-                                $mob = mysqli_query($conn, "SELECT * FROM mobil WHERE Unit_Tersedia > 0");
+                                $mob = mysqli_query($conn, "SELECT * FROM mobil WHERE Unit_Tersedia > 0 AND is_deleted = 0");
                                 while($m = mysqli_fetch_array($mob)) {
                                     $sel = ($m['kode_mobil'] == $kode_selected) ? 'selected' : '';
-                                    echo "<option value='{$m['kode_mobil']}' 
-                                        data-tarif-12-dalam='{$m['tarif_12_dalam']}'
-                                        data-tarif-12-luar='{$m['tarif_12_luar']}'
-                                        data-tarif-24-dalam='{$m['tarif_24_dalam']}'
-                                        data-tarif-24-luar='{$m['tarif_24_luar']}'
-                                        $sel>{$m['merk']} {$m['jenis']} (Mulai Rp ".number_format($m['tarif_12_dalam'],0,',','.').")</option>";
+                                    echo "<option value='{$m['kode_mobil']}' data-tarif='{$m['tarif_per_hari']}' $sel>{$m['merk']} {$m['jenis']} (" . number_format($m['tarif_per_hari'], 0, ',', '.') . "/hr)</option>";
                                 }
                                 ?>
                             </select>
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label">Layanan Sopir</label>
-                            <select name="id_supir" id="id_supir_select" class="form-select" onchange="hitungTotalEstimasi(); toggleCatatanSupir();">
-                                <option value="" data-tarif-supir="0">Tidak — Lepas Kunci (Tanpa Sopir)</option>
-                                <option value="999" data-tarif-supir="200000">Ya — Pakai Jasa Sopir (+Rp 200.000/hari)</option>
+                            <select name="id_supir" id="id_supir_select" class="form-select" onchange="hitungTotal(); toggleKeteranganSupir();">
+                                <option value="">Tidak — Lepas Kunci (Tanpa Sopir)</option>
+                                <option value="999">Ya — Pakai Jasa Sopir</option>
                             </select>
-                            <div id="catatan_supir" class="mt-2 text-danger"><i class="bi bi-info-circle me-1"></i>*Harga belum termasuk bensin & makan supir.</div>
+                            <div id="container_keterangan_sopir" style="display: none; margin-top: 5px;">
+                                <small class="text-danger d-block" style="font-size: 0.75rem; font-style: italic;">
+                                    <i class="bi bi-info-circle"></i> Biaya Supir: 250k (< 12 jam) atau 375k (12-24 jam).
+                                </small>
+                                <small class="text-danger d-block" style="font-size: 0.75rem; font-style: italic;">
+                                    <i class="bi bi-info-circle"></i> *Harga belum termasuk bensin & makan supir.
+                                </small>
+                            </div>
                         </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="form-label">Tgl & Jam Mulai</label>
+                                <input type="datetime-local" name="tgl_mulai" id="tgl_mulai" class="form-control" onchange="hitungTotal()" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Tgl & Jam Kembali</label>
+                                <input type="datetime-local" name="tgl_kembali" id="tgl_kembali" class="form-control" onchange="hitungTotal()" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Area Pemakaian</label>
+                            <select name="area_pemakaian" id="area_pemakaian" class="form-select" onchange="hitungTotal()">
+                                <option value="Dalam Kota">Dalam Kota</option>
+                                <option value="Luar Kota">Luar Kota (+100k)</option>
+                            </select>
+                        </div>
+
                         <div class="mb-3">
                             <label class="form-label">Lokasi Jemput</label>
                             <select name="lokasi_jemput" id="lokasiSelect" class="form-select" onchange="toggleAlamatInput()">
@@ -129,60 +260,40 @@ if ($query_user) {
                             <input type="text" name="alamat_detail" id="alamatDetail" class="form-control" placeholder="Masukkan alamat penjemputan lengkap">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Lokasi Pengembalian (Antar)</label>
+                            <label class="form-label">Lokasi Pengembalian</label>
                             <select name="lokasi_kembali" id="lokasiKembaliSelect" class="form-select" onchange="toggleAlamatKembaliInput()">
-                                <option value="Kembalikan ke Kantor">Kembalikan Langsung ke Kantor</option>
+                                <option value="Kembalikan ke Kantor">Kembalikan ke Kantor</option>
                                 <option value="Jemput di Alamat lainnya">Jemput di Alamat Lainnya</option>
                             </select>
                         </div>
                         <div class="mb-3" id="inputAlamatKembaliCustom" style="display: none;">
                             <input type="text" name="alamat_kembali" id="alamatKembaliDetail" class="form-control" placeholder="Masukkan alamat pengembalian lengkap">
                         </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-6">
-                                <label class="form-label">Paket Sewa</label>
-                                <select name="durasi_sewa" id="durasi_sewa" class="form-select" onchange="hitungTotalEstimasi()">
-                                    <option value="24 Jam">Harian (24 Jam)</option>
-                                    <option value="12 Jam">Setengah Hari (12 Jam)</option>
-                                </select>
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label">Area Pemakaian</label>
-                                <select name="area_pemakaian" id="area_pemakaian" class="form-select" onchange="hitungTotalEstimasi()">
-                                    <option value="Dalam Kota">Dalam Kota</option>
-                                    <option value="Luar Kota">Luar Kota</option>
-                                </select>
+                        <div class="mb-4">
+                            <label class="form-label">Jumlah Unit</label>
+                            <input type="number" name="jumlah" id="input_jumlah" class="form-control" value="1" min="1" onchange="hitungTotal()">
+                        </div>
+                        
+                        <div class="mb-4 p-3 rounded-3" style="background: rgba(158,0,0,0.05); border: 1px dashed rgba(158,0,0,0.2);">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="fw-bold" style="color: #475569; font-size:0.9rem;">Estimasi Total</span>
+                                <span class="fw-black text-primary" id="disp_total_biaya" style="font-size: 1.25rem; font-weight:900;">Rp 0</span>
                             </div>
                         </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-6">
-                                <label class="form-label">Tgl Mulai</label>
-                                <input type="date" name="tanggal_sewa" id="tanggal_sewa" class="form-control" value="<?= date('Y-m-d', strtotime('+1 day')) ?>" min="<?= date('Y-m-d', strtotime('+1 day')) ?>" required onchange="hitungTotalEstimasi()">
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label">Jumlah Paket</label>
-                                <input type="number" name="lama_sewa" id="lama_sewa" class="form-control" min="1" value="1" required oninput="hitungTotalEstimasi()">
-                            </div>
-                        </div>
-                        <div class="mb-4 p-3 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted small">Estimasi Total Biaya</span>
-                                <span class="fw-bold text-primary" id="disp_total_biaya" style="font-size: 1.1rem;">Rp 0</span>
-                            </div>
-                        </div>
-                        <button type="button" id="btnAjukan" class="btn btn-primary w-100 py-3 fw-bold"><i class="bi bi-check-circle me-2"></i>Ajukan Sewa Sekarang</button>
+                        <button type="button" id="btnAjukan" class="btn-submit"><i class="bi bi-check-circle me-2"></i> Ajukan Sewa</button>
                     </form>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-7">
-            <div class="card border-0 h-100">
-                <div class="card-header bg-white border-0 pt-4 px-4">
-                    <h5 class="fw-bold m-0"><i class="bi bi-clock-history me-2 text-primary"></i>Pesanan Saya</h5>
+        <div class="col-lg-8">
+            <div class="card-modern h-100">
+                <div class="card-header-modern mb-3">
+                    <h5><i class="bi bi-clock-history text-primary"></i> Pesanan Saya</h5>
                 </div>
                 <div class="card-body p-0">
-                    <div class="table-responsive" id="tabelPesanan"> <table class="table table-hover align-middle mb-0">
+                    <div class="table-responsive" id="tabelPesanan"> 
+                        <table class="table table-modern align-middle">
                             <thead class="table-light text-nowrap">
                                 <tr>
                                     <th class="ps-4">Order</th>
@@ -194,13 +305,16 @@ if ($query_user) {
                             </thead>
                             <tbody>
                                 <?php
-                                $sql = "SELECT t.id_sewa, t.tanggal_sewa, t.tanggal_kembali, t.status_sewa, t.jumlah_bayar, m.merk, m.nopol, m.Gambar, r.id_rating 
+                                $sql = "SELECT t.id_sewa, t.tanggal_sewa, t.tanggal_kembali, t.status_sewa, t.total_bayar, t.jumlah_bayar, m.merk, m.nopol, m.Gambar, r.id_rating
                                         FROM transaksi_sewa t 
                                         LEFT JOIN mobil m ON t.kode_mobil = m.kode_mobil 
                                         LEFT JOIN rating_sewa r ON t.id_sewa = r.id_transaksi
-                                        WHERE t.id_pelanggan = '$id_pelanggan' 
+                                        WHERE t.id_pelanggan = ? 
                                         ORDER BY t.id_sewa DESC";
-                                $res = mysqli_query($conn, $sql);
+                                $stmt = mysqli_prepare($conn, $sql);
+                                mysqli_stmt_bind_param($stmt, "i", $id_pelanggan);
+                                mysqli_stmt_execute($stmt);
+                                $res = mysqli_stmt_get_result($stmt);
                                 
                                 if(mysqli_num_rows($res) > 0) {
                                     while($row = mysqli_fetch_assoc($res)) {
@@ -211,22 +325,22 @@ if ($query_user) {
                                         $badge_html = '';
                                         $instruction = '';
                                         if ($st == 'pending') {
-                                            $badge_html = '<span class="badge bg-secondary text-white rounded-pill px-2 py-1" style="font-size:11px;">Menunggu Acc</span>';
-                                            $instruction = '<small class="text-muted d-block mt-1 fw-medium text-nowrap" style="font-size:10px;">Mohon tunggu persetujuan</small>';
+                                            $badge_html = '<span class="badge-status pending">Menunggu Acc</span>';
+                                            $instruction = '<small class="d-block mt-1 text-muted fw-bold" style="font-size:10px;">Tunggu Persetujuan</small>';
                                         } elseif ($st == 'diterima') {
-                                            $badge_html = '<span class="badge bg-primary text-white rounded-pill px-2 py-1" style="font-size:11px;">Menunggu Bayar</span>';
-                                            $instruction = '<a href="pembayaran.php?id='.$row['id_sewa'].'" class="btn btn-sm btn-danger rounded-pill mt-1 fw-bold shadow-sm text-nowrap d-inline-block" style="font-size:10px; padding: 4px 12px; background-color: #9e0000; border-color: #9e0000;">Bayar Sekarang</a>';
+                                            $badge_html = '<span class="badge-status diterima">Menunggu Bayar</span>';
+                                            $instruction = '<a href="pembayaran.php?id='.$row['id_sewa'].'" class="btn btn-sm btn-danger rounded-pill mt-1 fw-bold text-nowrap d-inline-block shadow-sm" style="font-size:10px; padding: 4px 12px;">Bayar Sekarang</a>';
                                         } elseif ($st == 'dp') {
-                                            $badge_html = '<span class="badge bg-info text-dark rounded-pill px-2 py-1" style="font-size:11px;">DP Terbayar</span>';
+                                            $badge_html = '<span class="badge-status dp">DP Terbayar</span>';
                                             $instruction = '<a href="pembayaran.php?id='.$row['id_sewa'].'" class="btn btn-sm btn-outline-primary rounded-pill mt-1 fw-bold text-nowrap d-inline-block" style="font-size:10px; padding: 4px 12px;">Lunasi Kekurangan</a>';
                                         } elseif ($st == 'berjalan') {
-                                            $badge_html = '<span class="badge bg-warning text-dark rounded-pill px-2 py-1" style="font-size:11px;">Sedang Disewa</span>';
-                                            $instruction = '<small class="text-warning-emphasis d-block mt-1 fw-bold text-nowrap" style="font-size:10px;">Hati-hati berkendara</small>';
+                                            $badge_html = '<span class="badge-status berjalan">Sedang Disewa</span>';
+                                            $instruction = '<small class="d-block mt-1 text-teal-700 fw-bold" style="font-size:10px; color:#0F766E;">Berkendara Hati-hati</small>';
                                         } elseif ($st == 'selesai') {
-                                            $badge_html = '<span class="badge bg-success text-white rounded-pill px-2 py-1" style="font-size:11px;">Selesai</span>';
-                                            $instruction = '<small class="text-success d-block mt-1 fw-bold text-nowrap" style="font-size:10px;">Telah Dikembalikan</small>';
+                                            $badge_html = '<span class="badge-status selesai">Selesai</span>';
+                                            $instruction = '<small class="d-block mt-1 text-success fw-bold" style="font-size:10px;">Dikembalikan</small>';
                                         } else {
-                                            $badge_html = '<span class="badge bg-dark rounded-pill px-2 py-1 text-nowrap">'.$st.'</span>';
+                                            $badge_html = '<span class="badge-status pending">'.$st.'</span>';
                                         }
                                 ?>
                                 <tr>
@@ -275,76 +389,67 @@ if ($query_user) {
             </div>
         </div>
     </div>
-</div>
 
 <script>
-    // Fungsi bawaan lo
     function formatRupiah(angka) { return 'Rp ' + new Intl.NumberFormat('id-ID').format(angka); }
-    function hitungTotalEstimasi() {
-        const mSelect = document.getElementById('kode_mobil_select');
-        const sSelect = document.getElementById('id_supir_select');
-        const durasiSewa = document.getElementById('durasi_sewa').value;
-        const areaPemakaian = document.getElementById('area_pemakaian').value;
-        const inputHari = document.getElementById('lama_sewa');
-        const hari = parseInt(inputHari.value) || 0;
-        
-        let tMobil = 0;
-        let tSupir = 0; // The supir logic in Pelanggan is handled by proses_transaksi.php, but let's just make it simple for frontend estimation
-        
-        if (mSelect.selectedIndex > 0) {
-            const opt = mSelect.options[mSelect.selectedIndex];
-            if (durasiSewa === '12 Jam' && areaPemakaian === 'Dalam Kota') {
-                tMobil = parseFloat(opt.getAttribute('data-tarif-12-dalam'));
-            } else if (durasiSewa === '12 Jam' && areaPemakaian === 'Luar Kota') {
-                tMobil = parseFloat(opt.getAttribute('data-tarif-12-luar'));
-            } else if (durasiSewa === '24 Jam' && areaPemakaian === 'Dalam Kota') {
-                tMobil = parseFloat(opt.getAttribute('data-tarif-24-dalam'));
-            } else {
-                tMobil = parseFloat(opt.getAttribute('data-tarif-24-luar'));
-            }
-        }
-        
-        // Asumsi tarif supir disamakan dengan 200rb/hari atau bisa diambil dari AJAX (tapi ini frontend saja)
-        if (sSelect.selectedIndex > 0 && sSelect.value !== "") {
-            // Kita bisa juga menambah data-tarif-supir-* di option supir jika mau akurat. 
-            // Tapi untuk frontend, kita set default saja karena tarif supir akan dihitung detail di backend.
-            tSupir = parseFloat(sSelect.options[sSelect.selectedIndex].getAttribute('data-tarif-supir')) || 200000;
-        }
-
-        document.getElementById('disp_total_biaya').innerText = formatRupiah((tMobil + tSupir) * hari);
+    function toggleKeteranganSupir() {
+        const idSupir = document.getElementById('id_supir_select').value;
+        const container = document.getElementById('container_keterangan_sopir');
+        container.style.display = (idSupir === '999') ? 'block' : 'none';
     }
-    function toggleCatatanSupir() { document.getElementById('catatan_supir').style.display = (document.getElementById('id_supir_select').value !== "") ? "block" : "none"; }
+
+    // ✅ FIX: hitungTotal sekarang pakai tarif sopir yang sinkron dengan keterangan UI (250k/<12jam, 375k/12-24jam)
+    function hitungTotal() {
+        const tglMulai = new Date(document.getElementById('tgl_mulai').value);
+        const tglKembali = new Date(document.getElementById('tgl_kembali').value);
+        const area = document.getElementById('area_pemakaian').value;
+        const idSupir = document.getElementById('id_supir_select').value;
+        const jumlah = parseInt(document.getElementById('input_jumlah').value) || 1;
+        const mobSelect = document.getElementById('kode_mobil_select');
+        const tarifDasarPerHari = parseFloat(mobSelect.options[mobSelect.selectedIndex].getAttribute('data-tarif')) || 0;
+        
+        let total = 0;
+        
+        if (tglMulai && tglKembali && tglKembali > tglMulai) {
+            const diffTime = Math.abs(tglKembali - tglMulai);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const diffHours = diffTime / (1000 * 60 * 60);
+
+            total = (tarifDasarPerHari * diffDays * jumlah);
+
+            if (idSupir === '999') {
+                // Hitung biaya sopir per sesi sesuai keterangan: <12 jam = 250k, 12-24 jam = 375k
+                let biayaSopir = 0;
+                let sisaJam = diffHours;
+                while (sisaJam > 0) {
+                    const sesiIni = Math.min(sisaJam, 24);
+                    biayaSopir += (sesiIni <= 12) ? 250000 : 375000;
+                    sisaJam -= 24;
+                }
+                total += biayaSopir;
+            }
+
+            if (area === 'Luar Kota') total += 100000;
+        }
+        
+        document.getElementById('disp_total_biaya').innerText = formatRupiah(total);
+    }
     function toggleAlamatInput() { document.getElementById("inputAlamatCustom").style.display = (document.getElementById("lokasiSelect").value === "Antar ke Alamat lainnya") ? "block" : "none"; }
     function toggleAlamatKembaliInput() { document.getElementById("inputAlamatKembaliCustom").style.display = (document.getElementById("lokasiKembaliSelect").value === "Jemput di Alamat lainnya") ? "block" : "none"; }
 
-    // Logika AJAX
+    document.addEventListener("DOMContentLoaded", function() { toggleKeteranganSupir(); });
+
     $('#btnAjukan').click(function() {
-        const supirVal = document.getElementById('id_supir_select').value;
-        const statusVerif = "<?= $status_verif ?>";
-
-        if (supirVal === "" && statusVerif !== 'terverifikasi') {
-            Swal.fire('Peringatan', 'Akun belum terverifikasi. Sewa Lepas Kunci memerlukan KTP & SIM.', 'warning');
-            return;
-        }
-
         var formData = $('#formRental').serialize();
-
         $.ajax({
             url: 'proses_transaksi.php',
             type: 'POST',
             data: formData,
             success: function(response) {
-                if (response.trim() === "sukses") {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil!',
-                        text: 'Pesanan telah diajukan.',
-                        showConfirmButton: true
-                    }).then(() => {
-                        // Refresh tabel saja
-                        $('#tabelPesanan').load(location.href + ' #tabelPesanan > table');
-                        $('#formRental')[0].reset();
-                        $('#disp_total_biaya').text('Rp 0');
+                var resArr = response.trim().split('|');
+                if (resArr[0] === "sukses") {
+                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Pesanan telah diajukan. Silakan lakukan pembayaran.' }).then(() => {
+                        window.location.href = 'pembayaran.php?id=' + resArr[1];
                     });
                 } else {
                     Swal.fire('Error', response, 'error');
@@ -352,6 +457,4 @@ if ($query_user) {
             }
         });
     });
-</script>
-</body>
-</html>
+</script>

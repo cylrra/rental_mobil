@@ -20,7 +20,10 @@ if (isset($_POST['register'])) {
         $error = "Nama, Username, dan Password wajib diisi!";
     } else {
         // Cek apakah username sudah terdaftar
-        $cek_user = mysqli_query($conn, "SELECT * FROM pelanggan WHERE username = '$username'");
+        $stmt_cek = mysqli_prepare($conn, "SELECT * FROM pelanggan WHERE username = ?");
+        mysqli_stmt_bind_param($stmt_cek, "s", $username);
+        mysqli_stmt_execute($stmt_cek);
+        $cek_user = mysqli_stmt_get_result($stmt_cek);
         if (mysqli_num_rows($cek_user) > 0) {
             $error = "Username sudah digunakan, pilih username lain!";
         } else {
@@ -28,10 +31,12 @@ if (isset($_POST['register'])) {
             $password_hashed = password_hash($password, PASSWORD_DEFAULT);
             
             // Insert include email & status_verifikasi (default: belum_verifikasi)
-            $query = "INSERT INTO pelanggan (nama, username, email, password, alamat, no_telp, no_ktp, status_verifikasi) 
-                      VALUES ('$nama', '$username', '$email', '$password_hashed', '$alamat', '$no_telp', '$no_ktp', 'belum_verifikasi')";
+            $status_ver = 'belum_verifikasi';
+            $stmt_insert = mysqli_prepare($conn, "INSERT INTO pelanggan (nama, username, email, password, alamat, no_telp, no_ktp, status_verifikasi) 
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            mysqli_stmt_bind_param($stmt_insert, "ssssssss", $nama, $username, $email, $password_hashed, $alamat, $no_telp, $no_ktp, $status_ver);
             
-            if (mysqli_query($conn, $query)) {
+            if (mysqli_stmt_execute($stmt_insert)) {
                 // Redirect to OTP verification screen on login page
                 header("Location: login_pelanggan.php?registered=true&user=" . urlencode($username));
                 exit();

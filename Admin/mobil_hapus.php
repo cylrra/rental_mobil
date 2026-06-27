@@ -19,21 +19,21 @@ if (isset($_GET['kode'])) {
     $kode_mobil = mysqli_real_escape_string($conn, $_GET['kode']);
 
     // 1. Ambil nama gambar terlebih dahulu untuk dihapus dari folder img/
-    $query_gambar = mysqli_query($conn, "SELECT Gambar, merk, nopol FROM mobil WHERE kode_mobil = '$kode_mobil'");
+    $stmt_gambar = mysqli_prepare($conn, "SELECT Gambar, merk, nopol FROM mobil WHERE kode_mobil = ?");
+    mysqli_stmt_bind_param($stmt_gambar, "s", $kode_mobil);
+    mysqli_stmt_execute($stmt_gambar);
+    $query_gambar = mysqli_stmt_get_result($stmt_gambar);
     $data = mysqli_fetch_assoc($query_gambar);
     
     if ($data) {
         $nama_gambar = $data['Gambar'];
-        $path_gambar = "img/" . $nama_gambar;
-        
-        // Hapus file gambar dari folder lokal jika filenya ada
-        if (!empty($nama_gambar) && file_exists($path_gambar)) {
-            unlink($path_gambar);
-        }
+        // Do NOT delete the image for soft delete, we keep it for history
     }
 
-    // 2. Jalankan query hapus data dari database
-    $delete = mysqli_query($conn, "DELETE FROM mobil WHERE kode_mobil = '$kode_mobil'");
+    // 2. Jalankan query soft delete data dari database
+    $stmt_del = mysqli_prepare($conn, "UPDATE mobil SET is_deleted = 1, status_mobil = 'tidak tersedia' WHERE kode_mobil = ?");
+    mysqli_stmt_bind_param($stmt_del, "s", $kode_mobil);
+    $delete = mysqli_stmt_execute($stmt_del);
 
     if ($delete) {
         echo "<script>

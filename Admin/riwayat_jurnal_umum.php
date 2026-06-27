@@ -38,7 +38,7 @@ $result = mysqli_query($db_connection, $query_riwayat);
     <div class="max-w-5xl mx-auto">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <div class="w-10 h-10 rounded-xl bg-[#800000]/10 text-[#800000] flex items-center justify-center">
                     <i data-lucide="history" class="w-5 h-5"></i>
                 </div>
                 <div>

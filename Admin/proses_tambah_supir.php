@@ -15,10 +15,10 @@ if (isset($_POST['submit'])) {
     $status_supir = $_POST['status_supir'];
 
     // Query INSERT data ke dalam tabel supir
-    $query_insert = "INSERT INTO supir (id_supir, nama_supir, no_telp, tarif_supir_per_hari, tarif_12_dalam, tarif_12_luar, tarif_24_dalam, tarif_24_luar, status_supir) 
-                     VALUES ('$id_supir', '$nama_supir', '$no_telp', '$tarif_supir_per_hari', '$tarif_12_dalam', '$tarif_12_luar', '$tarif_24_dalam', '$tarif_24_luar', '$status_supir')";
-
-    $simpan = mysqli_query($conn, $query_insert);
+    $stmt_in = mysqli_prepare($conn, "INSERT INTO supir (id_supir, nama_supir, no_telp, tarif_supir_per_hari, tarif_12_dalam, tarif_12_luar, tarif_24_dalam, tarif_24_luar, status_supir) 
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    mysqli_stmt_bind_param($stmt_in, "sssddddds", $id_supir, $nama_supir, $no_telp, $tarif_supir_per_hari, $tarif_12_dalam, $tarif_12_luar, $tarif_24_dalam, $tarif_24_luar, $status_supir);
+    $simpan = mysqli_stmt_execute($stmt_in);
 
     if ($simpan) {
         echo "<script>

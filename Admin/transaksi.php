@@ -25,12 +25,15 @@ $kode_selected = isset($_GET['kode']) ? mysqli_real_escape_string($conn, $_GET['
 // Jika baru saja di ACC dan perlu WhatsApp otomatis
 $auto_wa_script = '';
 if (isset($_GET['acc_wa_id'])) {
-    $wa_id = mysqli_real_escape_string($conn, $_GET['acc_wa_id']);
-    $wa_q = mysqli_query($conn, "SELECT t.total_biaya, t.tanggal_sewa, p.nama, p.no_telp, m.merk 
+    $wa_id = $_GET['acc_wa_id'];
+    $stmt = mysqli_prepare($conn, "SELECT t.total_biaya, t.tanggal_sewa, p.nama, p.no_telp, m.merk 
                                  FROM transaksi_sewa t
                                  JOIN pelanggan p ON t.id_pelanggan = p.id_pelanggan
                                  JOIN mobil m ON t.kode_mobil = m.kode_mobil
-                                 WHERE t.id_sewa = '$wa_id'");
+                                 WHERE t.id_sewa = ?");
+    mysqli_stmt_bind_param($stmt, "i", $wa_id);
+    mysqli_stmt_execute($stmt);
+    $wa_q = mysqli_stmt_get_result($stmt);
     if ($wa_row = mysqli_fetch_assoc($wa_q)) {
         $phone = formatWhatsAppNumber($wa_row['no_telp']);
         $text = "Halo " . $wa_row['nama'] . ",\n\nPesanan rental mobil *" . $wa_row['merk'] . "* Anda untuk tanggal *" . date('d M Y', strtotime($wa_row['tanggal_sewa'])) . "* telah kami *SETUJUI*.\n\nTotal Tagihan: *Rp " . number_format($wa_row['total_biaya'], 0, ',', '.') . "*\n\nSilakan lanjutkan pembayaran sesuai instruksi di website kami.\n\nTerima kasih,\n*PT INDOMAX RENTAL*";
@@ -90,7 +93,7 @@ if (isset($_GET['acc_wa_id'])) {
                                 <option value="">-- Cari Mobil Tersedia --</option>
                                 <?php
                                 // Mengambil mobil yang stok real-time > 0
-                                $mob = mysqli_query($conn, "SELECT m.*, (CAST(m.Unit_Tersedia AS SIGNED) - (SELECT COUNT(*) FROM transaksi_sewa t WHERE t.kode_mobil = m.kode_mobil AND t.status_sewa = 'berjalan')) AS stok_realtime FROM mobil m");
+                                $mob = mysqli_query($conn, "SELECT m.*, (CAST(m.Unit_Tersedia AS SIGNED) - (SELECT COUNT(*) FROM transaksi_sewa t WHERE t.kode_mobil = m.kode_mobil AND t.status_sewa = 'berjalan')) AS stok_realtime FROM mobil m WHERE m.is_deleted = 0");
                                 while($m = mysqli_fetch_array($mob)) {
                                     if ((int)$m['stok_realtime'] > 0) {
                                         $selected = ($m['kode_mobil'] == $kode_selected) ? 'selected' : '';
@@ -115,7 +118,7 @@ if (isset($_GET['acc_wa_id'])) {
                             <div class="row g-2 mt-1">
                                 <?php
                                 // Supir yang tidak sedang memiliki transaksi 'berjalan'
-                                $supir_query = mysqli_query($conn, "SELECT s.* FROM supir s WHERE (SELECT COUNT(*) FROM transaksi_sewa t WHERE t.id_supir = s.id_supir AND t.status_sewa = 'berjalan') = 0");
+                                $supir_query = mysqli_query($conn, "SELECT s.* FROM supir s WHERE s.is_deleted = 0 AND (SELECT COUNT(*) FROM transaksi_sewa t WHERE t.id_supir = s.id_supir AND t.status_sewa = 'berjalan') = 0");
                                 while($s = mysqli_fetch_array($supir_query)) {
                                 ?>
                                 <div class="col-6">
@@ -287,9 +290,7 @@ if (isset($_GET['acc_wa_id'])) {
                                             <button type="button" class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-colors" title="Bot Kirim Tagihan" onclick="openBotModal('<?= $row['id_sewa'] ?>', '<?= $wa_customer_phone ?>', '<?= htmlspecialchars(addslashes($row['nama'])) ?>', '<?= $row['total_biaya'] ?>', '<?= $row['tanggal_sewa'] ?>', '<?= $row['lama_sewa'] ?>', '<?= htmlspecialchars(addslashes($row['merk'])) ?>', '<?= $row['pake_supir'] ?>', '<?= htmlspecialchars(addslashes($row['nama_supir'] ?? '')) ?>')">
                                                 <i data-lucide="bot" class="w-4 h-4"></i>
                                             </button>
-                                            <button type="button" class="w-8 h-8 rounded-lg bg-pink-50 text-pink-600 flex items-center justify-center hover:bg-pink-600 hover:text-white transition-colors" title="Bot Tagih DP (50%)" onclick="openBotModal('<?= $row['id_sewa'] ?>', '<?= $wa_customer_phone ?>', '<?= htmlspecialchars(addslashes($row['nama'])) ?>', '<?= $row['total_biaya'] ?>', '<?= $row['tanggal_sewa'] ?>', '<?= $row['lama_sewa'] ?>', '<?= htmlspecialchars(addslashes($row['merk'])) ?>', '<?= $row['pake_supir'] ?>', '<?= htmlspecialchars(addslashes($row['nama_supir'] ?? '')) ?>', false, true)">
-                                                <i data-lucide="message-square-dashed" class="w-4 h-4"></i>
-                                            </button>
+
                                         </div>
                                     </td>
                                 </tr>
@@ -430,7 +431,7 @@ if (isset($_GET['acc_wa_id'])) {
                     
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                         <?php
-                        $supir_query = mysqli_query($conn, "SELECT s.* FROM supir s WHERE (SELECT COUNT(*) FROM transaksi_sewa t WHERE t.id_supir = s.id_supir AND t.status_sewa = 'berjalan') = 0");
+                        $supir_query = mysqli_query($conn, "SELECT s.* FROM supir s WHERE s.is_deleted = 0 AND (SELECT COUNT(*) FROM transaksi_sewa t WHERE t.id_supir = s.id_supir AND t.status_sewa = 'berjalan') = 0");
                         while($s = mysqli_fetch_array($supir_query)) {
                         ?>
                         <div class="card acc-driver-card driver-card border cursor-pointer h-100 bg-white" data-id="<?= $s['id_supir'] ?>" onclick="selectAccDriver(this)">
@@ -573,13 +574,16 @@ function openPengembalianModal(idSewa, tglKembali, totalBiaya) {
 
 <?php
 if (isset($_GET['acc_id'])) {
-    $acc_id = mysqli_real_escape_string($conn, $_GET['acc_id']);
-    $q_bot = mysqli_query($conn, "SELECT t.*, p.nama, p.no_telp, m.merk, s.nama_supir 
+    $acc_id = $_GET['acc_id'];
+    $stmt_bot = mysqli_prepare($conn, "SELECT t.*, p.nama, p.no_telp, m.merk, s.nama_supir 
                                   FROM transaksi_sewa t
                                   JOIN pelanggan p ON t.id_pelanggan = p.id_pelanggan
                                   JOIN mobil m ON t.kode_mobil = m.kode_mobil
                                   LEFT JOIN supir s ON t.id_supir = s.id_supir
-                                  WHERE t.id_sewa = '$acc_id'");
+                                  WHERE t.id_sewa = ?");
+    mysqli_stmt_bind_param($stmt_bot, "i", $acc_id);
+    mysqli_stmt_execute($stmt_bot);
+    $q_bot = mysqli_stmt_get_result($stmt_bot);
     if ($row_bot = mysqli_fetch_assoc($q_bot)) {
         $phone = formatWhatsAppNumber($row_bot['no_telp']);
         $nama = addslashes($row_bot['nama']);

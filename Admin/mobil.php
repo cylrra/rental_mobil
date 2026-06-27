@@ -10,12 +10,12 @@ include 'koneksi.php';
 // =========================================================================
 
 // 1. Total Tipe Unit Mobil
-$res_tipe = mysqli_query($conn, "SELECT COUNT(*) as total FROM mobil");
+$res_tipe = mysqli_query($conn, "SELECT COUNT(*) as total FROM mobil WHERE is_deleted = 0");
 $data_tipe = mysqli_fetch_assoc($res_tipe);
 $total_tipe = $data_tipe['total'] ?? 0;
 
 // 2. Total Semua Kapasitas Unit Fisik Mobil (Kapasitas Maksimal)
-$res_stok = mysqli_query($conn, "SELECT SUM(Unit_Tersedia) as total_stok FROM mobil");
+$res_stok = mysqli_query($conn, "SELECT SUM(Unit_Tersedia) as total_stok FROM mobil WHERE is_deleted = 0");
 $data_stok = mysqli_fetch_assoc($res_stok);
 $total_stok = $data_stok['total_stok'] ?? 0;
 
@@ -73,7 +73,7 @@ $res_detail_pakai = mysqli_query($conn, $query_terpakai);
     $sql_mobil = "SELECT m.*, 
                   (CAST(m.Unit_Tersedia AS SIGNED) - (SELECT COUNT(*) FROM transaksi_sewa t WHERE t.kode_mobil = m.kode_mobil AND t.status_sewa = 'berjalan')) AS stok_realtime,
                   (SELECT tanggal_pemeliharaan FROM pemeliharaan p WHERE p.kode_mobil = m.kode_mobil AND p.status = 'terjadwal' ORDER BY tanggal_pemeliharaan ASC LIMIT 1) AS jadwal_servis
-                  FROM mobil m";
+                  FROM mobil m WHERE m.is_deleted = 0";
     
     $query = mysqli_query($conn, $sql_mobil);
     

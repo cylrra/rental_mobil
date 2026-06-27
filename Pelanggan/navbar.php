@@ -17,7 +17,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Google Fonts Montserrat -->
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
     <style>
         :root {
             /* Dynamic Energy Color Scheme */
@@ -118,8 +119,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
         }
 
         body { 
-            background-color: var(--background); 
-            font-family: 'Montserrat', sans-serif; 
+            background-color: #F4F6F9; 
+            font-family: 'Plus Jakarta Sans', 'Montserrat', sans-serif; 
             overflow-x: hidden; 
             margin: 0; 
             color: var(--on-surface);

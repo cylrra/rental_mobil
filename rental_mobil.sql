@@ -240,7 +240,8 @@ CREATE TABLE `mobil` (
   `tarif_12_dalam` decimal(10,2) DEFAULT NULL,
   `tarif_12_luar` decimal(10,2) DEFAULT NULL,
   `tarif_24_dalam` decimal(10,2) DEFAULT NULL,
-  `tarif_24_luar` decimal(10,2) DEFAULT NULL
+  `tarif_24_luar` decimal(10,2) DEFAULT NULL,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -468,7 +469,8 @@ CREATE TABLE `supir` (
   `tarif_12_dalam` decimal(10,2) DEFAULT NULL,
   `tarif_12_luar` decimal(10,2) DEFAULT NULL,
   `tarif_24_dalam` decimal(10,2) DEFAULT NULL,
-  `tarif_24_luar` decimal(10,2) DEFAULT NULL
+  `tarif_24_luar` decimal(10,2) DEFAULT NULL,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --

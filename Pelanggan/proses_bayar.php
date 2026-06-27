@@ -11,12 +11,12 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'pelanggan') {
 }
 
 if (isset($_POST['simpan_pembayaran'])) {
-    $id_sewa        = mysqli_real_escape_string($conn, $_POST['id_transaksi']); 
-    $tgl_bayar      = mysqli_real_escape_string($conn, $_POST['tgl_bayar']);    
-    $jumlah_bayar   = mysqli_real_escape_string($conn, $_POST['jumlah_bayar']);
-    $metode         = mysqli_real_escape_string($conn, $_POST['metode_bayar']);  
-    $jenis_bayar    = mysqli_real_escape_string($conn, $_POST['tipe_pembayaran']); // 'DP' atau 'Lunas'
-    $bank_tujuan    = isset($_POST['bank_tujuan']) ? mysqli_real_escape_string($conn, $_POST['bank_tujuan']) : '';
+    $id_sewa        = $_POST['id_transaksi']; 
+    $tgl_bayar      = $_POST['tgl_bayar'];    
+    $jumlah_bayar   = $_POST['jumlah_bayar'];
+    $metode         = $_POST['metode_bayar'];  
+    $jenis_bayar    = $_POST['tipe_pembayaran']; // 'DP' atau 'Lunas'
+    $bank_tujuan    = isset($_POST['bank_tujuan']) ? $_POST['bank_tujuan'] : '';
     
     $tipe_pembayaran = ($jenis_bayar === 'DP') ? 'DP' : 'Lunas';
     $keterangan     = "Pembayaran " . strtoupper($tipe_pembayaran) . " Sewa Mobil ID: " . $id_sewa;
@@ -30,8 +30,10 @@ if (isset($_POST['simpan_pembayaran'])) {
 
     try {
         // 1. Ambil KODE_MOBIL, TOTAL_BAYAR, dan JUMLAH_BAYAR dari transaksi_sewa
-        $query_cek = "SELECT kode_mobil, total_bayar, jumlah_bayar FROM transaksi_sewa WHERE id_sewa = '$id_sewa'";
-        $result_cek = mysqli_query($conn, $query_cek);
+        $stmt_cek = mysqli_prepare($conn, "SELECT kode_mobil, total_bayar, jumlah_bayar FROM transaksi_sewa WHERE id_sewa = ?");
+        mysqli_stmt_bind_param($stmt_cek, "i", $id_sewa);
+        mysqli_stmt_execute($stmt_cek);
+        $result_cek = mysqli_stmt_get_result($stmt_cek);
         
         if (!$result_cek || mysqli_num_rows($result_cek) == 0) {
             throw new Exception("Data sewa tidak ditemukan.");
@@ -52,10 +54,11 @@ if (isset($_POST['simpan_pembayaran'])) {
         }
 
         // 2. Simpan ke Tabel Pembayaran
-        $query_bayar = "INSERT INTO pembayaran (id_sewa, jenis_pembayaran, metode_pembayaran, tanggal_bayar, jumlah_bayar, status_konfirmasi, keterangan, tipe_pembayaran) 
-                        VALUES ('$id_sewa', '$jenis_bayar', '$metode', '$tgl_bayar', '$nominal_final', 'menunggu', '$keterangan', '$tipe_pembayaran')";
-        
-        if (!mysqli_query($conn, $query_bayar)) {
+        $status_konf = 'menunggu';
+        $stmt_bayar = mysqli_prepare($conn, "INSERT INTO pembayaran (id_sewa, jenis_pembayaran, metode_pembayaran, tanggal_bayar, jumlah_bayar, status_konfirmasi, keterangan, tipe_pembayaran) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        mysqli_stmt_bind_param($stmt_bayar, "isssdsss", $id_sewa, $jenis_bayar, $metode, $tgl_bayar, $nominal_final, $status_konf, $keterangan, $tipe_pembayaran);
+        if (!mysqli_stmt_execute($stmt_bayar)) {
             throw new Exception("Gagal simpan pembayaran: " . mysqli_error($conn));
         }
 
@@ -71,47 +74,69 @@ if (isset($_POST['simpan_pembayaran'])) {
             $akun_debit = '1123';
         }
         
-        $q_debit_sql = "INSERT INTO jurnal (tanggal, kode_akun, Debit, Kredit, keterangan, id_sumber) 
-                        VALUES ('$tgl_bayar', '$akun_debit', '$nominal_final', 0, '$keterangan', '$id_sumber')";
-        if (!mysqli_query($conn, $q_debit_sql)) {
+        $kredit_nol = 0;
+        $stmt_debit = mysqli_prepare($conn, "INSERT INTO jurnal (tanggal, kode_akun, Debit, Kredit, keterangan, id_sumber) 
+                        VALUES (?, ?, ?, ?, ?, ?)");
+        mysqli_stmt_bind_param($stmt_debit, "ssdssi", $tgl_bayar, $akun_debit, $nominal_final, $kredit_nol, $keterangan, $id_sumber);
+        if (!mysqli_stmt_execute($stmt_debit)) {
             throw new Exception("Gagal posting jurnal (Debit): " . mysqli_error($conn));
         }
 
-        $q_kredit_sql = "INSERT INTO jurnal (tanggal, kode_akun, Debit, Kredit, keterangan, id_sumber) 
-                         VALUES ('$tgl_bayar', '411', 0, '$nominal_final', '$keterangan', '$id_sumber')";
-        if (!mysqli_query($conn, $q_kredit_sql)) {
+        $akun_kredit = '411';
+        $debit_nol = 0;
+        $stmt_kredit = mysqli_prepare($conn, "INSERT INTO jurnal (tanggal, kode_akun, Debit, Kredit, keterangan, id_sumber) 
+                         VALUES (?, ?, ?, ?, ?, ?)");
+        mysqli_stmt_bind_param($stmt_kredit, "ssdssi", $tgl_bayar, $akun_kredit, $debit_nol, $nominal_final, $keterangan, $id_sumber);
+        if (!mysqli_stmt_execute($stmt_kredit)) {
             throw new Exception("Gagal posting jurnal (Kredit): " . mysqli_error($conn));
         }
 
         // 4. Update tabel transaksi_sewa
-        $q_update_transaksi = "UPDATE transaksi_sewa SET jumlah_bayar = jumlah_bayar + $nominal_final WHERE id_sewa = '$id_sewa'";
-        if (!mysqli_query($conn, $q_update_transaksi)) {
+        $stmt_update_trx = mysqli_prepare($conn, "UPDATE transaksi_sewa SET jumlah_bayar = jumlah_bayar + ? WHERE id_sewa = ?");
+        mysqli_stmt_bind_param($stmt_update_trx, "di", $nominal_final, $id_sewa);
+        if (!mysqli_stmt_execute($stmt_update_trx)) {
             throw new Exception("Gagal mengupdate jumlah bayar di transaksi: " . mysqli_error($conn));
         }
 
         // 5. Update status transaksi_sewa & ketersediaan mobil
         if ($total_setelah_bayar >= $total_tagihan) {
             // Check if the rental period has actually ended before setting it to 'selesai'
-            $check_time = mysqli_query($conn, "SELECT tanggal_sewa, lama_sewa FROM transaksi_sewa WHERE id_sewa = '$id_sewa'");
+            $stmt_cek_time = mysqli_prepare($conn, "SELECT tanggal_sewa, lama_sewa FROM transaksi_sewa WHERE id_sewa = ?");
+            mysqli_stmt_bind_param($stmt_cek_time, "i", $id_sewa);
+            mysqli_stmt_execute($stmt_cek_time);
+            $check_time = mysqli_stmt_get_result($stmt_cek_time);
             $time_data = mysqli_fetch_assoc($check_time);
             $end_date_str = date('Y-m-d', strtotime($time_data['tanggal_sewa'] . ' + ' . $time_data['lama_sewa'] . ' days'));
             $is_ended = (date('Y-m-d') >= $end_date_str);
 
             if ($is_ended) {
-                if (!mysqli_query($conn, "UPDATE transaksi_sewa SET status_sewa = 'selesai' WHERE id_sewa = '$id_sewa'")) {
+                $status_selesai = 'selesai';
+                $stmt_selesai = mysqli_prepare($conn, "UPDATE transaksi_sewa SET status_sewa = ? WHERE id_sewa = ?");
+                mysqli_stmt_bind_param($stmt_selesai, "si", $status_selesai, $id_sewa);
+                if (!mysqli_stmt_execute($stmt_selesai)) {
                     throw new Exception("Gagal update status transaksi sewa: " . mysqli_error($conn));
                 }
-                if (!mysqli_query($conn, "UPDATE mobil SET status_mobil = 'tersedia' WHERE kode_mobil = '$kode_mobil'")) {
+                
+                $status_tersedia = 'tersedia';
+                $stmt_mobil = mysqli_prepare($conn, "UPDATE mobil SET status_mobil = ? WHERE kode_mobil = ?");
+                mysqli_stmt_bind_param($stmt_mobil, "ss", $status_tersedia, $kode_mobil);
+                if (!mysqli_stmt_execute($stmt_mobil)) {
                     throw new Exception("Gagal mengubah status mobil menjadi tersedia: " . mysqli_error($conn));
                 }
             } else {
                 // Keep it running (berjalan) if the rental period is still ongoing
-                if (!mysqli_query($conn, "UPDATE transaksi_sewa SET status_sewa = 'berjalan' WHERE id_sewa = '$id_sewa'")) {
+                $status_berjalan = 'berjalan';
+                $stmt_berjalan = mysqli_prepare($conn, "UPDATE transaksi_sewa SET status_sewa = ? WHERE id_sewa = ?");
+                mysqli_stmt_bind_param($stmt_berjalan, "si", $status_berjalan, $id_sewa);
+                if (!mysqli_stmt_execute($stmt_berjalan)) {
                     throw new Exception("Gagal update status transaksi sewa: " . mysqli_error($conn));
                 }
             }
         } else {
-            if (!mysqli_query($conn, "UPDATE transaksi_sewa SET status_sewa = 'DP' WHERE id_sewa = '$id_sewa'")) {
+            $status_dp = 'DP';
+            $stmt_dp = mysqli_prepare($conn, "UPDATE transaksi_sewa SET status_sewa = ? WHERE id_sewa = ?");
+            mysqli_stmt_bind_param($stmt_dp, "si", $status_dp, $id_sewa);
+            if (!mysqli_stmt_execute($stmt_dp)) {
                 throw new Exception("Gagal update status sewa (DP): " . mysqli_error($conn));
             }
         }

@@ -14,8 +14,9 @@ include 'koneksi.php';
 $id_pelanggan = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
 if ($id_pelanggan > 0) {
-    $delete_query = "DELETE FROM pelanggan WHERE id_pelanggan = $id_pelanggan";
-    if (mysqli_query($conn, $delete_query)) {
+    $stmt = mysqli_prepare($conn, "DELETE FROM pelanggan WHERE id_pelanggan = ?");
+    mysqli_stmt_bind_param($stmt, "i", $id_pelanggan);
+    if (mysqli_stmt_execute($stmt)) {
         echo "<script>
                 alert('Data pelanggan berhasil dihapus!');
                 window.location.href = 'pelanggan.php';

@@ -105,7 +105,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <i class="bi bi-calendar3 me-3"></i> Jadwal Service
             </a>
             <a href="riwayat_pemeliharaan.php" class="list-group-item list-group-item-action bg-transparent border-0 <?= ($current_page == 'riwayat_pemeliharaan.php') ? 'active-menu' : ''; ?>">
-                <i class="bi bi-clock-history me-3"></i> Riwayat Pemeliharaan
+                <i class="bi bi-wrench-adjustable me-3"></i> Riwayat Service
             </a>
 
             <div class="sidebar-category-title text-uppercase fw-bold px-3 pt-3 pb-1">Akuntansi</div>
@@ -118,11 +118,23 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <a href="jurnal_umum.php" class="list-group-item list-group-item-action bg-transparent border-0 <?= ($current_page == 'jurnal_umum.php') ? 'active-menu' : ''; ?>">
                 <i class="bi bi-journal-check me-3"></i> Jurnal Umum
             </a>
-            <a href="jurnal_detail.php" class="list-group-item list-group-item-action bg-transparent border-0 <?= ($current_page == 'jurnal_detail.php') ? 'active-menu' : ''; ?>">
-                <i class="bi bi-search me-3"></i> Detail Jurnal
+            <a href="buku_besar.php" class="list-group-item list-group-item-action bg-transparent border-0 <?= ($current_page == 'buku_besar.php') ? 'active-menu' : ''; ?>">
+                <i class="bi bi-book me-3"></i> Buku Besar
+            </a>
+            <a href="neraca_saldo.php" class="list-group-item list-group-item-action bg-transparent border-0 <?= ($current_page == 'neraca_saldo.php') ? 'active-menu' : ''; ?>">
+                <i class="bi bi-calculator me-3"></i> Neraca Saldo
             </a>
             <a href="laporan_laba_rugi.php" class="list-group-item list-group-item-action bg-transparent border-0 <?= ($current_page == 'laporan_laba_rugi.php') ? 'active-menu' : ''; ?>">
-                <i class="bi bi-graph-up-arrow me-3"></i> Laporan Laba Rugi
+                <i class="bi bi-graph-up-arrow me-3"></i> Laba Rugi
+            </a>
+            <a href="neraca.php" class="list-group-item list-group-item-action bg-transparent border-0 <?= ($current_page == 'neraca.php') ? 'active-menu' : ''; ?>">
+                <i class="bi bi-scale me-3"></i> Neraca (Posisi Keuangan)
+            </a>
+            <a href="coa.php" class="list-group-item list-group-item-action bg-transparent border-0 <?= ($current_page == 'coa.php') ? 'active-menu' : ''; ?>">
+                <i class="bi bi-diagram-3-fill me-3"></i> Chart of Accounts (COA)
+            </a>
+            <a href="penyusutan.php" class="list-group-item list-group-item-action bg-transparent border-0 <?= ($current_page == 'penyusutan.php') ? 'active-menu' : ''; ?>">
+                <i class="bi bi-car-front me-3"></i> Penyusutan Kendaraan
             </a>
             <a href="cetak_kwitansi.php" class="list-group-item list-group-item-action bg-transparent border-0 <?= ($current_page == 'cetak_kwitansi.php') ? 'active-menu' : ''; ?>">
                 <i class="bi bi-printer me-3"></i> Cetak Kwitansi

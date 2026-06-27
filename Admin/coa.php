@@ -30,21 +30,89 @@ include 'koneksi.php';
                 </thead>
                 <tbody>
                     <?php
-                    // Mengambil data dari tabel nama_akun
+                    // Ambil data dari tabel nama_akun
                     $query_coa = mysqli_query($conn, "SELECT * FROM nama_akun ORDER BY kode_akun ASC");
+                    
+                    $kelompok_akun = [
+                        '1' => 'ASET (AKTIVA)',
+                        '2' => 'KEWAJIBAN (UTANG)',
+                        '3' => 'EKUITAS (MODAL)',
+                        '4' => 'PENDAPATAN',
+                        '5' => 'BEBAN OPERASIONAL'
+                    ];
+
+                    $accounts = [];
+                    $total_bank = 0;
                     if ($query_coa && mysqli_num_rows($query_coa) > 0) {
                         while($row = mysqli_fetch_assoc($query_coa)) {
-                            // Cek jika akun merupakan header (saldo_awal = 0 dan bukan akun operasional)
-                            $is_header = ($row['saldo_awal'] == 0 && !in_array($row['kode_akun'], ['113','312','411','412','511','513']));
+                            $accounts[] = $row;
+                            if (strlen($row['kode_akun']) > 3 && substr($row['kode_akun'], 0, 3) === '112') {
+                                $total_bank += floatval($row['saldo_awal']);
+                            }
+                        }
+                    }
+
+                    $current_kelompok = '';
+                    $in_bank_group = false;
+
+                    if (!empty($accounts)) {
+                        foreach($accounts as $row) {
+                            $kode = $row['kode_akun'];
+                            $awalan = substr($kode, 0, 1);
+                            
+                            // Print Header Kelompok jika berpindah kelompok
+                            if ($current_kelompok !== $awalan && array_key_exists($awalan, $kelompok_akun)) {
+                                $current_kelompok = $awalan;
+                                ?>
+                                <tr class="table-light fw-bold text-dark">
+                                    <td colspan="3" class="ps-4">
+                                        <i class="bi bi-folder-fill text-warning me-2"></i> <?= htmlspecialchars($kelompok_akun[$awalan]) ?>
+                                    </td>
+                                </tr>
+                                <?php
+                            }
+
+                            // Khusus penanganan Akun 112 (Bank)
+                            if ($kode === '112') {
+                                ?>
+                                <tr data-bs-toggle="collapse" data-bs-target="#collapseBank" aria-expanded="false" aria-controls="collapseBank" style="cursor: pointer;" class="bg-light hover-bg">
+                                    <td class="ps-4 font-monospace"><span class="ms-4"><i class="bi bi-chevron-down me-2 text-primary" style="font-size: 0.8rem;"></i><?= htmlspecialchars($kode); ?></span></td>
+                                    <td>
+                                        <strong class="text-dark"><i class="bi bi-bank me-2 text-secondary"></i>Bank (Klik untuk lihat detail)</strong>
+                                    </td>
+                                    <td class="text-end pe-4 fw-bold text-primary">
+                                        Rp <?= number_format($total_bank, 2, ',', '.'); ?>
+                                    </td>
+                                </tr>
+                                <?php
+                                $in_bank_group = true;
+                                continue;
+                            }
+
+                            // Sub-akun Bank (112x)
+                            if ($in_bank_group && substr($kode, 0, 3) === '112' && strlen($kode) > 3) {
+                                ?>
+                                <tr class="collapse" id="collapseBank" style="background-color: #f8f9fa;">
+                                    <td class="ps-4 font-monospace text-muted"><span class="ms-5 ps-3">↳ <?= htmlspecialchars($kode); ?></span></td>
+                                    <td class="ps-5">
+                                        <span class="text-secondary"><i class="bi bi-credit-card me-2"></i><?= htmlspecialchars($row['nama_akun']); ?></span>
+                                    </td>
+                                    <td class="text-end pe-4 fw-bold <?= $row['saldo_awal'] > 0 ? 'text-primary' : 'text-muted'; ?>" style="font-size: 0.9em;">
+                                        Rp <?= number_format($row['saldo_awal'], 2, ',', '.'); ?>
+                                    </td>
+                                </tr>
+                                <?php
+                                continue;
+                            } else {
+                                $in_bank_group = false; // Keluar dari grup bank jika kode selanjutnya bukan 112x
+                            }
+
+                            // Rendering baris normal
                     ?>
-                    <tr class="<?= $is_header ? 'table-light fw-bold text-dark' : ''; ?>">
-                        <td class="ps-4 font-monospace"><?= htmlspecialchars($row['kode_akun']); ?></td>
+                    <tr>
+                        <td class="ps-4 font-monospace"><span class="ms-4"><?= htmlspecialchars($kode); ?></span></td>
                         <td>
-                            <?php if(!$is_header): ?>
-                                <span class="ms-3 text-secondary">• <?= htmlspecialchars($row['nama_akun']); ?></span>
-                            <?php else: ?>
-                                <?= htmlspecialchars($row['nama_akun']); ?>
-                            <?php endif; ?>
+                            <span class="text-secondary"><?= htmlspecialchars($row['nama_akun']); ?></span>
                         </td>
                         <td class="text-end pe-4 fw-bold <?= $row['saldo_awal'] > 0 ? 'text-primary' : 'text-muted'; ?>">
                             Rp <?= number_format($row['saldo_awal'], 2, ',', '.'); ?>

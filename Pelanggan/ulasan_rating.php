@@ -28,10 +28,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_rating'])) {
     }
 
     // Insert ke rating_sewa
-    $query = "INSERT INTO rating_sewa (id_transaksi, id_pelanggan, rating_pelayanan, rating_supir, rating_mobil, ulasan) 
-              VALUES ('$id_transaksi', '$id_pelanggan', '$pely', '$supr', '$mobl', '$ulasan')";
+    $query = "INSERT INTO rating_sewa (id_transaksi, id_pelanggan, rating_pelayanan, rating_supir, rating_mobil, ulasan) VALUES (?, ?, ?, ?, ?, ?)";
+    $stmt = mysqli_prepare($conn, $query);
+    mysqli_stmt_bind_param($stmt, "iiiiis", $id_transaksi, $id_pelanggan, $pely, $supr, $mobl, $ulasan);
     
-    if (mysqli_query($conn, $query)) {
+    if (mysqli_stmt_execute($stmt)) {
         echo "<script>alert('Ulasan berhasil dikirim!'); window.location='ulasan_rating.php';</script>";
         exit;
     } else {
@@ -42,15 +43,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_rating'])) {
 
 // 2. DETEKSI TRANSAKSI YANG BELUM DINILAI
 $unrated_list = [];
-$query_unrated = mysqli_query($conn, "
+$stmt_unrated = mysqli_prepare($conn, "
     SELECT t.id_sewa, m.merk, m.nopol, t.pake_supir 
     FROM transaksi_sewa t
     LEFT JOIN mobil m ON t.kode_mobil = m.kode_mobil
-    WHERE t.id_pelanggan = '$id_pelanggan' 
+    WHERE t.id_pelanggan = ? 
       AND t.status_sewa = 'selesai' 
       AND t.id_sewa NOT IN (SELECT id_transaksi FROM rating_sewa)
     ORDER BY t.id_sewa DESC
 ");
+mysqli_stmt_bind_param($stmt_unrated, "i", $id_pelanggan);
+mysqli_stmt_execute($stmt_unrated);
+$query_unrated = mysqli_stmt_get_result($stmt_unrated);
 
 while ($r = mysqli_fetch_assoc($query_unrated)) {
     $unrated_list[] = $r;

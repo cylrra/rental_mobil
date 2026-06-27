@@ -12,7 +12,10 @@ if (isset($_POST['submit'])) {
     $saldo_awal = mysqli_real_escape_string($conn, $_POST['saldo_awal']);
 
     // Validasi: Cek apakah kode akun sudah digunakan sebelumnya
-    $cek_kode = mysqli_query($conn, "SELECT kode_akun FROM nama_akun WHERE kode_akun = '$kode_akun'");
+    $stmt_cek = mysqli_prepare($conn, "SELECT kode_akun FROM nama_akun WHERE kode_akun = ?");
+    mysqli_stmt_bind_param($stmt_cek, "s", $kode_akun);
+    mysqli_stmt_execute($stmt_cek);
+    $cek_kode = mysqli_stmt_get_result($stmt_cek);
     
     if (mysqli_num_rows($cek_kode) > 0) {
         echo "<script>
@@ -21,9 +24,11 @@ if (isset($_POST['submit'])) {
               </script>";
     } else {
         // Query Insert Data
-        $query_insert = "INSERT INTO nama_akun (kode_akun, nama_akun, saldo_awal) VALUES ('$kode_akun', '$nama_akun', '$saldo_awal')";
+        $query_insert = "INSERT INTO nama_akun (kode_akun, nama_akun, saldo_awal) VALUES (?, ?, ?)";
+        $stmt_insert = mysqli_prepare($conn, $query_insert);
+        mysqli_stmt_bind_param($stmt_insert, "ssd", $kode_akun, $nama_akun, $saldo_awal);
         
-        if (mysqli_query($conn, $query_insert)) {
+        if (mysqli_stmt_execute($stmt_insert)) {
             echo "<script>
                     alert('Akun berhasil ditambahkan!');
                     window.location.href = 'index.php'; // Sesuaikan dengan nama file utama COA Anda

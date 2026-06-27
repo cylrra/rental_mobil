@@ -10,7 +10,43 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 
 include 'koneksi.php'; 
 
-$q_unit = mysqli_query($conn, "SELECT SUM(Unit_Tersedia) as total_unit FROM mobil");
+// ==========================================
+// OTOMASI JADWAL SERVIS RUTIN & PENGINGAT
+// ==========================================
+$query_mobil_all = mysqli_query($conn, "SELECT kode_mobil FROM mobil WHERE is_deleted = 0");
+while($mob = mysqli_fetch_assoc($query_mobil_all)) {
+    $km = $mob['kode_mobil'];
+    $q_last = mysqli_query($conn, "SELECT tanggal_pemeliharaan FROM pemeliharaan WHERE kode_mobil = '$km' AND status = 'selesai' ORDER BY tanggal_pemeliharaan DESC LIMIT 1");
+    $q_terjadwal = mysqli_query($conn, "SELECT id_pemeliharaan FROM pemeliharaan WHERE kode_mobil = '$km' AND status = 'terjadwal'");
+    
+    if (mysqli_num_rows($q_terjadwal) == 0) {
+        $buat_baru = false;
+        if (mysqli_num_rows($q_last) > 0) {
+            $last_date = mysqli_fetch_assoc($q_last)['tanggal_pemeliharaan'];
+            $days_since = (strtotime(date('Y-m-d')) - strtotime($last_date)) / (60 * 60 * 24);
+            if ($days_since >= 90) { // Servis rutin setiap 3 bulan (90 hari)
+                $buat_baru = true;
+            }
+        } else {
+            // Belum pernah diservis
+            $buat_baru = true;
+        }
+
+        if ($buat_baru) {
+            $tgl_baru = date('Y-m-d', strtotime('+3 days'));
+            mysqli_query($conn, "INSERT INTO pemeliharaan (kode_mobil, tanggal_pemeliharaan, jenis_pemeliharaan, biaya_pemeliharaan, keterangan, status) VALUES ('$km', '$tgl_baru', 'Servis Rutin', 0, 'Jadwal Servis Rutin Otomatis (Sistem)', 'terjadwal')");
+        }
+    }
+}
+
+// Fetch list of upcoming services (H-7)
+$q_reminder = mysqli_query($conn, "SELECT p.*, m.merk, m.nopol FROM pemeliharaan p JOIN mobil m ON p.kode_mobil = m.kode_mobil WHERE p.status = 'terjadwal' AND p.tanggal_pemeliharaan <= DATE_ADD(CURDATE(), INTERVAL 7 DAY) ORDER BY p.tanggal_pemeliharaan ASC");
+$reminders = [];
+while($r = mysqli_fetch_assoc($q_reminder)) {
+    $reminders[] = $r;
+}
+
+$q_unit = mysqli_query($conn, "SELECT SUM(Unit_Tersedia) as total_unit FROM mobil WHERE is_deleted = 0");
 $total_unit = mysqli_fetch_assoc($q_unit)['total_unit'] ?? 0;
 
 $query_berjalan = mysqli_query($conn, "SELECT COUNT(*) as total FROM transaksi_sewa WHERE status_sewa = 'berjalan'");
@@ -150,6 +186,42 @@ include 'navbar.php';
 
     </div>
 
+    <!-- Pengingat Servis Rutin -->
+    <?php if (count($reminders) > 0): ?>
+    <div class="bg-red-50 border border-red-200 rounded-2xl p-6 mb-6 shadow-sm">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600 animate-pulse"></i>
+            </div>
+            <div>
+                <h5 class="text-base font-black text-red-900">Pengingat Servis Armada</h5>
+                <p class="text-xs font-bold text-red-700">Terdapat <?= count($reminders) ?> mobil yang mendekati atau melewati jadwal servis.</p>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <?php foreach($reminders as $rem): 
+                $tgl_servis = strtotime($rem['tanggal_pemeliharaan']);
+                $sisa_hari = ($tgl_servis - strtotime(date('Y-m-d'))) / (60 * 60 * 24);
+                $status_teks = ($sisa_hari < 0) ? "Terlambat " . abs($sisa_hari) . " Hari" : (($sisa_hari == 0) ? "Hari Ini!" : "H-" . $sisa_hari);
+                $badge_warna = ($sisa_hari < 0) ? "bg-red-600" : (($sisa_hari == 0) ? "bg-orange-500" : "bg-yellow-500");
+            ?>
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-red-100 flex justify-between items-center group">
+                <div>
+                    <h6 class="font-black text-slate-800 text-sm"><?= htmlspecialchars($rem['merk']) ?></h6>
+                    <p class="text-xs font-bold text-slate-500 mb-2"><?= htmlspecialchars($rem['nopol']) ?> - <?= htmlspecialchars($rem['jenis_pemeliharaan']) ?></p>
+                    <span class="<?= $badge_warna ?> text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide">
+                        <?= $status_teks ?>
+                    </span>
+                </div>
+                <a href="jadwal_service.php" class="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors">
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <!-- Quick Access + Rating -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -171,6 +243,7 @@ include 'navbar.php';
                     ['href'=>'tracking.php', 'icon'=>'map-pin', 'label'=>'Tracking', 'bg'=>'bg-red-50', 'text'=>'text-red-600', 'hover_bg'=>'group-hover:bg-red-600'],
                     ['href'=>'riwayat_jurnal_umum.php', 'icon'=>'book-open', 'label'=>'Riwayat Jurnal', 'bg'=>'bg-emerald-50', 'text'=>'text-emerald-600', 'hover_bg'=>'group-hover:bg-emerald-600'],
                     ['href'=>'pembayaran.php', 'icon'=>'wallet', 'label'=>'Pembayaran', 'bg'=>'bg-[#d4af37]/10', 'text'=>'text-[#a07c10]', 'hover_bg'=>'group-hover:bg-[#d4af37]'],
+                    ['href'=>'pembayaran_gaji.php', 'icon'=>'banknote', 'label'=>'Gaji Supir', 'bg'=>'bg-indigo-50', 'text'=>'text-indigo-600', 'hover_bg'=>'group-hover:bg-indigo-600'],
                 ];
                 foreach($menus as $m):
                 ?>

@@ -80,7 +80,6 @@ if ($id_pilihan) {
                                 }
                                 ?>
                             </select>
-                            </select>
                             <?php if($id_pilihan): ?>
                                 <div class="mt-2 text-sm text-emerald-600 font-medium flex items-center gap-1.5">
                                     <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i> ID Transaksi #<?= htmlspecialchars($id_pilihan) ?> terpilih otomatis.
@@ -98,15 +97,13 @@ if ($id_pilihan) {
                                 <select name="metode_bayar" id="metode_bayar" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-[#800000] focus:ring focus:ring-[#800000]/20 transition-colors bg-slate-50" required onchange="toggleBank()">
                                     <option value="cash">Cash / Tunai</option>
                                     <option value="transfer">Transfer Bank</option>
+                                    <option value="ewallet">E-Wallet (GoPay / OVO)</option>
                                 </select>
                             </div>
                             <div id="bank_container" style="display: none;">
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Bank Tujuan</label>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Tujuan / Kas</label>
                                 <select name="bank_tujuan" id="bank_tujuan" class="w-full rounded-xl border-slate-200 px-4 py-3 focus:border-[#800000] focus:ring focus:ring-[#800000]/20 transition-colors bg-slate-50">
-                                    <option value="">-- Pilih Bank Tujuan --</option>
-                                    <option value="1121">Bank BCA (123456789)</option>
-                                    <option value="1122">Bank BNI (987654321)</option>
-                                    <option value="1123">Bank Mandiri (1122334455)</option>
+                                    <!-- Options will be populated by JS -->
                                 </select>
                             </div>
                             <div>
@@ -155,8 +152,17 @@ document.addEventListener('DOMContentLoaded', function() {
         var metode = document.getElementById('metode_bayar').value;
         var bankContainer = document.getElementById('bank_container');
         var bankSelect = document.getElementById('bank_tujuan');
+        var labelBank = document.querySelector('#bank_container label');
+        
         if (metode === 'transfer') {
             bankContainer.style.display = 'block';
+            labelBank.innerText = 'Bank Tujuan';
+            bankSelect.innerHTML = '<option value="">-- Pilih Bank Tujuan --</option><option value="1121">Bank BCA (123456789)</option><option value="1122">Bank BNI (987654321)</option><option value="1123">Bank Mandiri (1122334455)</option>';
+            bankSelect.required = true;
+        } else if (metode === 'ewallet') {
+            bankContainer.style.display = 'block';
+            labelBank.innerText = 'Pilih E-Wallet';
+            bankSelect.innerHTML = '<option value="">-- Pilih E-Wallet --</option><option value="gopay">GoPay</option><option value="ovo">OVO</option>';
             bankSelect.required = true;
         } else {
             bankContainer.style.display = 'none';

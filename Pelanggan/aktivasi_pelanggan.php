@@ -17,13 +17,18 @@ if (isset($_POST['aktivasi'])) {
         $error = "Semua kolom wajib diisi untuk verifikasi!";
     } else {
         // 1. Cek apakah username baru sudah dipakai orang lain
-        $cek_username = mysqli_query($conn, "SELECT * FROM pelanggan WHERE username = '$username'");
+        $stmt_cek = mysqli_prepare($conn, "SELECT * FROM pelanggan WHERE username = ?");
+        mysqli_stmt_bind_param($stmt_cek, "s", $username);
+        mysqli_stmt_execute($stmt_cek);
+        $cek_username = mysqli_stmt_get_result($stmt_cek);
         if (mysqli_num_rows($cek_username) > 0) {
             $error = "Username sudah digunakan, silakan pilih username lain!";
         } else {
             // 2. Cari data pelanggan berdasarkan No KTP dan No Telp yang COCOK
-            $query_pelanggan = "SELECT * FROM pelanggan WHERE no_ktp = '$no_ktp' AND no_telp = '$no_telp'";
-            $result = mysqli_query($conn, $query_pelanggan);
+            $stmt_pelanggan = mysqli_prepare($conn, "SELECT * FROM pelanggan WHERE no_ktp = ? AND no_telp = ?");
+            mysqli_stmt_bind_param($stmt_pelanggan, "ss", $no_ktp, $no_telp);
+            mysqli_stmt_execute($stmt_pelanggan);
+            $result = mysqli_stmt_get_result($stmt_pelanggan);
 
             if (mysqli_num_rows($result) === 1) {
                 $data = mysqli_fetch_assoc($result);
@@ -36,11 +41,11 @@ if (isset($_POST['aktivasi'])) {
                     $password_hashed = password_hash($password, PASSWORD_DEFAULT);
                     $id_pelanggan    = $data['id_pelanggan'];
 
-                    $update_query = "UPDATE pelanggan 
-                                     SET username = '$username', password = '$password_hashed' 
-                                     WHERE id_pelanggan = '$id_pelanggan'";
+                    $update_query = "UPDATE pelanggan SET username = ?, password = ? WHERE id_pelanggan = ?";
+                    $stmt_update = mysqli_prepare($conn, $update_query);
+                    mysqli_stmt_bind_param($stmt_update, "ssi", $username, $password_hashed, $id_pelanggan);
 
-                    if (mysqli_query($conn, $update_query)) {
+                    if (mysqli_stmt_execute($stmt_update)) {
                         $success = "Akun berhasil diaktifkan! Halo " . $data['nama'] . ", silakan login menggunakan username baru Anda.";
                     } else {
                         $error = "Gagal mengaktifkan akun: " . mysqli_error($conn);

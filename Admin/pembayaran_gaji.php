@@ -18,11 +18,17 @@ if (isset($_POST['simpan_gaji'])) {
         $id_supir = mysqli_real_escape_string($conn, $_POST['id_supir']);
         
         // Kalkulasi ulang secara aman di server
-        $unpaid_query = mysqli_query($conn, "SELECT SUM(lama_sewa) as total_hari FROM transaksi_sewa WHERE status_sewa = 'selesai' AND pake_supir = 'Ya' AND status_gaji_supir = 'belum' AND id_supir = '$id_supir'");
+        $stmt_unpaid = mysqli_prepare($conn, "SELECT SUM(lama_sewa) as total_hari FROM transaksi_sewa WHERE status_sewa = 'selesai' AND pake_supir = 'Ya' AND status_gaji_supir = 'belum' AND id_supir = ?");
+        mysqli_stmt_bind_param($stmt_unpaid, "s", $id_supir);
+        mysqli_stmt_execute($stmt_unpaid);
+        $unpaid_query = mysqli_stmt_get_result($stmt_unpaid);
         $u_row = mysqli_fetch_assoc($unpaid_query);
         $total_hari = $u_row['total_hari'] ?? 0;
         
-        $q_supir = mysqli_query($conn, "SELECT nama_supir, tarif_supir_per_hari FROM supir WHERE id_supir = '$id_supir'");
+        $stmt_s = mysqli_prepare($conn, "SELECT nama_supir, tarif_supir_per_hari FROM supir WHERE id_supir = ?");
+        mysqli_stmt_bind_param($stmt_s, "s", $id_supir);
+        mysqli_stmt_execute($stmt_s);
+        $q_supir = mysqli_stmt_get_result($stmt_s);
         $s = mysqli_fetch_assoc($q_supir);
         
         $nominal = ($total_hari * $s['tarif_supir_per_hari']) * 0.85; // Timpa input dari form dengan data aman (85%)
@@ -35,26 +41,38 @@ if (isset($_POST['simpan_gaji'])) {
         $nama_supir = $s['nama_supir'];
         $keterangan = "Gaji Supir: " . $nama_supir . " (" . $total_hari . " Hari)";
     } else {
-        $keterangan = "Gaji Admin - " . $keterangan;
+        $id_admin_selected = isset($_POST['id_admin']) ? mysqli_real_escape_string($conn, $_POST['id_admin']) : '';
+        $nama_admin_str = '';
+        if ($id_admin_selected !== '') {
+            $stmt_a = mysqli_prepare($conn, "SELECT nama_lengkap FROM admin WHERE id_admin = ?");
+            mysqli_stmt_bind_param($stmt_a, "i", $id_admin_selected);
+            mysqli_stmt_execute($stmt_a);
+            $q_admin = mysqli_stmt_get_result($stmt_a);
+            if ($a = mysqli_fetch_assoc($q_admin)) {
+                $nama_admin_str = $a['nama_lengkap'];
+            }
+        }
+        $keterangan = "Gaji Admin" . ($nama_admin_str ? " - " . $nama_admin_str : "") . " - " . $keterangan;
         // Nominal menggunakan input dari form agar bisa ditambah uang makan secara manual
     }
 
     mysqli_begin_transaction($conn);
     try {
         // Baris Debit: Beban Gaji bertambah
-        $q_debit = "INSERT INTO jurnal (tanggal, kode_akun, Debit, Kredit, keterangan, id_sumber) 
-                    VALUES ('$tanggal', '$akun_debit', '$nominal', 0, '$keterangan', 0)";
-        if (!mysqli_query($conn, $q_debit)) throw new Exception(mysqli_error($conn));
+        $stmt_debit = mysqli_prepare($conn, "INSERT INTO jurnal (tanggal, kode_akun, Debit, Kredit, keterangan, id_sumber) VALUES (?, ?, ?, 0, ?, 0)");
+        mysqli_stmt_bind_param($stmt_debit, "ssds", $tanggal, $akun_debit, $nominal, $keterangan);
+        if (!mysqli_stmt_execute($stmt_debit)) throw new Exception(mysqli_error($conn));
         
         // Baris Kredit: Kas / Bank berkurang
-        $q_kredit = "INSERT INTO jurnal (tanggal, kode_akun, Debit, Kredit, keterangan, id_sumber) 
-                     VALUES ('$tanggal', '$sumber_dana', 0, '$nominal', '$keterangan', 0)";
-        if (!mysqli_query($conn, $q_kredit)) throw new Exception(mysqli_error($conn));
+        $stmt_kredit = mysqli_prepare($conn, "INSERT INTO jurnal (tanggal, kode_akun, Debit, Kredit, keterangan, id_sumber) VALUES (?, ?, 0, ?, ?, 0)");
+        mysqli_stmt_bind_param($stmt_kredit, "ssds", $tanggal, $sumber_dana, $nominal, $keterangan);
+        if (!mysqli_stmt_execute($stmt_kredit)) throw new Exception(mysqli_error($conn));
         
         if ($jenis_gaji === 'supir') {
             // Update transaksi jadi 'sudah dibayar' gajinya
-            $q_update_trx = "UPDATE transaksi_sewa SET status_gaji_supir = 'sudah' WHERE status_sewa = 'selesai' AND pake_supir = 'Ya' AND status_gaji_supir = 'belum' AND id_supir = '$id_supir'";
-            if (!mysqli_query($conn, $q_update_trx)) throw new Exception("Gagal update status transaksi: " . mysqli_error($conn));
+            $stmt_update_trx = mysqli_prepare($conn, "UPDATE transaksi_sewa SET status_gaji_supir = 'sudah' WHERE status_sewa = 'selesai' AND pake_supir = 'Ya' AND status_gaji_supir = 'belum' AND id_supir = ?");
+            mysqli_stmt_bind_param($stmt_update_trx, "s", $id_supir);
+            if (!mysqli_stmt_execute($stmt_update_trx)) throw new Exception("Gagal update status transaksi: " . mysqli_error($conn));
         }
         
         mysqli_commit($conn);
@@ -78,7 +96,7 @@ if (isset($_POST['simpan_gaji'])) {
         <div class="w-full lg:w-1/2">
             <div class="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
                 <div class="flex items-center gap-3 mb-8 pb-4 border-b border-slate-100">
-                    <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                    <div class="w-12 h-12 rounded-xl bg-[#800000]/10 text-[#800000] flex items-center justify-center">
                         <i data-lucide="coins" class="w-6 h-6"></i>
                     </div>
                     <div>
@@ -95,10 +113,15 @@ if (isset($_POST['simpan_gaji'])) {
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Penerima Gaji</label>
-                            <?php $default_jenis = isset($_GET['jenis']) && $_GET['jenis'] === 'admin' ? 'admin' : 'supir'; ?>
+                            <?php 
+                            $is_haziq = (isset($_SESSION['nama_user']) && (stripos($_SESSION['nama_user'], 'haziq') !== false || stripos($_SESSION['nama_user'], 'haadziq') !== false));
+                            $default_jenis = isset($_GET['jenis']) && $_GET['jenis'] === 'admin' && $is_haziq ? 'admin' : 'supir'; 
+                            ?>
                             <select name="jenis_gaji" id="jenis_gaji" class="w-full rounded-xl border-slate-200 px-4 py-3 bg-white" required onchange="toggleSupir()">
                                 <option value="supir" <?= $default_jenis === 'supir' ? 'selected' : '' ?>>Supir / Driver</option>
+                                <?php if ($is_haziq): ?>
                                 <option value="admin" <?= $default_jenis === 'admin' ? 'selected' : '' ?>>Staff Admin</option>
+                                <?php endif; ?>
                             </select>
                         </div>
                     </div>
@@ -132,6 +155,21 @@ if (isset($_POST['simpan_gaji'])) {
                         </select>
                     </div>
 
+                    <?php if ($is_haziq): ?>
+                    <div id="admin_container" class="p-4 bg-slate-50 rounded-xl border border-slate-200 mt-4" style="display: none;">
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Pilih Staff Admin</label>
+                        <select name="id_admin" id="id_admin" class="w-full rounded-xl border-slate-200 px-4 py-3 bg-white">
+                            <option value="">-- Pilih Nama Admin --</option>
+                            <?php 
+                            $q_admin = mysqli_query($conn, "SELECT * FROM admin");
+                            while($a = mysqli_fetch_array($q_admin)) {
+                                echo "<option value='".$a['id_admin']."'>".$a['nama_lengkap']."</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <?php endif; ?>
+
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Sumber Dana Pembayaran</label>
                         <select name="sumber_dana" class="w-full rounded-xl border-slate-200 px-4 py-3 bg-white" required>
@@ -145,8 +183,8 @@ if (isset($_POST['simpan_gaji'])) {
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Nominal Gaji (Rp)</label>
                         <div class="relative flex items-center">
-                            <span class="absolute left-4 font-bold text-purple-600">Rp</span>
-                            <input type="number" name="nominal" class="w-full rounded-xl border-slate-200 pl-12 pr-4 py-3 bg-white font-bold text-purple-700" placeholder="Masukkan Nominal Gaji" min="1" required>
+                            <span class="absolute left-4 font-bold text-[#800000]">Rp</span>
+                            <input type="number" name="nominal" class="w-full rounded-xl border-slate-200 pl-12 pr-4 py-3 bg-white font-bold text-[#800000]" placeholder="Masukkan Nominal Gaji" min="1" required>
                         </div>
                     </div>
                     
@@ -155,7 +193,7 @@ if (isset($_POST['simpan_gaji'])) {
                         <input type="text" name="keterangan" class="w-full rounded-xl border-slate-200 px-4 py-3 bg-white" placeholder="Contoh: Gaji Bulan Juni 2026" required>
                     </div>
 
-                    <button type="submit" name="simpan_gaji" class="w-full bg-purple-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-purple-700 transition-colors flex justify-center items-center gap-2 mt-4" onclick="return confirm('Apakah Anda yakin ingin melakukan pembayaran gaji ini? Saldo Kas/Bank akan berkurang.')">
+                    <button type="submit" name="simpan_gaji" class="w-full bg-[#800000] text-white font-bold py-3 rounded-xl shadow-md hover:bg-[#600000] transition-colors flex justify-center items-center gap-2 mt-4" onclick="return confirm('Apakah Anda yakin ingin melakukan pembayaran gaji ini? Saldo Kas/Bank akan berkurang.')">
                         <i data-lucide="check-circle" class="w-5 h-5"></i> Proses Pencairan Gaji
                     </button>
                 </form>
@@ -169,24 +207,41 @@ if (isset($_POST['simpan_gaji'])) {
         var jenis = document.getElementById('jenis_gaji').value;
         var supirContainer = document.getElementById('supir_container');
         var supirSelect = document.getElementById('id_supir');
+        var adminContainer = document.getElementById('admin_container');
+        var adminSelect = document.getElementById('id_admin');
         var nominalInput = document.querySelector('input[name="nominal"]');
         var keteranganInput = document.querySelector('input[name="keterangan"]');
 
         if (jenis === 'supir') {
-            supirContainer.style.display = 'block';
-            supirSelect.required = true;
+            if(supirContainer) supirContainer.style.display = 'block';
+            if(supirSelect) supirSelect.required = true;
+            if(adminContainer) {
+                adminContainer.style.display = 'none';
+                if(adminSelect) {
+                    adminSelect.required = false;
+                    adminSelect.value = '';
+                }
+            }
             nominalInput.readOnly = true; // Auto-calculated
             
             // Trigger change to update nominal if a driver is already selected
-            var evt = new Event('change');
-            supirSelect.dispatchEvent(evt);
+            if(supirSelect) {
+                var evt = new Event('change');
+                supirSelect.dispatchEvent(evt);
+            }
         } else if (jenis === 'admin') {
-            supirContainer.style.display = 'none';
-            supirSelect.required = false;
-            supirSelect.value = '';
+            if(supirContainer) supirContainer.style.display = 'none';
+            if(supirSelect) {
+                supirSelect.required = false;
+                supirSelect.value = '';
+            }
+            if(adminContainer) {
+                adminContainer.style.display = 'block';
+                if(adminSelect) adminSelect.required = true;
+            }
             nominalInput.readOnly = false; // Bisa diedit untuk ditambah uang makan
             nominalInput.value = '1000000'; // Default gaji pokok
-            keteranganInput.value = '';
+            keteranganInput.value = 'Gaji Pokok';
         }
     }
 

@@ -9,7 +9,10 @@ if (isset($_POST['submit_pengembalian'])) {
     $waktu_pengembalian_aktual = mysqli_real_escape_string($conn, $_POST['waktu_pengembalian_aktual']);
 
     // Ambil data transaksi sewa
-    $query = mysqli_query($conn, "SELECT * FROM transaksi_sewa WHERE id_sewa = '$id_sewa'");
+    $stmt = mysqli_prepare($conn, "SELECT * FROM transaksi_sewa WHERE id_sewa = ?");
+    mysqli_stmt_bind_param($stmt, "i", $id_sewa);
+    mysqli_stmt_execute($stmt);
+    $query = mysqli_stmt_get_result($stmt);
     $data = mysqli_fetch_assoc($query);
 
     if (!$data) {
@@ -41,14 +44,15 @@ if (isset($_POST['submit_pengembalian'])) {
     $total_tagihan_akhir = $total_biaya + $denda_keterlambatan;
 
     // Update status transaksi, tanggal kembali aktual, dan denda
-    $query_update = "UPDATE transaksi_sewa SET 
+    $stmt_up = mysqli_prepare($conn, "UPDATE transaksi_sewa SET 
                         status_sewa = 'selesai',
-                        waktu_pengembalian_aktual = '$waktu_pengembalian_aktual',
-                        denda_keterlambatan = '$denda_keterlambatan',
-                        total_biaya = '$total_tagihan_akhir'
-                     WHERE id_sewa = '$id_sewa'";
+                        waktu_pengembalian_aktual = ?,
+                        denda_keterlambatan = ?,
+                        total_biaya = ?
+                     WHERE id_sewa = ?");
+    mysqli_stmt_bind_param($stmt_up, "sddi", $waktu_pengembalian_aktual, $denda_keterlambatan, $total_tagihan_akhir, $id_sewa);
 
-    if (mysqli_query($conn, $query_update)) {
+    if (mysqli_stmt_execute($stmt_up)) {
         echo "<script>
                 alert('Pengembalian berhasil diproses!\\nDenda Keterlambatan: Rp " . number_format($denda_keterlambatan, 0, ',', '.') . "\\nTotal Tagihan Akhir: Rp " . number_format($total_tagihan_akhir, 0, ',', '.') . "');
                 window.location.href = 'transaksi.php';

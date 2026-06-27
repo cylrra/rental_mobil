@@ -14,7 +14,10 @@ $error = '';
 
 if (isset($_GET['kode'])) {
     $kode_mobil = mysqli_real_escape_string($conn, $_GET['kode']);
-    $query = mysqli_query($conn, "SELECT * FROM mobil WHERE kode_mobil = '$kode_mobil'");
+    $stmt = mysqli_prepare($conn, "SELECT * FROM mobil WHERE kode_mobil = ?");
+    mysqli_stmt_bind_param($stmt, "s", $kode_mobil);
+    mysqli_stmt_execute($stmt);
+    $query = mysqli_stmt_get_result($stmt);
     $data = mysqli_fetch_assoc($query);
 
     if (!$data) {
@@ -42,7 +45,22 @@ if (isset($_POST['update'])) {
     $tmp_gambar       = $_FILES['gambar']['tmp_name'];
     
     if (!empty($nama_gambar_baru)) {
-        $ext = pathinfo($nama_gambar_baru, PATHINFO_EXTENSION);
+        $ext = strtolower(pathinfo($nama_gambar_baru, PATHINFO_EXTENSION));
+        $valid_extensions = array("jpg", "jpeg", "png", "gif");
+        
+        // Check extension
+        if (!in_array($ext, $valid_extensions)) {
+            echo "<script>alert('Format file tidak didukung! Hanya JPG, JPEG, PNG, dan GIF yang diperbolehkan.'); window.history.back();</script>";
+            exit();
+        }
+        
+        // Check MIME type using getimagesize
+        $image_info = @getimagesize($tmp_gambar);
+        if ($image_info === false) {
+            echo "<script>alert('File bukan merupakan gambar yang valid!'); window.history.back();</script>";
+            exit();
+        }
+
         $nama_gambar_siap = time() . '_edit_' . str_replace(' ', '_', $merk) . '.' . $ext;
         $path_simpan = "img/" . $nama_gambar_siap;
 
@@ -54,21 +72,14 @@ if (isset($_POST['update'])) {
         $nama_gambar_siap = $data['Gambar'];
     }
 
-    $query_update = "UPDATE mobil SET 
-                        merk = '$merk', 
-                        jenis = '$jenis', 
-                        nopol = '$nopol', 
-                        tarif_12_dalam = '$tarif_12_dalam',
-                        tarif_12_luar = '$tarif_12_luar',
-                        tarif_24_dalam = '$tarif_24_dalam',
-                        tarif_24_luar = '$tarif_24_luar',
-                        tarif_per_hari = '$tarif_per_hari',
-                        Unit_Tersedia = '$Unit_Tersedia',
-                        status_mobil = '$status_mobil', 
-                        Gambar = '$nama_gambar_siap' 
-                     WHERE kode_mobil = '$kode_mobil'";
+    $stmt_update = mysqli_prepare($conn, "UPDATE mobil SET 
+                        merk = ?, jenis = ?, nopol = ?, tarif_12_dalam = ?, tarif_12_luar = ?, 
+                        tarif_24_dalam = ?, tarif_24_luar = ?, tarif_per_hari = ?, 
+                        Unit_Tersedia = ?, status_mobil = ?, Gambar = ? 
+                     WHERE kode_mobil = ?");
+    mysqli_stmt_bind_param($stmt_update, "sssdddddisss", $merk, $jenis, $nopol, $tarif_12_dalam, $tarif_12_luar, $tarif_24_dalam, $tarif_24_luar, $tarif_per_hari, $Unit_Tersedia, $status_mobil, $nama_gambar_siap, $kode_mobil);
 
-    if (mysqli_query($conn, $query_update)) {
+    if (mysqli_stmt_execute($stmt_update)) {
         echo "<script>alert('Data armada $merk berhasil diperbarui!'); window.location.href = 'mobil.php';</script>";
         exit();
     } else {

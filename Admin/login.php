@@ -12,8 +12,10 @@ if (isset($_POST['login'])) {
     
     if ($username !== '' && $password !== '') {
         $username = mysqli_real_escape_string($conn, $username);
-        
-        $query = mysqli_query($conn, "SELECT * FROM admin WHERE username = '$username'");
+        $stmt = mysqli_prepare($conn, "SELECT * FROM admin WHERE username = ?");
+        mysqli_stmt_bind_param($stmt, "s", $username);
+        mysqli_stmt_execute($stmt);
+        $query = mysqli_stmt_get_result($stmt);
         if ($query && mysqli_num_rows($query) === 1) {
             $row = mysqli_fetch_assoc($query);
             if (password_verify($password, $row['password'])) {

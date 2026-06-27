@@ -34,21 +34,215 @@ if ($id_pilihan) {
 }
 ?>
 
-<div class="container-fluid px-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-6 col-md-8 my-4">
-            <div class="card shadow-sm border-0 rounded-4 bg-white">
-                <div class="card-header bg-white border-0 p-4 pb-0">
-                    <h4 class="fw-bold mb-1" style="font-family: 'Outfit', sans-serif; color: #0f172a;"><i class="bi bi-wallet2 text-primary me-2"></i> Input Pembayaran Baru</h4>
-                    <p class="text-muted small">Selesaikan pembayaran untuk penyewaan mobil Anda.</p>
-                </div>
-                <div class="card-body p-4 pt-2">
-                    <form action="proses_bayar_gateway.php" method="POST">
-                        
-                        <!-- Transaksi dropdown (locked by logged in user) -->
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold text-secondary">Pilih Transaksi Aktif</label>
-                            <select name="id_transaksi" id="id_transaksi_select" class="form-select py-2-5" required onchange="updateEstimasiBayar()">
+<style>
+/* ===== Pembayaran Premium UI ===== */
+.pay-wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+}
+.pay-header-banner {
+    background: linear-gradient(135deg, #0F172A 0%, #8B0000 100%);
+    border-radius: 18px;
+    padding: 28px 32px;
+    color: #fff;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+}
+.pay-header-banner::after {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 160px; height: 160px;
+    background: rgba(212,175,55,0.1);
+    border-radius: 50%;
+}
+.pay-card {
+    background: #fff;
+    border: 1px solid #E8ECF2;
+    border-radius: 18px;
+    box-shadow: 0 4px 20px rgba(15,23,42,0.07);
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+.pay-card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #F1F5F9;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #FAFBFC;
+}
+.pay-card-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: rgba(139,0,0,0.1);
+    color: #8B0000;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+.pay-card-title { font-weight: 800; color: #0F172A; font-size: 0.95rem; margin: 0; }
+.pay-card-sub   { font-size: 0.75rem; color: #94A3B8; margin: 0; }
+.pay-card-body  { padding: 24px; }
+
+/* Pending status warning */
+.pending-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: rgba(217,119,6,0.08);
+    border: 1px solid rgba(217,119,6,0.2);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+}
+.pending-notice i { color: #D97706; font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+.pending-notice-text { font-size: 0.83rem; color: #92400E; }
+.pending-notice-text strong { display: block; margin-bottom: 3px; }
+
+/* Form select styling */
+.form-label-modern {
+    font-size: 0.73rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #64748B;
+    display: block;
+    margin-bottom: 8px;
+}
+.select-modern, .input-modern {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid #E8ECF2;
+    border-radius: 10px;
+    font-family: 'Plus Jakarta Sans', 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    color: #0F172A;
+    background: #FAFBFC;
+    appearance: none;
+    transition: all 0.2s;
+    outline: none;
+}
+.select-modern:focus, .input-modern:focus {
+    border-color: #8B0000;
+    box-shadow: 0 0 0 3px rgba(139,0,0,0.1);
+    background: #fff;
+}
+
+/* Payment method cards */
+.pay-method-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+.pay-method-card {
+    border: 2px solid #E8ECF2;
+    border-radius: 12px;
+    padding: 14px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #FAFBFC;
+}
+.pay-method-card:hover {
+    border-color: #8B0000;
+    background: rgba(139,0,0,0.03);
+    transform: translateY(-1px);
+}
+.pay-method-card.selected {
+    border-color: #8B0000;
+    background: rgba(139,0,0,0.06);
+    box-shadow: 0 0 0 1px #8B0000;
+}
+.pay-method-logo {
+    width: 44px; height: 34px;
+    border-radius: 7px;
+    background: #fff;
+    border: 1px solid #E8ECF2;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.65rem;
+    font-weight: 900;
+}
+.pay-method-name { font-size: 0.78rem; font-weight: 700; color: #0F172A; line-height: 1.3; }
+
+/* Summary box */
+.pay-summary {
+    background: linear-gradient(135deg, #0F172A 0%, #1e293b 100%);
+    border-radius: 14px;
+    padding: 20px 22px;
+    margin: 16px 0;
+}
+.pay-summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+}
+.pay-summary-row .lbl { color: rgba(255,255,255,0.6); }
+.pay-summary-row .val { color: #fff; font-weight: 600; }
+.pay-summary-row.total { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); }
+.pay-summary-row.total .lbl { color: rgba(255,255,255,0.8); font-weight: 700; font-size: 0.9rem; }
+.pay-summary-row.total .val { color: #D4AF37; font-weight: 900; font-size: 1.2rem; }
+
+/* Submit button */
+.btn-pay-submit {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #8B0000, #c0392b);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Plus Jakarta Sans', 'Montserrat', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 20px rgba(139,0,0,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.btn-pay-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(139,0,0,0.45);
+}
+
+@media (max-width: 640px) {
+    .pay-method-grid { grid-template-columns: repeat(2,1fr); }
+    .pay-header-banner { padding: 22px 20px; }
+    .pay-card-body { padding: 18px; }
+}
+</style>
+
+    <!-- Banner -->
+    <div class="pay-header-banner">
+        <div style="position:relative;z-index:2;">
+            <div style="font-size:0.7rem;font-weight:800;color:#D4AF37;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;"><i class="bi bi-wallet2 me-2"></i>Portal Pembayaran</div>
+            <h1 style="font-size:1.5rem;font-weight:800;margin:0 0 6px;color:#fff;">Pembayaran Sewa Mobil</h1>
+            <p style="font-size:0.85rem;color:rgba(255,255,255,0.65);margin:0;">Selesaikan pembayaran untuk mengaktifkan pesanan Anda.</p>
+        </div>
+    </div>
+
+    <!-- Pay Card -->
+    <div class="pay-card">
+        <div class="pay-card-header">
+            <div class="pay-card-icon"><i class="bi bi-receipt-cutoff"></i></div>
+            <div>
+                <p class="pay-card-title">Detail Pembayaran</p>
+                <p class="pay-card-sub">Pilih transaksi, metode, dan tipe pembayaran</p>
+            </div>
+        </div>
+        <div class="pay-card-body">
+        <form action="proses_bayar_gateway.php" method="POST">
+            <!-- Transaksi dropdown -->
+            <div style="margin-bottom:16px;">
+                <label class="form-label-modern">Pilih Transaksi Aktif</label>
+                <div style="position:relative;">
+                    <select name="id_transaksi" id="id_transaksi_select" class="select-modern" required onchange="updateEstimasiBayar()" style="padding-right:40px;">
+                        <option value="">— Pilih Order —</option>
                                 <option value="">-- Pilih Transaksi --</option>
                                 <?php 
                                 // Ambil hanya transaksi milik pelanggan yang berstatus 'berjalan' atau 'diterima' atau 'DP'
@@ -56,7 +250,7 @@ if ($id_pilihan) {
                                                               FROM transaksi_sewa t 
                                                               LEFT JOIN mobil m ON t.kode_mobil = m.kode_mobil 
                                                               LEFT JOIN supir s ON t.id_supir = s.id_supir 
-                                                              WHERE t.status_sewa IN ('berjalan', 'diterima', 'DP') AND t.id_pelanggan = '$id_pelanggan'");
+                                                              WHERE t.status_sewa IN ('berjalan', 'diterima', 'DP', 'pending') AND t.id_pelanggan = '$id_pelanggan'");
                                 
                                 while($t = mysqli_fetch_array($sql_t)){
                                     $id_db = trim($t['id_sewa']);
@@ -78,146 +272,106 @@ if ($id_pilihan) {
                                     }
                                 }
                                 ?>
-                            </select>
-                        </div>
-
-                        <!-- Date -->
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label small fw-bold text-secondary">Tanggal Pembayaran</label>
-                                <input type="date" name="tgl_bayar" class="form-control py-2-5" value="<?php echo date('Y-m-d'); ?>" required readonly>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label small fw-bold text-secondary">Tipe Pembayaran</label>
-                                <select name="tipe_pembayaran" id="jenis_pembayaran" class="form-select py-2-5" required onchange="updateEstimasiBayar()">
-                                    <option value="Lunas">Bayar Lunas (100%)</option>
-                                    <option value="DP">Uang Muka (DP minimal 50%)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Payment Method Grid -->
-                        <div class="row mb-3">
-                            <div class="col-12 mb-2"><label class="form-label small fw-bold text-secondary">Pilih Metode Pembayaran</label></div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label class="w-100 h-100">
-                                    <input type="radio" name="metode_bayar" value="Transfer Bank BCA" class="btn-check" required onchange="updatePaymentUI()">
-                                    <div class="card h-100 payment-card border-2 cursor-pointer bg-light transition-all">
-                                        <div class="card-body d-flex align-items-center gap-3 p-3">
-                                            <div class="bg-white p-2 rounded shadow-sm d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                                <span class="fw-bold fs-5" style="color: #0066AE; letter-spacing: -1px;">BCA</span>
-                                            </div>
-                                            <div class="fw-bold text-dark text-sm">BCA Virtual Account</div>
-                                        </div>
-                                    </div>
-                                </label>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label class="w-100 h-100">
-                                    <input type="radio" name="metode_bayar" value="Transfer Bank Mandiri" class="btn-check" required onchange="updatePaymentUI()">
-                                    <div class="card h-100 payment-card border-2 cursor-pointer bg-light transition-all">
-                                        <div class="card-body d-flex align-items-center gap-3 p-3">
-                                            <div class="bg-white p-2 rounded shadow-sm d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                                <span class="fw-bold fs-6" style="color: #003D79;">mandiri</span>
-                                            </div>
-                                            <div class="fw-bold text-dark text-sm">Mandiri Virtual Account</div>
-                                        </div>
-                                    </div>
-                                </label>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="w-100 h-100">
-                                    <input type="radio" name="metode_bayar" value="Transfer Bank BNI" class="btn-check" required onchange="updatePaymentUI()">
-                                    <div class="card h-100 payment-card border-2 cursor-pointer bg-light transition-all">
-                                        <div class="card-body d-flex align-items-center gap-3 p-3">
-                                            <div class="bg-white p-2 rounded shadow-sm d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                                <span class="fw-black fs-5" style="color: #F15A24; font-style: italic; letter-spacing: -1px;">BNI</span>
-                                            </div>
-                                            <div class="fw-bold text-dark text-sm">BNI Virtual Account</div>
-                                        </div>
-                                    </div>
-                                </label>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="w-100 h-100">
-                                    <input type="radio" name="metode_bayar" value="E-Wallet GoPay" class="btn-check" required onchange="updatePaymentUI()">
-                                    <div class="card h-100 payment-card border-2 cursor-pointer bg-light transition-all">
-                                        <div class="card-body d-flex align-items-center gap-3 p-3">
-                                            <div class="bg-white p-2 rounded shadow-sm d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                                <span class="fw-bold fs-6" style="color: #00AED6;">gopay</span>
-                                            </div>
-                                            <div class="fw-bold text-dark text-sm">GoPay</div>
-                                        </div>
-                                    </div>
-                                </label>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="w-100 h-100">
-                                    <input type="radio" name="metode_bayar" value="E-Wallet OVO" class="btn-check" required onchange="updatePaymentUI()">
-                                    <div class="card h-100 payment-card border-2 cursor-pointer bg-light transition-all">
-                                        <div class="card-body d-flex align-items-center gap-3 p-3">
-                                            <div class="bg-white p-2 rounded shadow-sm d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                                <span class="fw-black fs-5" style="color: #4C2A86; letter-spacing: 1px;">OVO</span>
-                                            </div>
-                                            <div class="fw-bold text-dark text-sm">OVO</div>
-                                        </div>
-                                    </div>
-                                </label>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="w-100 h-100">
-                                    <input type="radio" name="metode_bayar" value="Cash / Tunai" class="btn-check" required onchange="updatePaymentUI()">
-                                    <div class="card h-100 payment-card border-2 cursor-pointer bg-light transition-all">
-                                        <div class="card-body d-flex align-items-center gap-3 p-3">
-                                            <div class="bg-white p-2 rounded shadow-sm d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                                <i class="bi bi-cash-stack text-success fs-3"></i>
-                                            </div>
-                                            <div class="fw-bold text-dark text-sm">Cash / Tunai (Bayar di Tempat)</div>
-                                        </div>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Summary of payment -->
-                        <!-- Summary of payment -->
-                        <div class="alert p-3 mb-4 shadow-sm" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="text-muted small fw-medium">Total Tagihan Rental</span>
-                                <span class="fw-semibold text-dark" id="disp_tagihan_asli">Rp 0</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center mb-2" id="row_potongan" style="display:none !important;">
-                                <span class="text-muted small fw-medium" id="label_potongan">DP 50%</span>
-                                <span class="fw-semibold text-danger" id="disp_potongan">Rp 0</span>
-                            </div>
-                            <hr class="my-2" style="border-color: #e2e8f0;">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="fw-bold text-dark">Jumlah Harus Dibayar</span>
-                                <span class="fw-black fs-5" style="color: #9e0000; font-weight: 900;" id="disp_jumlah_bayar">Rp 0</span>
-                            </div>
-                        </div>
-
-                        <!-- Raw amount to send in form -->
-                        <input type="hidden" name="jumlah_bayar" id="jumlah_bayar_raw" value="<?= htmlspecialchars($initial_tagihan); ?>">
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" name="lanjut_bayar" class="btn fw-bold py-3 d-flex justify-content-center align-items-center gap-2" style="background-color: #d4af37; color: #1a1c1c; border-radius: 12px; box-shadow: 0 4px 6px rgba(212, 175, 55, 0.2); border: none; transition: 0.3s;" onmouseover="this.style.backgroundColor='#c49d2b'" onmouseout="this.style.backgroundColor='#d4af37'">
-                                <i class="bi bi-shield-lock"></i> Lanjutkan Pembayaran
-                            </button>
-                            <a href="riwayat_pembayaran.php" class="btn btn-link text-decoration-none text-muted small mt-2">Batal & Kembali</a>
-                        </div>
-                    </form>
+                    </select>
+                    <i class="bi bi-chevron-down" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#94A3B8;pointer-events:none;"></i>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
+
+            <!-- Date + Type Row -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+                <div>
+                    <label class="form-label-modern">Tanggal Pembayaran</label>
+                    <input type="date" name="tgl_bayar" class="input-modern" value="<?php echo date('Y-m-d'); ?>" required readonly>
+                </div>
+                <div>
+                    <label class="form-label-modern">Tipe Pembayaran</label>
+                    <div style="position:relative;">
+                        <select name="tipe_pembayaran" id="jenis_pembayaran" class="select-modern" required onchange="updateEstimasiBayar()" style="padding-right:36px;">
+                            <option value="Lunas">Bayar Lunas (100%)</option>
+                            <option value="DP">Uang Muka (DP 50%)</option>
+                        </select>
+                        <i class="bi bi-chevron-down" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#94A3B8;pointer-events:none;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metode Pembayaran -->
+            <div style="margin-bottom:16px;">
+                <label class="form-label-modern">Pilih Metode Pembayaran</label>
+                <div class="pay-method-grid">
+                <!-- Metode items -->
+                <label style="cursor:pointer;">
+                    <input type="radio" name="metode_bayar" value="Transfer Bank BCA" class="btn-check" required onchange="updatePaymentUI()" style="display:none;">
+                    <div class="pay-method-card" onclick="selectMethod(this,'Transfer Bank BCA')">
+                        <div class="pay-method-logo"><span style="color:#0066AE;font-size:0.7rem;font-weight:900;">BCA</span></div>
+                        <div class="pay-method-name">BCA<br><span style="font-size:0.65rem;color:#94A3B8;font-weight:500;">Virtual Account</span></div>
+                    </div>
+                </label>
+                <label style="cursor:pointer;">
+                    <input type="radio" name="metode_bayar" value="Transfer Bank Mandiri" class="btn-check" required onchange="updatePaymentUI()" style="display:none;">
+                    <div class="pay-method-card" onclick="selectMethod(this,'Transfer Bank Mandiri')">
+                        <div class="pay-method-logo"><span style="color:#003D79;font-size:0.65rem;font-weight:900;">MANDIRI</span></div>
+                        <div class="pay-method-name">Mandiri<br><span style="font-size:0.65rem;color:#94A3B8;font-weight:500;">Virtual Account</span></div>
+                    </div>
+                </label>
+                <label style="cursor:pointer;">
+                    <input type="radio" name="metode_bayar" value="Transfer Bank BNI" class="btn-check" required onchange="updatePaymentUI()" style="display:none;">
+                    <div class="pay-method-card" onclick="selectMethod(this,'Transfer Bank BNI')">
+                        <div class="pay-method-logo"><span style="color:#F15A24;font-size:0.7rem;font-weight:900;font-style:italic;">BNI</span></div>
+                        <div class="pay-method-name">BNI<br><span style="font-size:0.65rem;color:#94A3B8;font-weight:500;">Virtual Account</span></div>
+                    </div>
+                </label>
+                <label style="cursor:pointer;">
+                    <input type="radio" name="metode_bayar" value="E-Wallet GoPay" class="btn-check" required onchange="updatePaymentUI()" style="display:none;">
+                    <div class="pay-method-card" onclick="selectMethod(this,'E-Wallet GoPay')">
+                        <div class="pay-method-logo"><span style="color:#00AED6;font-size:0.65rem;font-weight:900;">GoPay</span></div>
+                        <div class="pay-method-name">GoPay<br><span style="font-size:0.65rem;color:#94A3B8;font-weight:500;">E-Wallet</span></div>
+                    </div>
+                </label>
+                <label style="cursor:pointer;">
+                    <input type="radio" name="metode_bayar" value="E-Wallet OVO" class="btn-check" required onchange="updatePaymentUI()" style="display:none;">
+                    <div class="pay-method-card" onclick="selectMethod(this,'E-Wallet OVO')">
+                        <div class="pay-method-logo"><span style="color:#4C2A86;font-size:0.7rem;font-weight:900;">OVO</span></div>
+                        <div class="pay-method-name">OVO<br><span style="font-size:0.65rem;color:#94A3B8;font-weight:500;">E-Wallet</span></div>
+                    </div>
+                </label>
+                <label style="cursor:pointer;">
+                    <input type="radio" name="metode_bayar" value="Cash / Tunai" class="btn-check" required onchange="updatePaymentUI()" style="display:none;">
+                    <div class="pay-method-card" onclick="selectMethod(this,'Cash / Tunai')">
+                        <div class="pay-method-logo"><i class="bi bi-cash-stack" style="color:#16A34A;font-size:1.1rem;"></i></div>
+                        <div class="pay-method-name">Tunai<br><span style="font-size:0.65rem;color:#94A3B8;font-weight:500;">Bayar di Tempat</span></div>
+                    </div>
+                </label>
+            </div>
+            </div><!-- end metode -->
+
+            <!-- Summary Box -->
+            <div class="pay-summary">
+                <div class="pay-summary-row">
+                    <span class="lbl">Total Tagihan Rental</span>
+                    <span class="val" id="disp_tagihan_asli">Rp 0</span>
+                </div>
+                <div class="pay-summary-row" id="row_potongan" style="display:none;">
+                    <span class="lbl" id="label_potongan">DP 50%</span>
+                    <span class="val" id="disp_potongan">Rp 0</span>
+                </div>
+                <div class="pay-summary-row total">
+                    <span class="lbl">Jumlah Harus Dibayar</span>
+                    <span class="val" id="disp_jumlah_bayar">Rp 0</span>
+                </div>
+            </div>
+
+            <!-- Hidden input -->
+            <input type="hidden" name="jumlah_bayar" id="jumlah_bayar_raw" value="<?= htmlspecialchars($initial_tagihan); ?>">
+
+            <!-- Submit -->
+            <button type="submit" name="lanjut_bayar" class="btn-pay-submit">
+                <i class="bi bi-shield-lock-fill"></i> Lanjutkan Pembayaran
+            </button>
+            <a href="riwayat_pembayaran.php" style="display:block;text-align:center;margin-top:12px;font-size:0.82rem;color:#94A3B8;text-decoration:none;">← Batal &amp; Kembali</a>
+        </form>
+        </div><!-- pay-card-body -->
+    </div><!-- pay-card -->
 
 <script>
 function formatRupiah(angka) {

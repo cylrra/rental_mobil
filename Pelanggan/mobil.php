@@ -28,7 +28,7 @@ include 'koneksi.php';
             </div>
             <?php 
                 // Mengambil total tipe unit dengan query yang efisien
-                $sql_count = "SELECT COUNT(*) as total FROM mobil";
+                $sql_count = "SELECT COUNT(*) as total FROM mobil WHERE is_deleted = 0";
                 $res_count = mysqli_query($conn, $sql_count);
                 $data_count = mysqli_fetch_assoc($res_count);
             ?>
@@ -43,7 +43,7 @@ include 'koneksi.php';
         // PERBAIKAN UTAMA: Mengurangi nilai 'Unit_Tersedia' asli dengan jumlah transaksi sewa yang sedang 'berjalan'
         $sql_mobil = "SELECT m.*, 
                       (m.Unit_Tersedia - (SELECT COUNT(*) FROM transaksi_sewa t WHERE t.kode_mobil = m.kode_mobil AND t.status_sewa = 'berjalan')) AS stok_realtime
-                      FROM mobil m";
+                      FROM mobil m WHERE m.is_deleted = 0";
         
         $query = mysqli_query($conn, $sql_mobil);
         

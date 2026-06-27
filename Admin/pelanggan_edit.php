@@ -18,7 +18,10 @@ $success = '';
 // Ambil ID Pelanggan
 if (isset($_GET['id'])) {
     $id_pelanggan = intval($_GET['id']);
-    $query = mysqli_query($conn, "SELECT * FROM pelanggan WHERE id_pelanggan = $id_pelanggan");
+    $stmt = mysqli_prepare($conn, "SELECT * FROM pelanggan WHERE id_pelanggan = ?");
+    mysqli_stmt_bind_param($stmt, "i", $id_pelanggan);
+    mysqli_stmt_execute($stmt);
+    $query = mysqli_stmt_get_result($stmt);
     $data = mysqli_fetch_assoc($query);
 
     if (!$data) {
@@ -45,7 +48,10 @@ if (isset($_POST['update'])) {
         $error = "Nama Lengkap dan Username wajib diisi!";
     } else {
         // Cek jika username diubah dan duplikat dengan pelanggan lain
-        $cek_username = mysqli_query($conn, "SELECT * FROM pelanggan WHERE username = '$username' AND id_pelanggan != $id_pelanggan");
+        $stmt_cek = mysqli_prepare($conn, "SELECT * FROM pelanggan WHERE username = ? AND id_pelanggan != ?");
+        mysqli_stmt_bind_param($stmt_cek, "si", $username, $id_pelanggan);
+        mysqli_stmt_execute($stmt_cek);
+        $cek_username = mysqli_stmt_get_result($stmt_cek);
         if (mysqli_num_rows($cek_username) > 0) {
             $error = "Username sudah digunakan oleh pelanggan lain, silakan pilih username lain!";
         } else {
@@ -61,30 +67,19 @@ if (isset($_POST['update'])) {
             if (!empty($password)) {
                 // Update dengan password baru
                 $password_hashed = password_hash($password, PASSWORD_DEFAULT);
-                $query_update = "UPDATE pelanggan SET 
-                                    nama = '$nama', 
-                                    email = '$email', 
-                                    username = '$username', 
-                                    password = '$password_hashed', 
-                                    alamat = '$alamat', 
-                                    no_telp = '$no_telp', 
-                                    no_ktp = '$no_ktp', 
-                                    status_verifikasi = '$status_verifikasi' 
-                                 WHERE id_pelanggan = $id_pelanggan";
+                $stmt_update = mysqli_prepare($conn, "UPDATE pelanggan SET 
+                                    nama = ?, email = ?, username = ?, password = ?, alamat = ?, no_telp = ?, no_ktp = ?, status_verifikasi = ? 
+                                 WHERE id_pelanggan = ?");
+                mysqli_stmt_bind_param($stmt_update, "ssssssssi", $nama, $email, $username, $password_hashed, $alamat, $no_telp, $no_ktp, $status_verifikasi, $id_pelanggan);
             } else {
                 // Update tanpa mengubah password
-                $query_update = "UPDATE pelanggan SET 
-                                    nama = '$nama', 
-                                    email = '$email', 
-                                    username = '$username', 
-                                    alamat = '$alamat', 
-                                    no_telp = '$no_telp', 
-                                    no_ktp = '$no_ktp', 
-                                    status_verifikasi = '$status_verifikasi' 
-                                 WHERE id_pelanggan = $id_pelanggan";
+                $stmt_update = mysqli_prepare($conn, "UPDATE pelanggan SET 
+                                    nama = ?, email = ?, username = ?, alamat = ?, no_telp = ?, no_ktp = ?, status_verifikasi = ? 
+                                 WHERE id_pelanggan = ?");
+                mysqli_stmt_bind_param($stmt_update, "sssssssi", $nama, $email, $username, $alamat, $no_telp, $no_ktp, $status_verifikasi, $id_pelanggan);
             }
 
-            if (mysqli_query($conn, $query_update)) {
+            if (mysqli_stmt_execute($stmt_update)) {
                 echo "<script>alert('Data pelanggan $nama berhasil diperbarui!'); window.location.href = 'pelanggan.php';</script>";
                 exit();
             } else {

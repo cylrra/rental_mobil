@@ -17,9 +17,10 @@ if (isset($_POST['login'])) {
     $password = trim($_POST['password']);
     
     if (!empty($username) && !empty($password)) {
-        $username = mysqli_real_escape_string($conn, $username);
-        $query = "SELECT * FROM pelanggan WHERE username = '$username'";
-        $result = mysqli_query($conn, $query);
+        $stmt = mysqli_prepare($conn, "SELECT * FROM pelanggan WHERE username = ?");
+        mysqli_stmt_bind_param($stmt, "s", $username);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
         
         if ($result && mysqli_num_rows($result) === 1) {
             $row = mysqli_fetch_assoc($result);
@@ -32,7 +33,9 @@ if (isset($_POST['login'])) {
                 $login_success = true;
                 $new_hash = password_hash($password, PASSWORD_DEFAULT);
                 $id_p = $row['id_pelanggan'];
-                mysqli_query($conn, "UPDATE pelanggan SET password = '$new_hash' WHERE id_pelanggan = $id_p");
+                $stmt_up = mysqli_prepare($conn, "UPDATE pelanggan SET password = ? WHERE id_pelanggan = ?");
+                mysqli_stmt_bind_param($stmt_up, "si", $new_hash, $id_p);
+                mysqli_stmt_execute($stmt_up);
             }
 
             if ($login_success) {

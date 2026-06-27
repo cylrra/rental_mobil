@@ -17,7 +17,10 @@ if ($id_sewa === 0) {
 }
 
 // Fetch transaction details
-$query = mysqli_query($conn, "SELECT t.*, p.nama, m.merk, m.tarif_per_hari FROM transaksi_sewa t JOIN pelanggan p ON t.id_pelanggan = p.id_pelanggan JOIN mobil m ON t.kode_mobil = m.kode_mobil WHERE t.id_sewa = $id_sewa");
+$stmt = mysqli_prepare($conn, "SELECT t.*, p.nama, m.merk, m.tarif_per_hari FROM transaksi_sewa t JOIN pelanggan p ON t.id_pelanggan = p.id_pelanggan JOIN mobil m ON t.kode_mobil = m.kode_mobil WHERE t.id_sewa = ?");
+mysqli_stmt_bind_param($stmt, "i", $id_sewa);
+mysqli_stmt_execute($stmt);
+$query = mysqli_stmt_get_result($stmt);
 if (!$query || mysqli_num_rows($query) === 0) {
     echo "<script>alert('Transaksi tidak ditemukan!'); window.location='transaksi.php';</script>";
     exit();
@@ -52,15 +55,13 @@ if (isset($_POST['update'])) {
     
     $total_harga_baru = $total_biaya_mobil + $biaya_supir_baru;
 
-    $update_query = "UPDATE transaksi_sewa SET 
-                        pake_supir = '$pake_supir_baru', 
-                        id_supir = $id_supir_db, 
-                        biaya_supir = '$biaya_supir_baru', 
-                        total_biaya = '$total_harga_baru',
-                        status_sewa = '$status_sewa_baru' 
-                     WHERE id_sewa = $id_sewa";
+    $id_supir_db_val = ($id_supir_db === "NULL") ? null : $id_supir_db;
+    $stmt_up = mysqli_prepare($conn, "UPDATE transaksi_sewa SET 
+                        pake_supir = ?, id_supir = ?, biaya_supir = ?, total_biaya = ?, status_sewa = ? 
+                     WHERE id_sewa = ?");
+    mysqli_stmt_bind_param($stmt_up, "siddsi", $pake_supir_baru, $id_supir_db_val, $biaya_supir_baru, $total_harga_baru, $status_sewa_baru, $id_sewa);
                      
-    if (mysqli_query($conn, $update_query)) {
+    if (mysqli_stmt_execute($stmt_up)) {
         echo "<script>alert('Transaksi berhasil diupdate!'); window.location='transaksi.php';</script>";
         exit();
     } else {
@@ -69,7 +70,8 @@ if (isset($_POST['update'])) {
     }
     
     // Refresh data for view
-    $query = mysqli_query($conn, "SELECT t.*, p.nama, m.merk, m.tarif_per_hari FROM transaksi_sewa t JOIN pelanggan p ON t.id_pelanggan = p.id_pelanggan JOIN mobil m ON t.kode_mobil = m.kode_mobil WHERE t.id_sewa = $id_sewa");
+    mysqli_stmt_execute($stmt);
+    $query = mysqli_stmt_get_result($stmt);
     $trx = mysqli_fetch_assoc($query);
 }
 
@@ -136,7 +138,10 @@ $current_page = 'transaksi.php';
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                             <?php
                             // Supir yang tidak sedang memiliki transaksi 'berjalan' ATAU supir yang saat ini ditugaskan di transaksi ini
-                            $supir_query = mysqli_query($conn, "SELECT s.* FROM supir s WHERE (SELECT COUNT(*) FROM transaksi_sewa t WHERE t.id_supir = s.id_supir AND t.status_sewa = 'berjalan' AND t.id_sewa != $id_sewa) = 0");
+                            $stmt_supir = mysqli_prepare($conn, "SELECT s.* FROM supir s WHERE (SELECT COUNT(*) FROM transaksi_sewa t WHERE t.id_supir = s.id_supir AND t.status_sewa = 'berjalan' AND t.id_sewa != ?) = 0");
+                            mysqli_stmt_bind_param($stmt_supir, "i", $id_sewa);
+                            mysqli_stmt_execute($stmt_supir);
+                            $supir_query = mysqli_stmt_get_result($stmt_supir);
                             while($s = mysqli_fetch_array($supir_query)) {
                                 $isSelected = ($trx['id_supir'] == $s['id_supir']) ? 'border-[#800000] bg-red-50 ring-2 ring-[#800000] ring-opacity-50' : 'border-slate-200 bg-white hover:border-red-300';
                             ?>

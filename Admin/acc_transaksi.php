@@ -16,13 +16,17 @@ $status_target = (isset($_GET['status']) && $_GET['status'] === 'diterima') ? 'd
 
 if ($id_sewa > 0) {
     // Check if the transaction exists
-    $check_query = mysqli_query($conn, "SELECT status_sewa FROM transaksi_sewa WHERE id_sewa = $id_sewa");
+    $stmt_check = mysqli_prepare($conn, "SELECT status_sewa FROM transaksi_sewa WHERE id_sewa = ?");
+    mysqli_stmt_bind_param($stmt_check, "i", $id_sewa);
+    mysqli_stmt_execute($stmt_check);
+    $check_query = mysqli_stmt_get_result($stmt_check);
     if ($check_query && mysqli_num_rows($check_query) > 0) {
         $row = mysqli_fetch_assoc($check_query);
         if ($row['status_sewa'] === 'pending') {
             // Update status_sewa to target status
-            $update_query = "UPDATE transaksi_sewa SET status_sewa = '$status_target' WHERE id_sewa = $id_sewa";
-            if (mysqli_query($conn, $update_query)) {
+            $stmt_update = mysqli_prepare($conn, "UPDATE transaksi_sewa SET status_sewa = ? WHERE id_sewa = ?");
+            mysqli_stmt_bind_param($stmt_update, "si", $status_target, $id_sewa);
+            if (mysqli_stmt_execute($stmt_update)) {
                 echo "<script>
                         alert('Pesanan #" . $id_sewa . " berhasil disetujui (ACC)!');
                         window.location = 'transaksi.php';

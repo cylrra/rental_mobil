@@ -21,7 +21,10 @@ if (isset($_POST['submit'])) {
     $area_pemakaian = mysqli_real_escape_string($conn, $_POST['area_pemakaian']);
 
     // 1. Ambil Tarif Mobil dari database
-    $query_mobil = mysqli_query($conn, "SELECT * FROM mobil WHERE kode_mobil = '$kode_mobil'");
+    $stmt_mobil = mysqli_prepare($conn, "SELECT * FROM mobil WHERE kode_mobil = ?");
+    mysqli_stmt_bind_param($stmt_mobil, "s", $kode_mobil);
+    mysqli_stmt_execute($stmt_mobil);
+    $query_mobil = mysqli_stmt_get_result($stmt_mobil);
     $data_mobil  = mysqli_fetch_assoc($query_mobil);
     
     if ($durasi_sewa == '12 Jam' && $area_pemakaian == 'Dalam Kota') {
@@ -40,7 +43,10 @@ if (isset($_POST['submit'])) {
     // 3. Ambil Tarif Supir & Hitung Biaya Supir secara Terpisah (Jika pakai supir)
     $biaya_supir = 0;
     if ($id_supir !== null) {
-        $query_supir = mysqli_query($conn, "SELECT * FROM supir WHERE id_supir = '$id_supir'");
+        $stmt_sup = mysqli_prepare($conn, "SELECT * FROM supir WHERE id_supir = ?");
+        mysqli_stmt_bind_param($stmt_sup, "s", $id_supir);
+        mysqli_stmt_execute($stmt_sup);
+        $query_supir = mysqli_stmt_get_result($stmt_sup);
         $data_supir = mysqli_fetch_assoc($query_supir);
         
         if ($durasi_sewa == '12 Jam' && $area_pemakaian == 'Dalam Kota') {
@@ -67,12 +73,15 @@ if (isset($_POST['submit'])) {
     $tanggal_kembali = date('Y-m-d H:i:s', strtotime($tanggal_sewa . " + $jam_tambah hours"));
     
     // CEK KETERSEDIAAN JADWAL (Overlapping Check)
-    $q_cek_jadwal = mysqli_query($conn, "SELECT id_sewa FROM transaksi_sewa 
-                                         WHERE kode_mobil = '$kode_mobil' 
+    $stmt_cek = mysqli_prepare($conn, "SELECT id_sewa FROM transaksi_sewa 
+                                         WHERE kode_mobil = ? 
                                          AND status_sewa IN ('pending', 'diterima', 'berjalan', 'dp')
                                          AND (
-                                            (tanggal_sewa <= '$tanggal_kembali' AND tanggal_kembali >= '$tanggal_sewa')
+                                            (tanggal_sewa <= ? AND tanggal_kembali >= ?)
                                          )");
+    mysqli_stmt_bind_param($stmt_cek, "sss", $kode_mobil, $tanggal_kembali, $tanggal_sewa);
+    mysqli_stmt_execute($stmt_cek);
+    $q_cek_jadwal = mysqli_stmt_get_result($stmt_cek);
     if (mysqli_num_rows($q_cek_jadwal) > 0) {
         echo "<script>
                 alert('Gagal: Mobil tidak tersedia pada rentang waktu yang dipilih (Sudah dibooking).');
@@ -82,10 +91,11 @@ if (isset($_POST['submit'])) {
     }
 
     // 5. Masukkan data ke tabel transaksi_sewa lengkap dengan kolom relasi supir yang baru
-    $query_insert = "INSERT INTO transaksi_sewa (id_pelanggan, kode_mobil, pake_supir, id_supir, biaya_supir, tanggal_sewa, tanggal_kembali, lama_sewa, durasi_sewa, area_pemakaian, total_biaya, status_sewa) 
-                     VALUES ('$id_pelanggan', '$kode_mobil', '$pake_supir', $id_supir_db, '$biaya_supir', '$tanggal_sewa', '$tanggal_kembali', '$lama_sewa', '$durasi_sewa', '$area_pemakaian', '$total_harga', 'berjalan')";
+    $stmt_in = mysqli_prepare($conn, "INSERT INTO transaksi_sewa (id_pelanggan, kode_mobil, pake_supir, id_supir, biaya_supir, tanggal_sewa, tanggal_kembali, lama_sewa, durasi_sewa, area_pemakaian, total_biaya, status_sewa) 
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'berjalan')");
+    mysqli_stmt_bind_param($stmt_in, "ssssississd", $id_pelanggan, $kode_mobil, $pake_supir, $id_supir, $biaya_supir, $tanggal_sewa, $tanggal_kembali, $lama_sewa, $durasi_sewa, $area_pemakaian, $total_harga);
 
-    if (mysqli_query($conn, $query_insert)) {
+    if (mysqli_stmt_execute($stmt_in)) {
         // Ketersediaan mobil & supir otomatis aman (real-time) selama status_sewa bernilai 'berjalan'
         echo "<script>
                 alert('Transaksi Berhasil Disimpan!\\nTotal Sewa Mobil: Rp " . number_format($total_biaya_mobil, 0, ',', '.') . "\\nTotal Jasa Supir: Rp " . number_format($biaya_supir, 0, ',', '.') . "\\nAkumulasi Total: Rp " . number_format($total_harga, 0, ',', '.') . "');

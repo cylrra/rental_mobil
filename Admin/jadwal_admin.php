@@ -4,19 +4,37 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 include 'navbar.php'; 
 
-// Data Jadwal Hardcoded sesuai permintaan
-$jadwal_weekday = [
-    'Senin'  => ['Shift 1 (08:00 - 15:00)' => 'Cahya & Maia', 'Shift 2 (15:00 - 20:00)' => 'Aghni & Zidni'],
-    'Selasa' => ['Shift 1 (08:00 - 15:00)' => 'Ferra & Haadziq', 'Shift 2 (15:00 - 20:00)' => 'Cahya & Maia'],
-    'Rabu'   => ['Shift 1 (08:00 - 15:00)' => 'Aghni & Zidni', 'Shift 2 (15:00 - 20:00)' => 'Ferra & Haadziq'],
-    'Kamis'  => ['Shift 1 (08:00 - 15:00)' => 'Cahya & Maia', 'Shift 2 (15:00 - 20:00)' => 'Aghni & Zidni'],
-    'Jumat'  => ['Shift 1 (08:00 - 15:00)' => 'Ferra & Haadziq', 'Shift 2 (15:00 - 20:00)' => 'Cahya & Maia']
-];
+$admins = ['Cahya', 'Maia', 'Aghni', 'Zidni', 'Ferra', 'Haadziq'];
 
-$jadwal_weekend = [
-    'Sabtu'  => ['Shift 1 (09:00 - 15:00)' => 'Aghni & Zidni', 'Shift 2 (15:00 - 21:00)' => 'Ferra & Haadziq'],
-    'Minggu' => ['Shift 1 (09:00 - 15:00)' => 'Cahya & Maia', 'Shift 2 (15:00 - 21:00)' => 'Aghni & Zidni']
-];
+function getDailyShifts() {
+    global $admins;
+    $daily_admins = $admins;
+    shuffle($daily_admins);
+    return [
+        $daily_admins[0] . ' & ' . $daily_admins[1],
+        $daily_admins[2] . ' & ' . $daily_admins[3]
+    ];
+}
+
+$jadwal_weekday = [];
+$days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+foreach ($days as $day) {
+    $shifts = getDailyShifts();
+    $jadwal_weekday[$day] = [
+        'Shift 1 (08:00 - 15:00)' => $shifts[0],
+        'Shift 2 (15:00 - 20:00)' => $shifts[1]
+    ];
+}
+
+$jadwal_weekend = [];
+$weekend_days = ['Sabtu', 'Minggu'];
+foreach ($weekend_days as $day) {
+    $shifts = getDailyShifts();
+    $jadwal_weekend[$day] = [
+        'Shift 1 (09:00 - 15:00)' => $shifts[0],
+        'Shift 2 (15:00 - 21:00)' => $shifts[1]
+    ];
+}
 ?>
 
 <div class="p-8">

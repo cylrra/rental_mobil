@@ -37,7 +37,8 @@ function getIconClass($page, $current_page, $colorClass = 'text-white') {
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Google Fonts Montserrat -->
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="../style.css">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
@@ -100,61 +101,85 @@ function getIconClass($page, $current_page, $colorClass = 'text-white') {
     </script>
     
     <style>
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #4d4c4c; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #800000; }
+        /* Override scrollbar with brand color */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.25); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #d4af37; }
+
+        body { font-family: 'Plus Jakarta Sans', 'Montserrat', sans-serif !important; background: #F4F6F9; }
     
-        /* Sidebar: Dynamic Crimson Red background */
+        /* Sidebar: Dynamic Crimson Red gradient */
         .sidebar-constellation { 
-            background: linear-gradient(180deg, #800000 0%, #4a0000 100%) !important; 
-            border-right: 1px solid #600000; 
+            background: linear-gradient(175deg, #8B0000 0%, #3d0000 100%) !important; 
+            border-right: 1px solid rgba(0,0,0,0.15);
+            box-shadow: 4px 0 24px rgba(0,0,0,0.12);
         }
     
-        /* Active Navigation Item: Energetic Yellow/Amber */
+        /* Active Navigation Item: Gold Amber */
         .nav-item-active { 
-            background-color: #d4af37 !important; 
+            background-color: #D4AF37 !important; 
             color: #1a1c1c !important; 
-            font-weight: 700;
-            box-shadow: 0 10px 15px -3px rgba(212, 175, 55, 0.3) !important;
-            transform: scale(1.02);
+            font-weight: 700 !important;
+            box-shadow: 0 4px 16px rgba(212,175,55,0.35) !important;
         }
     
-        /* Header: Clean Corporate White */
+        /* Header */
         .header-constellation {
             background-color: #ffffff !important;
-            border-bottom: 1px solid #e8e8e8;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
-            transition: all 0.3s ease;
+            border-bottom: 1px solid #E8ECF2;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.04);
         }
         
         .sidebar-label {
-            font-size: 0.72rem;
+            font-size: 0.65rem;
             font-weight: 800;
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(255,255,255,0.35);
             text-transform: uppercase;
-            letter-spacing: 0.15em;
+            letter-spacing: 0.18em;
+            padding-left: 4px;
         }
- 
+
+        /* Sidebar nav link base */
+        aside nav a {
+            font-family: 'Plus Jakarta Sans', 'Montserrat', sans-serif !important;
+        }
+
+        /* Improve content area */
+        .flex-1.overflow-y-auto {
+            background: #F4F6F9;
+        }
+
+        /* Glass card for panel elements */
         .glass-card {
-            background: rgba(255, 255, 255, 0.98);
-            border: 1px solid #e2e2e2;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.02);
+            background: rgba(255,255,255,0.97);
+            border: 1px solid #E8ECF2;
+            box-shadow: 0 2px 12px rgba(15,23,42,0.05);
         }
  
-        .hover-lift {
-            transition: all 0.3s ease;
-        }
-        .hover-lift:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.04);
-        }
-        
-        /* Sidebar transition */
+        /* Sidebar toggle transition */
         #sidebar {
-            transition: margin-left 0.3s ease-in-out;
+            transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1);
         }
         .sidebar-hidden {
-            margin-left: -18rem; /* w-72 = 18rem */
+            margin-left: -18rem;
+        }
+
+        /* Content padding override for admin */
+        .flex-1.overflow-y-auto.p-10 { padding: 32px 40px !important; }
+
+        /* Table improvements */
+        table { border-collapse: collapse; }
+        table thead th { background: #F8F9FC; }
+        
+        /* Button base fix */
+        button:focus { outline: none; }
+        
+        /* Form control focus ring fix for Tailwind forms */
+        input:focus, select:focus, textarea:focus {
+            border-color: #8B0000 !important;
+            box-shadow: 0 0 0 3px rgba(139,0,0,0.12) !important;
+            outline: none !important;
         }
     </style>
 </head>
@@ -215,8 +240,7 @@ function getIconClass($page, $current_page, $colorClass = 'text-white') {
                 <h2 class="px-4 mb-3 sidebar-label">Akuntansi</h2>
                 <div class="space-y-1">
                     <a class="<?= getLinkClass('pembayaran.php', $current_page) ?>" href="pembayaran.php"><i class="<?= getIconClass('pembayaran.php', $current_page, 'text-lime-300') ?>" data-lucide="wallet"></i><span class="text-sm font-medium">Input Pembayaran</span></a>
-                    <a class="<?= getLinkClass('pembayaran_gaji.php', $current_page) ?>" href="pembayaran_gaji.php?jenis=supir"><i class="<?= getIconClass('pembayaran_gaji.php', $current_page, 'text-yellow-400') ?>" data-lucide="hand-coins"></i><span class="text-sm font-medium">Pembayaran Supir</span></a>
-                    <a class="<?= getLinkClass('pembayaran_gaji.php', $current_page) ?>" href="pembayaran_gaji.php?jenis=admin"><i class="<?= getIconClass('pembayaran_gaji.php', $current_page, 'text-amber-400') ?>" data-lucide="banknote"></i><span class="text-sm font-medium">Pembayaran Admin</span></a>
+                    <a class="<?= getLinkClass('pembayaran_gaji.php', $current_page) ?>" href="pembayaran_gaji.php"><i class="<?= getIconClass('pembayaran_gaji.php', $current_page, 'text-yellow-400') ?>" data-lucide="hand-coins"></i><span class="text-sm font-medium">Pembayaran Gaji</span></a>
                     <a class="<?= getLinkClass('riwayat_pembayaran.php', $current_page) ?>" href="riwayat_pembayaran.php"><i class="<?= getIconClass('riwayat_pembayaran.php', $current_page, 'text-green-300') ?>" data-lucide="landmark"></i><span class="text-sm font-medium">Riwayat Pembayaran</span></a>
                     <a class="<?= getLinkClass('jurnal_umum.php', $current_page) ?>" href="jurnal_umum.php"><i class="<?= getIconClass('jurnal_umum.php', $current_page, 'text-fuchsia-300') ?>" data-lucide="book-open"></i><span class="text-sm font-medium">Jurnal Umum</span></a>
                     <a class="<?= getLinkClass('riwayat_jurnal_umum.php', $current_page) ?>" href="riwayat_jurnal_umum.php"><i class="<?= getIconClass('riwayat_jurnal_umum.php', $current_page, 'text-fuchsia-300') ?>" data-lucide="book-open"></i><span class="text-sm font-medium">Riwayat Jurnal Umum</span></a>

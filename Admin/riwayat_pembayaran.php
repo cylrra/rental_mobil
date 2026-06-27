@@ -127,7 +127,22 @@ $sql_grafik = "SELECT
                         $query = mysqli_query($conn, $sql);
                         if ($query && mysqli_num_rows($query) > 0) {
                             while($d = mysqli_fetch_array($query)){
-                                $metode = strtolower($d['metode_pembayaran']);
+                                $metode_raw = trim($d['metode_pembayaran']);
+                                
+                                // Jika metode_pembayaran kosong, ekstrak dari keterangan
+                                if (empty($metode_raw) && !empty($d['keterangan'])) {
+                                    if (preg_match('/\((.*?)\)/', $d['keterangan'], $matches)) {
+                                        $metode_raw = $matches[1];
+                                    } elseif (strpos(strtolower($d['keterangan']), 'transfer') !== false) {
+                                        $metode_raw = 'Transfer Bank';
+                                    } else {
+                                        $metode_raw = 'Sistem / Transfer';
+                                    }
+                                } elseif (empty($metode_raw)) {
+                                    $metode_raw = 'Transfer';
+                                }
+
+                                $metode = strtolower($metode_raw);
                                 $badge_class = 'bg-slate-100 text-slate-700'; // Default
                                 if (strpos($metode, 'transfer') !== false || strpos($metode, 'bca') !== false || strpos($metode, 'bni') !== false || strpos($metode, 'mandiri') !== false) {
                                     $badge_class = 'bg-blue-100 text-blue-700 border border-blue-200';
@@ -140,13 +155,13 @@ $sql_grafik = "SELECT
                         <tr class="hover:bg-slate-50/50 transition-colors">
                             <td class="p-4 text-xs font-bold text-slate-500">#PYM-<?php echo $d['id_pembayaran']; ?></td>
                             <td class="p-4">
-                                <div class="font-bold text-slate-800 text-sm"><?php echo $d['nama']; ?></div>
+                                <div class="font-bold text-slate-800 text-sm"><?php echo htmlspecialchars($d['nama']); ?></div>
                                 <small class="text-slate-500 text-[10px] font-bold tracking-wider">Trx ID: #SRV-<?php echo $d['id_sewa']; ?></small>
                             </td>
                             <td class="p-4 text-slate-500 text-xs font-medium"><?php echo date('d M Y', strtotime($d['tanggal_bayar'])); ?></td>
                             <td class="p-4">
                                 <span class="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider <?php echo $badge_class; ?>">
-                                    <?php echo htmlspecialchars($d['metode_pembayaran']); ?>
+                                    <?php echo htmlspecialchars($metode_raw); ?>
                                 </span>
                             </td>
                             <td class="p-4 text-right">

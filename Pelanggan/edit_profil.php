@@ -15,7 +15,10 @@ include 'navbar.php';
 $id_pelanggan = $_SESSION['id_pelanggan'];
 
 // 1. Ambil data pelanggan saat ini
-$query = mysqli_query($conn, "SELECT * FROM pelanggan WHERE id_pelanggan = '$id_pelanggan'");
+$stmt_get = mysqli_prepare($conn, "SELECT * FROM pelanggan WHERE id_pelanggan = ?");
+mysqli_stmt_bind_param($stmt_get, "i", $id_pelanggan);
+mysqli_stmt_execute($stmt_get);
+$query = mysqli_stmt_get_result($stmt_get);
 $data = mysqli_fetch_assoc($query);
 
 $success_msg = '';
@@ -31,13 +34,18 @@ if (isset($_POST['update_profile'])) {
     $no_ktp  = mysqli_real_escape_string($conn, $_POST['no_ktp']);
     $alamat  = mysqli_real_escape_string($conn, $_POST['alamat']);
 
-    $update = mysqli_query($conn, "UPDATE pelanggan SET nama='$nama', username='$username', email='$email', no_telp='$no_telp', no_ktp='$no_ktp', alamat='$alamat' WHERE id_pelanggan='$id_pelanggan'");
+    $stmt_update = mysqli_prepare($conn, "UPDATE pelanggan SET nama=?, username=?, email=?, no_telp=?, no_ktp=?, alamat=? WHERE id_pelanggan=?");
+    mysqli_stmt_bind_param($stmt_update, "ssssssi", $nama, $username, $email, $no_telp, $no_ktp, $alamat, $id_pelanggan);
+    $update = mysqli_stmt_execute($stmt_update);
 
     if ($update) {
         $_SESSION['nama_pelanggan'] = $nama; // Update session name
         $success_msg = "Profil Anda berhasil diperbarui!";
         // Refresh data
-        $query = mysqli_query($conn, "SELECT * FROM pelanggan WHERE id_pelanggan = '$id_pelanggan'");
+        $stmt_get = mysqli_prepare($conn, "SELECT * FROM pelanggan WHERE id_pelanggan = ?");
+        mysqli_stmt_bind_param($stmt_get, "i", $id_pelanggan);
+        mysqli_stmt_execute($stmt_get);
+        $query = mysqli_stmt_get_result($stmt_get);
         $data = mysqli_fetch_assoc($query);
     } else {
         $error_msg = "Gagal memperbarui profil: " . mysqli_error($conn);
@@ -56,7 +64,9 @@ if (isset($_POST['change_password'])) {
     } else {
         if (password_verify($old_password, $data['password'])) {
             $new_password_hash = password_hash($new_password, PASSWORD_DEFAULT);
-            $update_pw = mysqli_query($conn, "UPDATE pelanggan SET password='$new_password_hash' WHERE id_pelanggan='$id_pelanggan'");
+            $stmt_pw = mysqli_prepare($conn, "UPDATE pelanggan SET password=? WHERE id_pelanggan=?");
+            mysqli_stmt_bind_param($stmt_pw, "si", $new_password_hash, $id_pelanggan);
+            $update_pw = mysqli_stmt_execute($stmt_pw);
             if ($update_pw) {
                 $success_msg = "Password Anda berhasil diubah!";
             } else {
@@ -104,11 +114,17 @@ if (isset($_POST['upload_docs'])) {
 
     if ($uploaded) {
         // Set status verifikasi ke 'dalam_proses' saat dokumen baru diunggah
-        $update_docs = mysqli_query($conn, "UPDATE pelanggan SET foto_ktp='$foto_ktp_name', foto_sim='$foto_sim_name', status_verifikasi='dalam_proses' WHERE id_pelanggan='$id_pelanggan'");
+        $status_ver = 'dalam_proses';
+        $stmt_docs = mysqli_prepare($conn, "UPDATE pelanggan SET foto_ktp=?, foto_sim=?, status_verifikasi=? WHERE id_pelanggan=?");
+        mysqli_stmt_bind_param($stmt_docs, "sssi", $foto_ktp_name, $foto_sim_name, $status_ver, $id_pelanggan);
+        $update_docs = mysqli_stmt_execute($stmt_docs);
         if ($update_docs) {
             $success_msg = "Dokumen identitas berhasil diunggah! Status diubah menjadi dalam proses review.";
             // Refresh data
-            $query = mysqli_query($conn, "SELECT * FROM pelanggan WHERE id_pelanggan = '$id_pelanggan'");
+            $stmt_get = mysqli_prepare($conn, "SELECT * FROM pelanggan WHERE id_pelanggan = ?");
+            mysqli_stmt_bind_param($stmt_get, "i", $id_pelanggan);
+            mysqli_stmt_execute($stmt_get);
+            $query = mysqli_stmt_get_result($stmt_get);
             $data = mysqli_fetch_assoc($query);
         } else {
             $error_msg = "Gagal memperbarui data dokumen di database: " . mysqli_error($conn);
