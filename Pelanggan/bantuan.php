@@ -10,15 +10,15 @@ include 'navbar.php';
 include 'koneksi.php';
 ?>
 
-<!-- Page Header -->
-<div class="d-flex align-items-center justify-content-between mb-4">
-    <div>
-        <h1 class="fw-bold mb-1" style="font-family: 'Outfit', sans-serif; color: var(--deep-navy); font-size: 1.75rem;">
-            <i class="bi bi-headset me-2" style="color: var(--clear-blue);"></i>Bantuan & Layanan CS
-        </h1>
-        <p class="text-muted mb-0" style="font-size: 0.9rem;">Temukan jawaban atas pertanyaan Anda atau hubungi tim kami langsung.</p>
+<!-- Banner -->
+<div class="pay-header-banner">
+    <div style="position:relative;z-index:2;">
+        <div style="font-size:0.7rem;font-weight:800;color:#D4AF37;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;"><i class="bi bi-headset me-2"></i>Bantuan & Layanan CS</div>
+        <h1 style="font-size:1.5rem;font-weight:800;margin:0 0 6px;color:#fff;">Bantuan & Layanan CS</h1>
+        <p style="font-size:0.85rem;color:rgba(255,255,255,0.65);margin:0;">Temukan jawaban atas pertanyaan Anda atau hubungi tim kami langsung.</p>
     </div>
 </div>
+<br>
 
 <div class="row g-4">
 
@@ -34,7 +34,7 @@ include 'koneksi.php';
                     </div>
                     <h6 class="fw-bold mb-1" style="color: var(--deep-navy);">Live Chat WhatsApp</h6>
                     <p class="text-muted mb-3" style="font-size: 0.82rem;">Hubungi CS kami langsung via WhatsApp. Respon cepat jam kerja.</p>
-                    <a href="https://wa.me/6281234567890?text=Halo%20Admin%20INDOMAX%20RENTAL%2C%20saya%20ingin%20bertanya..." 
+                    <a href="https://wa.me/62881010715798?text=Halo%20Admin%20INDOMAX%20RENTAL%2C%20saya%20ingin%20bertanya..." 
                        target="_blank"
                        class="btn fw-bold rounded-pill px-4"
                        style="background: #25d366; color: white; border: none; font-size: 0.85rem;">
@@ -51,7 +51,7 @@ include 'koneksi.php';
                     </div>
                     <h6 class="fw-bold mb-1" style="color: var(--deep-navy);">Email Kami</h6>
                     <p class="text-muted mb-3" style="font-size: 0.82rem;">Kirim pertanyaan detail melalui email. Dibalas dalam 1x24 jam.</p>
-                    <a href="mailto:cs@indomaxrental.co.id" 
+                    <a href="mailto:indomax.rentcar@gmail.com" 
                        class="btn fw-bold rounded-pill px-4"
                        style="background: linear-gradient(135deg, var(--clear-blue), var(--deep-navy)); color: white; border: none; font-size: 0.85rem;">
                         <i class="bi bi-envelope me-1"></i> Kirim Email
@@ -67,9 +67,9 @@ include 'koneksi.php';
                     </div>
                     <h6 class="fw-bold mb-1" style="color: var(--deep-navy);">Jam Operasional</h6>
                     <div style="font-size: 0.82rem; color: #555; line-height: 1.8;">
-                        <div><strong>Senin – Jumat</strong><br>08.00 – 17.00 WIB</div>
+                        <div><strong>Senin – Jumat</strong><br>08.00 – 20.00 WIB</div>
                         <hr class="my-2" style="border-color: rgba(184,170,180,0.3);">
-                        <div><strong>Sabtu</strong><br>08.00 – 13.00 WIB</div>
+                        <div><strong>Sabtu – Minggu</strong><br>09.00 – 21.00 WIB</div>
                     </div>
                 </div>
             </div>
@@ -164,11 +164,11 @@ include 'koneksi.php';
                     </div>
                     <div class="d-flex gap-2 mb-2">
                         <i class="bi bi-telephone" style="color: var(--lilac-dust); margin-top: 2px;"></i>
-                        <span>(024) 8812-3456</span>
+                        <span>+62 812 3456 7890</span>
                     </div>
                     <div class="d-flex gap-2">
                         <i class="bi bi-envelope" style="color: var(--lilac-dust); margin-top: 2px;"></i>
-                        <span>cs@indomaxrental.co.id</span>
+                        <span>indomax.rentcar@gmail.com</span>
                     </div>
                 </div>
             </div>

@@ -263,6 +263,28 @@ $current_page = basename($_SERVER['PHP_SELF']);
         .sidebar-nav i {
             font-size: 1.1rem;
         }
+
+        /* Shared Premium Header Banner */
+        .pay-header-banner {
+            background: linear-gradient(135deg, #0F172A 0%, #8B0000 100%);
+            border-radius: 18px;
+            padding: 28px 32px;
+            color: #fff;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        .pay-header-banner::after {
+            content: '';
+            position: absolute;
+            top: -40px; right: -40px;
+            width: 160px; height: 160px;
+            background: rgba(212,175,55,0.1);
+            border-radius: 50%;
+        }
+        @media (max-width: 640px) {
+            .pay-header-banner { padding: 22px 20px; }
+        }
     </style>
 </head>
 <body>

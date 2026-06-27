@@ -63,7 +63,10 @@ if (isset($_POST['login'])) {
 
         body {
             font-family: 'Montserrat', sans-serif;
-            background-color: var(--background);
+            background-image: url('../assets/img/ferrari_bg.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -72,6 +75,14 @@ if (isset($_POST['login'])) {
             color: var(--text-light);
             overflow-x: hidden;
             position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(160deg, rgba(0,0,0,0.55) 0%, rgba(80,0,0,0.40) 100%);
+            z-index: 0;
         }
 
         /* Ambient glow in background */
@@ -94,12 +105,15 @@ if (isset($_POST['login'])) {
             z-index: 1;
         }
 
-        /* 8px moderate rounded corners and low-contrast outline */
+        /* Glassmorphism card - high contrast dark solid */
         .login-card {
-            background-color: var(--surface);
-            border: 1px solid var(--tertiary);
-            border-radius: 8px; /* 8px moderate radius */
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            background: rgba(15, 10, 10, 0.82);
+            backdrop-filter: blur(20px) saturate(1.3);
+            -webkit-backdrop-filter: blur(20px) saturate(1.3);
+            border: 1px solid rgba(255,255,255,0.10);
+            border-top: 1px solid rgba(255,100,100,0.20);
+            border-radius: 20px;
+            box-shadow: 0 32px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(180,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
             padding: 40px 32px;
         }
 
@@ -136,53 +150,54 @@ if (isset($_POST['login'])) {
 
         /* Custom inputs for dark theme */
         .form-control {
-            background-color: #1a1c1c;
-            color: var(--text-light);
-            border-radius: 8px; /* 8px rounding */
+            background: rgba(0,0,0,0.35);
+            color: #ffffff;
+            border-radius: 8px;
             padding: 12px 16px;
-            border: 1px solid var(--tertiary);
+            border: 1px solid rgba(255,255,255,0.18);
             font-size: 0.9rem;
             font-weight: 500;
             transition: all 0.2s ease;
         }
 
         .form-control::placeholder {
-            color: #656464;
+            color: rgba(255,255,255,0.4);
         }
 
-        /* Focus: border thickens to 2px and changes to primary crimson */
+        /* Focus: bright crimson border glow */
         .form-control:focus {
-            background-color: #1a1c1c;
-            color: var(--text-light);
+            background: rgba(0,0,0,0.50);
+            color: #ffffff;
             border: 2px solid var(--primary);
-            box-shadow: none;
+            box-shadow: 0 0 0 3px rgba(200,0,0,0.15);
             outline: none;
         }
 
         .input-group-text {
-            background-color: #1a1c1c;
-            color: #dadada;
-            border-color: var(--tertiary);
+            background: rgba(0,0,0,0.35);
+            color: rgba(255,255,255,0.6);
+            border-color: rgba(255,255,255,0.18);
         }
 
-        /* Primary CTA uses Energetic Gold with bold dark text */
+        /* Primary CTA uses Energetic Gold - high contrast */
         .btn-submit {
-            background-color: var(--secondary-container);
-            color: #1a1c1c;
+            background: linear-gradient(135deg, #e8c02a 0%, #d4af37 100%);
+            color: #0f0f0f;
             border: none;
-            border-radius: 8px; /* 8px rounding */
+            border-radius: 10px;
             padding: 14px;
-            font-weight: 700;
+            font-weight: 800;
             font-size: 0.9rem;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
+            letter-spacing: 0.02em;
+            transition: all 0.25s ease;
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4), inset 0 1px 0 rgba(255,255,255,0.25);
         }
 
         .btn-submit:hover {
-            background-color: #c49d2b;
-            color: #1a1c1c;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(212, 175, 55, 0.3);
+            background: linear-gradient(135deg, #f5d040 0%, #e8c02a 100%);
+            color: #0f0f0f;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(212, 175, 55, 0.5);
         }
     </style>
 </head>
@@ -190,7 +205,7 @@ if (isset($_POST['login'])) {
 
     <div class="ambient-glow"></div>
 
-    <div class="login-container">
+    <div class="login-container" style="position: relative; z-index: 1;">
         <div class="login-card">
             
             <div class="text-center mb-5">

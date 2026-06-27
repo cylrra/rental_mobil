@@ -166,14 +166,16 @@ if ($query_user) {
 </style>
 
 <div class="tx-wrap">
-    <div class="tx-header">
-        <div>
-            <h1 class="tx-title"><i class="bi bi-calendar-check me-2 text-primary"></i>Sewa Mobil</h1>
-            <p class="tx-sub">Pesan kendaraan baru atau pantau status pesanan aktif Anda.</p>
+    <!-- Banner -->
+    <div class="pay-header-banner mb-4">
+        <div style="position:relative;z-index:2;" class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <div style="font-size:0.7rem;font-weight:800;color:#D4AF37;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;"><i class="bi bi-calendar-check-fill me-2"></i>Portal Sewa</div>
+                <h1 style="font-size:1.5rem;font-weight:800;margin:0 0 6px;color:#fff;">Sewa Mobil</h1>
+                <p style="font-size:0.85rem;color:rgba(255,255,255,0.65);margin:0;">Pesan kendaraan baru atau pantau status pesanan aktif Anda.</p>
+            </div>
+            <a href="katalog.php" class="btn btn-light px-4 rounded-pill shadow-sm fw-bold text-primary" style="color: var(--primary) !important;"><i class="bi bi-grid me-1"></i> Lihat Katalog</a>
         </div>
-        <a href="katalog.php" class="btn-catalog">
-            <i class="bi bi-grid"></i> Lihat Katalog
-        </a>
     </div>
 
     <?php if ($status_verif !== 'terverifikasi'): ?>

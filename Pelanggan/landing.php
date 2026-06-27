@@ -949,7 +949,7 @@ $avg_rating = round($rating_data['avg_r'] ?? 4.8, 1);
             <div class="footer-desc">Penyedia jasa sewa mobil terbaik dan terpercaya di Jawa Tengah. Berkomitmen memberikan armada terawat dengan layanan prima sejak 2018.</div>
             <div class="footer-social">
                 <a href="#"><i class="bi bi-instagram"></i></a>
-                <a href="#"><i class="bi bi-whatsapp"></i></a>
+                <a href="https://wa.me/62881010715798" target="_blank"><i class="bi bi-whatsapp"></i></a>
                 <a href="#"><i class="bi bi-facebook"></i></a>
                 <a href="#"><i class="bi bi-tiktok"></i></a>
             </div>
@@ -971,7 +971,7 @@ $avg_rating = round($rating_data['avg_r'] ?? 4.8, 1);
             </div>
             <div class="footer-contact-item">
                 <i class="bi bi-telephone-fill"></i>
-                <span>0812-3456-7890 (WhatsApp)</span>
+                <span>62 881-0107-15798 (WhatsApp)</span>
             </div>
             <div class="footer-contact-item">
                 <i class="bi bi-envelope-fill"></i>

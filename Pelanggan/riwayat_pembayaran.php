@@ -36,6 +36,18 @@ while($row = mysqli_fetch_assoc($q_data)) {
 
 
 <div class="container-fluid px-4 py-2">
+    <!-- Banner -->
+    <div class="pay-header-banner mb-4">
+        <div style="position:relative;z-index:2;" class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <div style="font-size:0.7rem;font-weight:800;color:#D4AF37;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;"><i class="bi bi-clock-history me-2"></i>Riwayat Keuangan</div>
+                <h1 style="font-size:1.5rem;font-weight:800;margin:0 0 6px;color:#fff;">Riwayat Pembayaran</h1>
+                <p style="font-size:0.85rem;color:rgba(255,255,255,0.65);margin:0;">Pantau status pembayaran dan sisa tagihan penyewaan Anda.</p>
+            </div>
+            <a href="transaksi.php" class="btn btn-light px-4 rounded-pill shadow-sm fw-bold text-primary" style="color: var(--primary) !important;"><i class="bi bi-plus-circle me-1"></i> Sewa Baru</a>
+        </div>
+    </div>
+
     <div class="row mb-4 g-3">
         <div class="col-md-4">
             <div class="card shadow-sm border-0 p-4 bg-white rounded-4 h-100">
@@ -78,9 +90,8 @@ while($row = mysqli_fetch_assoc($q_data)) {
         </div>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold m-0" style="color: var(--on-surface);"><i class="bi bi-receipt-cutoff me-2 text-primary"></i>Riwayat Pembayaran Saya</h4>
-        <a href="transaksi.php" class="btn btn-primary px-4 rounded-pill shadow-sm fw-bold"><i class="bi bi-plus-circle me-1"></i> Sewa Baru</a>
+    <div class="mb-4">
+        <h4 class="fw-bold m-0" style="color: var(--on-surface);"><i class="bi bi-receipt-cutoff me-2 text-primary"></i>Daftar Transaksi</h4>
     </div>
 
     <div class="card p-0 shadow-sm border-0 rounded-4 overflow-hidden mb-5">

@@ -32,6 +32,8 @@ if ($query_testimonials && mysqli_num_rows($query_testimonials) > 0) {
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script>
         tailwind.config = {
             theme: {
@@ -207,7 +209,7 @@ if ($query_testimonials && mysqli_num_rows($query_testimonials) > 0) {
                         <i data-lucide="wallet" class="w-7 h-7"></i>
                     </div>
                     <h3 class="font-heading text-xl font-bold text-slate-900 mb-3">Harga Transparan</h3>
-                    <p class="text-slate-600 text-sm leading-relaxed">Sistem harga yang jujur, transparan, bersahabat sejak awal tanpa biaya siluman atau tambahan tak terduga.</p>
+                    <p class="text-slate-600 text-sm leading-relaxed">Sistem harga yang jujur, transparan, bersahabat sejak awal tanpa tambahan tak terduga.</p>
                 </div>
             </div>
         </div>
@@ -323,14 +325,20 @@ if ($query_testimonials && mysqli_num_rows($query_testimonials) > 0) {
                 </p>
                 <!-- Social Links for extra style -->
                 <div class="flex items-center gap-3">
-                    <a href="#" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 hover:text-white hover:bg-bluebird-600 hover:border-bluebird-600 transition-all duration-300">
-                        <i data-lucide="instagram" class="w-4 h-4"></i>
+                    <a href="https://wa.me/62881010715798" target="_blank" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 hover:text-white hover:bg-bluebird-600 hover:border-bluebird-600 transition-all duration-300" title="WhatsApp">
+                        <i class="bi bi-whatsapp text-base"></i>
                     </a>
-                    <a href="#" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 hover:text-white hover:bg-bluebird-600 hover:border-bluebird-600 transition-all duration-300">
-                        <i data-lucide="facebook" class="w-4 h-4"></i>
+                    <a href="mailto:indomax.rentcar@gmail.com" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 hover:text-white hover:bg-bluebird-600 hover:border-bluebird-600 transition-all duration-300" title="Email">
+                        <i class="bi bi-envelope-fill text-base"></i>
                     </a>
-                    <a href="#" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 hover:text-white hover:bg-bluebird-600 hover:border-bluebird-600 transition-all duration-300">
-                        <i data-lucide="twitter" class="w-4 h-4"></i>
+                    <a href="https://youtube.com/@INDOMAX-RENTCAR" target="_blank" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 hover:text-white hover:bg-bluebird-600 hover:border-bluebird-600 transition-all duration-300" title="YouTube">
+                        <i class="bi bi-youtube text-base"></i>
+                    </a>
+                    <a href="#" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 hover:text-white hover:bg-bluebird-600 hover:border-bluebird-600 transition-all duration-300" title="Instagram">
+                        <i class="bi bi-instagram text-base"></i>
+                    </a>
+                    <a href="#" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 hover:text-white hover:bg-bluebird-600 hover:border-bluebird-600 transition-all duration-300" title="Facebook">
+                        <i class="bi bi-facebook text-base"></i>
                     </a>
                 </div>
             </div>
@@ -347,7 +355,7 @@ if ($query_testimonials && mysqli_num_rows($query_testimonials) > 0) {
                 <h4 class="font-heading font-bold text-white mb-5 tracking-wide text-sm uppercase">Hubungi Kami</h4>
                 <ul class="space-y-3.5 text-sm">
                     <li class="flex items-center gap-2.5"><i data-lucide="map-pin" class="w-4 h-4 text-bluebird-500"></i> Semarang, Indonesia</li>
-                    <li class="flex items-center gap-2.5"><i data-lucide="phone" class="w-4 h-4 text-bluebird-500"></i> +62 812 3456 7890</li>
+                    <li class="flex items-center gap-2.5"><i data-lucide="phone" class="w-4 h-4 text-bluebird-500"></i> +62 881-0107-15798</li>
                     <li class="flex items-center gap-2.5"><i data-lucide="mail" class="w-4 h-4 text-bluebird-500"></i> indomax.rentcar@gmail.com</li>
                 </ul>
             </div>
@@ -355,9 +363,8 @@ if ($query_testimonials && mysqli_num_rows($query_testimonials) > 0) {
         <div class="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-slate-900 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 gap-4">
             <p>&copy; <?= date('Y') ?> PT INDOMAX RENTAL. Hak Cipta Dilindungi.</p>
             <!-- Tautan Rahasia Admin - Diperjelas sedikit & Elegan -->
-            <a href="Admin/login_admin.php" class="flex items-center gap-1.5 py-1.5 px-3 rounded-lg border border-slate-900 bg-slate-900/30 text-slate-600 hover:text-slate-400 hover:border-slate-800 transition-all duration-300" title="Portal Admin / Staff">
-                <i data-lucide="shield" class="w-3.5 h-3.5"></i>
-                <span>Portal Staff</span>
+            <a href="Admin/login_admin.php" class="flex items-center justify-center w-8 h-8 rounded-lg border border-slate-900 bg-slate-900/30 text-slate-600 hover:text-slate-400 hover:border-slate-800 transition-all duration-300" title="Portal Admin / Staff">
+                <i class="bi bi-gear-fill text-sm"></i>
             </a>
         </div>
     </footer>
@@ -399,7 +406,7 @@ if ($query_testimonials && mysqli_num_rows($query_testimonials) > 0) {
             },
             {
                 badge: "✨ Tarif Kompetitif & Jujur",
-                title: "Harga Terbaik,<br>Tanpa <span class='text-bluebird-500'>Biaya Siluman.</span>",
+                title: "Harga Terbaik,<br>Tanpa <span class='text-bluebird-500'>Biaya Tak Terduga.</span>",
                 desc: "Nikmati layanan sewa mobil kelas atas dengan harga sewa transparan, bersahabat, dan tanpa biaya tambahan tak terduga."
             },
             {
@@ -461,7 +468,7 @@ if ($query_testimonials && mysqli_num_rows($query_testimonials) > 0) {
         <!-- Chat Box Card (Tanya MINMAX) -->
         <div id="wa-chat-box" class="w-80 bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden hidden transition-all duration-300 transform scale-95 opacity-0 origin-bottom-right">
             <!-- Card Header -->
-            <div class="bg-bluebird-600 p-6 text-white relative">
+            <div id="wa-chat-header" class="bg-bluebird-600 p-6 text-white relative select-none">
                 <h3 class="font-heading font-bold text-lg mb-1">Info Tentang INDOMAX</h3>
                 <p class="text-xs text-white/80 leading-relaxed">Silakan isi detail di bawah ini sebelum memulai percakapan chat dengan kami</p>
             </div>
@@ -488,7 +495,7 @@ if ($query_testimonials && mysqli_num_rows($query_testimonials) > 0) {
         <!-- Toggle Button (Pill style like Tanya Bebi) -->
         <button id="wa-toggle-btn" onclick="toggleWaChat()" class="bg-bluebird-600 hover:bg-bluebird-700 text-white font-bold py-3 px-5 rounded-full shadow-2xl shadow-bluebird-600/30 transition-all hover:scale-105 active:scale-95 flex items-center gap-3">
             <span id="wa-btn-icon" class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-bluebird-600 shadow-sm transition-transform duration-300">
-                <i data-lucide="message-square-text" class="w-4 h-4"></i>
+                <i class="bi bi-chat-text-fill text-base"></i>
             </span>
             <span id="wa-btn-text" class="text-sm tracking-wide font-semibold">TANYA MINMAX</span>
         </button>
@@ -509,7 +516,7 @@ if ($query_testimonials && mysqli_num_rows($query_testimonials) > 0) {
                 }, 10);
                 
                 // Change button to close state
-                btnIcon.innerHTML = '<i data-lucide="x" class="w-4 h-4"></i>';
+                btnIcon.innerHTML = '<i class="bi bi-x-lg text-base"></i>';
                 btnIcon.classList.add('rotate-90');
             } else {
                 // Close chat box
@@ -520,11 +527,9 @@ if ($query_testimonials && mysqli_num_rows($query_testimonials) > 0) {
                 }, 300);
                 
                 // Change button back to open state
-                btnIcon.innerHTML = '<i data-lucide="message-square-text" class="w-4 h-4"></i>';
+                btnIcon.innerHTML = '<i class="bi bi-chat-text-fill text-base"></i>';
                 btnIcon.classList.remove('rotate-90');
             }
-            // Re-render Lucide icons for the button
-            lucide.createIcons();
         }
 
         function startWaChat() {
@@ -533,11 +538,12 @@ if ($query_testimonials && mysqli_num_rows($query_testimonials) > 0) {
                 alert('Silakan ketik nama Anda terlebih dahulu untuk memulai chat.');
                 return;
             }
-            const phoneNumber = '6281234567890'; // Number 0812 3456 7890 in international format
-            const text = encodeURIComponent(`Halo INDOMAX, saya ${nameInput} ingin bertanya tentang layanan rental mobil.`);
+            const phoneNumber = '62881010715798'; // Number 62 881-0107-15798 in international format
+            const text = encodeURIComponent(`Halo MinMax, saya ${nameInput} ingin bertanya tentang layanan rental mobil.`);
             const waUrl = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${text}`;
             window.open(waUrl, '_blank');
         }
+
     </script>
 </body>
 </html>

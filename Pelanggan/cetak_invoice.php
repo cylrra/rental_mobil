@@ -75,7 +75,7 @@ $color_bayar = $lunas ? "#16a34a" : ($data['jumlah_bayar'] > 0 ? "#2563eb" : "#d
                             <td>
                                 <strong>PT INDOMAX RENTAL</strong><br>
                                 Jl. Sudirman No. 123, Jakarta<br>
-                                CS: 0812-3456-7890
+                                CS: 62 881-0107-15798
                             </td>
                             <td>
                                 <strong>Tagihan Kepada:</strong><br>

@@ -4,36 +4,39 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 include 'navbar.php'; 
 
-$admins = ['Cahya', 'Maia', 'Aghni', 'Zidni', 'Ferra', 'Haadziq'];
+$admins = ['Zidni', 'Ferra', 'Cahya', 'Aghni', 'Haadziq', 'Maia'];
 
-function getDailyShifts() {
-    global $admins;
-    $daily_admins = $admins;
-    shuffle($daily_admins);
-    return [
-        $daily_admins[0] . ' & ' . $daily_admins[1],
-        $daily_admins[2] . ' & ' . $daily_admins[3]
-    ];
+// Rotate the admin list based on the week number so that it rotates who gets 4/5 shifts weekly
+$week_num = (int)date('W');
+$rotation = $week_num % 6;
+for ($i = 0; $i < $rotation; $i++) {
+    $temp = array_shift($admins);
+    $admins[] = $temp;
 }
 
+$days_all = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
 $jadwal_weekday = [];
-$days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
-foreach ($days as $day) {
-    $shifts = getDailyShifts();
-    $jadwal_weekday[$day] = [
-        'Shift 1 (08:00 - 15:00)' => $shifts[0],
-        'Shift 2 (15:00 - 20:00)' => $shifts[1]
-    ];
-}
-
 $jadwal_weekend = [];
-$weekend_days = ['Sabtu', 'Minggu'];
-foreach ($weekend_days as $day) {
-    $shifts = getDailyShifts();
-    $jadwal_weekend[$day] = [
-        'Shift 1 (09:00 - 15:00)' => $shifts[0],
-        'Shift 2 (15:00 - 21:00)' => $shifts[1]
-    ];
+$ptr = 0;
+
+foreach ($days_all as $day) {
+    $a1 = $admins[$ptr % 6];
+    $a2 = $admins[($ptr + 1) % 6];
+    $a3 = $admins[($ptr + 2) % 6];
+    $a4 = $admins[($ptr + 3) % 6];
+    
+    if (in_array($day, ['Sabtu', 'Minggu'])) {
+        $jadwal_weekend[$day] = [
+            'Shift 1 (09:00 - 15:00)' => "$a1 & $a2",
+            'Shift 2 (15:00 - 21:00)' => "$a3 & $a4"
+        ];
+    } else {
+        $jadwal_weekday[$day] = [
+            'Shift 1 (08:00 - 15:00)' => "$a1 & $a2",
+            'Shift 2 (15:00 - 20:00)' => "$a3 & $a4"
+        ];
+    }
+    $ptr += 4;
 }
 ?>
 

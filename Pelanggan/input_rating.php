@@ -116,11 +116,12 @@ include 'navbar.php';
 ?>
 
 <div class="container-fluid px-4">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12 my-2">
-            <h1 class="fw-bold" style="font-family: 'Outfit', sans-serif; color: #0f172a;">Ulasan & Rating Layanan</h1>
-            <p class="text-muted">Kritik dan saran Anda adalah energi bagi kami untuk terus memberikan pelayanan terbaik.</p>
+    <!-- Banner -->
+    <div class="pay-header-banner">
+        <div style="position:relative;z-index:2;">
+            <div style="font-size:0.7rem;font-weight:800;color:#D4AF37;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;"><i class="bi bi-star-fill me-2"></i>Ulasan & Rating</div>
+            <h1 style="font-size:1.5rem;font-weight:800;margin:0 0 6px;color:#fff;">Ulasan & Rating Layanan</h1>
+            <p style="font-size:0.85rem;color:rgba(255,255,255,0.65);margin:0;">Kritik dan saran Anda adalah energi bagi kami untuk terus memberikan pelayanan terbaik.</p>
         </div>
     </div>
 

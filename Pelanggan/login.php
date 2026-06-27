@@ -83,13 +83,25 @@ if (isset($_POST['login'])) {
 
         body {
             font-family: 'Montserrat', sans-serif;
-            background: linear-gradient(135deg, #f3f3f3 0%, #eeeeee 100%);
+            background-image: url('../assets/img/ferrari_bg.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 40px 16px;
             color: var(--on-surface);
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(160deg, rgba(0,0,0,0.55) 0%, rgba(80,0,0,0.40) 100%);
+            z-index: 0;
         }
 
         .login-container {
@@ -97,13 +109,17 @@ if (isset($_POST['login'])) {
             max-width: 440px;
         }
 
-        /* 8px moderate rounded corners and low-contrast outline */
+        /* Glassmorphism card - high contrast with warm dark base */
         .login-card {
-            background: var(--surface);
-            border: 1px solid #e2e2e2;
-            border-radius: 8px; /* 8px moderate radius */
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+            background: rgba(20, 10, 10, 0.80);
+            backdrop-filter: blur(20px) saturate(1.3);
+            -webkit-backdrop-filter: blur(20px) saturate(1.3);
+            border: 1px solid rgba(255,255,255,0.10);
+            border-top: 1px solid rgba(255,180,0,0.20);
+            border-radius: 20px;
+            box-shadow: 0 32px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(200,120,0,0.15), inset 0 1px 0 rgba(255,255,255,0.06);
             padding: 40px 32px;
+            color: #ffffff;
         }
 
         .brand-logo-circle {
@@ -121,11 +137,12 @@ if (isset($_POST['login'])) {
         .brand-header {
             font-weight: 900;
             letter-spacing: -0.02em;
-            color: var(--tertiary);
+            color: #ffffff;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.4);
         }
         
         .brand-header span {
-            color: var(--primary);
+            color: #fdc003;
         }
 
         .form-label {
@@ -133,50 +150,87 @@ if (isset($_POST['login'])) {
             font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: var(--tertiary);
+            color: #d0d0d0;
             margin-bottom: 8px;
         }
 
         .form-control {
-            border-radius: 8px; /* 8px rounding */
+            border-radius: 8px;
             padding: 12px 16px;
-            border: 1px solid #e2e2e2;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3);
+            color: #f9f9f9;
             font-size: 0.9rem;
             font-weight: 500;
             transition: all 0.2s ease;
         }
 
+        .form-control::placeholder {
+            color: #aaa;
+        }
+
         /* Focus: border thickens to 2px and changes to primary crimson */
         .form-control:focus {
             border: 2px solid var(--primary);
+            background: rgba(0,0,0,0.4);
+            color: #f9f9f9;
             box-shadow: none;
             outline: none;
         }
 
-        /* Primary CTA uses Energetic Amber with bold dark text */
+        .input-group-text {
+            background: rgba(0,0,0,0.3);
+            border-color: rgba(255,255,255,0.2);
+            color: #ccc;
+        }
+
+        /* Primary CTA uses Energetic Amber - high contrast */
         .btn-submit {
-            background-color: var(--secondary-container);
-            color: #1a1c1c;
+            background: linear-gradient(135deg, #fdd835 0%, #fdc003 100%);
+            color: #0f0f0f;
             border: none;
-            border-radius: 8px; /* 8px rounding */
+            border-radius: 10px;
             padding: 14px;
-            font-weight: 700;
+            font-weight: 800;
             font-size: 0.9rem;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(253, 192, 3, 0.15);
+            letter-spacing: 0.02em;
+            transition: all 0.25s ease;
+            box-shadow: 0 6px 20px rgba(253, 192, 3, 0.45), inset 0 1px 0 rgba(255,255,255,0.3);
         }
 
         .btn-submit:hover {
-            background-color: #e5ad02;
-            color: #1a1c1c;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(253, 192, 3, 0.25);
+            background: linear-gradient(135deg, #ffe033 0%, #fdd835 100%);
+            color: #0f0f0f;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(253, 192, 3, 0.55);
+        }
+
+        .link-register {
+            color: #fdc003;
+            font-weight: 700;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(253,192,3,0.4);
+            transition: all 0.2s;
+        }
+        .link-register:hover {
+            color: #ffe033;
+            border-bottom-color: #ffe033;
+        }
+
+        .link-portal {
+            color: rgba(255,255,255,0.7);
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .link-portal:hover {
+            color: #ffffff;
         }
     </style>
 </head>
 <body>
 
-    <div class="login-container">
+    <div class="login-container" style="position: relative; z-index: 1;">
         <div class="login-card">
             
             <div class="text-center mb-5">
@@ -205,8 +259,8 @@ if (isset($_POST['login'])) {
                 <div class="mb-3">
                     <label class="form-label">Username</label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0" style="border-radius: 8px 0 0 8px; border-color: #e2e2e2;">
-                            <i class="bi bi-person text-secondary"></i>
+                        <span class="input-group-text border-end-0" style="border-radius: 8px 0 0 8px;">
+                            <i class="bi bi-person" style="color:rgba(255,255,255,0.6);"></i>
                         </span>
                         <input type="text" name="username" class="form-control border-start-0" placeholder="Masukkan username" style="border-radius: 0 8px 8px 0;" required>
                     </div>
@@ -215,12 +269,12 @@ if (isset($_POST['login'])) {
                 <div class="mb-4">
                     <label class="form-label">Password</label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0" style="border-radius: 8px 0 0 8px; border-color: #e2e2e2;">
-                            <i class="bi bi-key text-secondary"></i>
+                        <span class="input-group-text border-end-0" style="border-radius: 8px 0 0 8px;">
+                            <i class="bi bi-key" style="color:rgba(255,255,255,0.6);"></i>
                         </span>
                         <input type="password" name="password" id="passwordField" class="form-control border-start-0 border-end-0" placeholder="Masukkan password" required>
-                        <span class="input-group-text bg-light border-start-0" style="cursor: pointer; border-radius: 0 8px 8px 0; border-color: #e2e2e2;" onclick="togglePassword()">
-                            <i class="bi bi-eye text-secondary" id="toggleIcon"></i>
+                        <span class="input-group-text border-start-0" style="cursor: pointer; border-radius: 0 8px 8px 0;" onclick="togglePassword()">
+                            <i class="bi bi-eye" id="toggleIcon" style="color:rgba(255,255,255,0.6);"></i>
                         </span>
                     </div>
                 </div>
@@ -246,8 +300,8 @@ if (isset($_POST['login'])) {
                 </button>
 
                 <div class="text-center d-grid gap-2">
-                    <p class="small text-muted mb-0 fw-medium">Belum punya akun? <a href="register_pelanggan.php" class="text-danger fw-bold text-decoration-none" style="color: var(--primary) !important;">Daftar Sekarang</a></p>
-                    <p class="small text-muted mb-0 fw-medium">Kembali ke <a href="../index.php" class="text-secondary fw-bold text-decoration-none">Portal Utama</a></p>
+                    <p class="small mb-1 fw-medium" style="color: rgba(255,255,255,0.75);">Belum punya akun? <a href="register_pelanggan.php" class="link-register">Daftar Sekarang</a></p>
+                    <p class="small mb-0 fw-medium" style="color: rgba(255,255,255,0.5);">Kembali ke <a href="../index.php" class="link-portal">Portal Utama</a></p>
                 </div>
             </form>
         </div>
